@@ -1,0 +1,24 @@
+# Blender MTL File: 'untitled.blend'
+# Material Count: 2
+newmtl ball_ball
+Ns 96.078431
+Ka 0.000000 0.000000 0.000000
+Kd 0.640000 0.640000 0.640000
+Ks 0.500000 0.500000 0.500000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd /Users/rom/Desktop/BOOK/content/SDK/data/chapter7-5/ball.png
+
+
+newmtl red_bake.001
+Ns 96.078431
+Ka 0.000000 0.000000 0.000000
+Kd 0.640000 0.640000 0.640000
+Ks 0.500000 0.500000 0.500000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd /Users/rom/Desktop/BOOK/content/SDK/data/chapter7-4/diffuse.png
+
+

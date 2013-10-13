@@ -1,0 +1,287 @@
+/*
+
+Book:      	Game and Graphics Programming for iOS and Android with OpenGL(R) ES 2.0
+Author:    	Romain Marucchi-Foino
+ISBN-10: 	1119975913
+ISBN-13: 	978-1119975915
+Publisher: 	John Wiley & Sons	
+
+Copyright (C) 2011 Romain Marucchi-Foino
+
+This software is provided 'as-is', without any express or implied warranty.
+In no event will the authors be held liable for any damages arising from the use of
+this software. Permission is granted to anyone who either own or purchase a copy of
+the book specified above, to use this software for any purpose, including commercial
+applications subject to the following restrictions:
+
+1. The origin of this software must not be misrepresented; you must not claim that
+you wrote the original software. If you use this software in a product, an acknowledgment
+in the product would be appreciated but is not required.
+
+2. Altered source versions must be plainly marked as such, and must not be misrepresented
+as being the original software.
+
+3. This notice may not be removed or altered from any source distribution.
+
+*/
+
+
+GL_VERTEX_SHADER
+
+#define MAX_LAMP 2
+
+struct lamp
+{
+	highp vec3 position;
+	
+	lowp vec3 direction;
+
+	lowp vec3 spot_direction;	
+};
+
+
+uniform highp mat4 MODELVIEWMATRIX;
+
+uniform highp mat4 PROJECTIONMATRIX;
+
+uniform lowp mat3 NORMALMATRIX;
+
+uniform lamp LAMP_VS[ MAX_LAMP ];
+
+
+attribute highp vec3 POSITION;
+
+attribute mediump vec2 TEXCOORD0;
+
+attribute lowp vec3 NORMAL;
+
+attribute lowp vec3 TANGENT0;
+
+
+varying highp vec3 position;
+
+varying highp vec3 lightdir[ MAX_LAMP ];
+
+varying mediump vec2 texcoord0;
+
+varying lowp vec3 spotdir;
+
+
+void main( void ) { 
+
+	texcoord0 = TEXCOORD0;
+
+	lowp mat3 tbn;
+	
+	tbn[ 2 ] = normalize( NORMALMATRIX * NORMAL );
+	tbn[ 0 ] = normalize( NORMALMATRIX * TANGENT0 );
+	tbn[ 1 ] = cross( tbn[ 2 ], tbn[ 0 ] );
+	
+	position = vec3( MODELVIEWMATRIX * vec4( POSITION, 1.0 ) );
+	
+	gl_Position = PROJECTIONMATRIX * vec4( position, 1.0 );
+	
+	//lightdir = LAMP_VS.direction * tbn;
+	
+	//lightdir = ( LAMP_VS.position - position ) * tbn;
+
+	//spotdir = LAMP_VS.spot_direction * tbn;
+
+
+	for( int i = 0; i < MAX_LAMP; ++i )
+	{
+		lightdir[i] = ( LAMP_VS[i].position - position ) * tbn;
+	}		
+	
+	position = -normalize( position * tbn );
+}
+
+
+GL_FRAGMENT_SHADER
+
+#define MAX_LAMP 2
+
+struct material
+{
+	lowp vec4 ambient;
+	lowp vec4 diffuse;
+	lowp vec4 specular;
+	mediump float shininess;
+};
+
+struct lamp 
+{
+	lowp vec4 color;
+	
+	mediump float distance;
+	
+	lowp float linear_attenuation;
+	
+	lowp float quadratic_attenuation;
+	
+	lowp float spot_cos_cutoff;
+	
+	lowp float spot_blend;
+};
+
+
+uniform sampler2D DIFFUSE;
+
+uniform sampler2D BUMP;
+
+uniform lamp LAMP_FS[ MAX_LAMP ];
+
+uniform material MATERIAL;
+
+
+varying highp vec3 position;
+
+varying highp vec3 lightdir[ MAX_LAMP ];
+
+varying mediump vec2 texcoord0;
+
+varying lowp vec3 spotdir;
+
+
+void directional_lamp( in lamp _lamp,
+                       in lowp vec3 _lightdir,
+                       inout lowp vec4 _final_color ) {
+
+	lowp vec3 normal = texture2D( BUMP, texcoord0 ).rgb * 2.0 - 1.0;
+
+	lowp float ndotl = max( dot( normal, _lightdir ), 0.0 );
+	
+	if( ndotl > 0.0 ) {
+		
+		lowp float ndoth = max( dot( normal, normalize( _lightdir + position ) ), 0.0 );
+		
+		_final_color += MATERIAL.diffuse * _lamp.color * ndotl;
+
+		_final_color += MATERIAL.specular * _lamp.color * pow( ndoth, MATERIAL.shininess );
+	}
+}
+
+
+void point_lamp( in lamp _lamp,
+				 in highp vec3 _lightdir,
+				 inout lowp vec4 _final_color ) {
+	
+	lowp vec3 normal = texture2D( BUMP, texcoord0 ).rgb * 2.0 - 1.0;
+	
+	lowp vec3 nlightdir = normalize( _lightdir );
+
+	lowp float ndotl = max( dot( normal, nlightdir ), 0.0 );
+
+	if( ndotl > 0.0 ) {
+	
+		lowp float ndoth = max( dot( normal, normalize( nlightdir + position ) ), 0.0 );
+	
+		_final_color += MATERIAL.diffuse * _lamp.color * ndotl;
+
+		_final_color += MATERIAL.specular * _lamp.color * pow( ndoth, MATERIAL.shininess );
+	}
+}
+
+
+void point_lamp_with_attenuation( in lamp _lamp,
+								  in highp vec3 _lightdir,
+								  inout lowp vec4 _final_color ) {
+	
+	lowp vec3 normal = texture2D( BUMP, texcoord0 ).rgb * 2.0 - 1.0;
+	
+	lowp vec3 nlightdir = normalize( _lightdir );
+
+	lowp float ndotl = max( dot( normal, nlightdir ), 0.0 );
+
+	if( ndotl > 0.0 ) {
+	
+		highp float dist = length( _lightdir );
+
+		highp float lampdistsqr = _lamp.distance * _lamp.distance;
+
+		lowp float att = _lamp.distance / ( _lamp.distance + _lamp.linear_attenuation * dist );
+		
+		att *= lampdistsqr / ( lampdistsqr + _lamp.quadratic_attenuation * dist * dist );
+	
+		lowp float ndoth = max( dot( normal, normalize( nlightdir + position ) ), 0.0 );
+	
+		_final_color += MATERIAL.diffuse * _lamp.color * ndotl * att;
+
+		_final_color += MATERIAL.specular * _lamp.color * pow( ndoth, MATERIAL.shininess ) * att;
+	}
+}
+
+
+void point_sphere_lamp( in lamp _lamp,
+						in highp vec3 _lightdir,
+						inout lowp vec4 _final_color ) {
+	
+	lowp vec3 normal = texture2D( BUMP, texcoord0 ).rgb * 2.0 - 1.0;
+	
+	lowp vec3 nlightdir = normalize( _lightdir );
+
+	lowp float ndotl = max( dot( normal, nlightdir ), 0.0 );
+
+	if( ndotl > 0.0 ) {
+	
+		lowp float sphere = max( _lamp.distance - length( _lightdir ), 0.0 ) / _lamp.distance;
+	
+		lowp float ndoth = max( dot( normal, normalize( nlightdir + position ) ), 0.0 );
+	
+		_final_color += MATERIAL.diffuse * _lamp.color * ndotl * sphere;
+
+		_final_color += MATERIAL.specular * _lamp.color * pow( ndoth, MATERIAL.shininess ) * sphere;
+	}
+}
+
+
+void spot_lamp( in lamp _lamp,
+				in highp vec3 _lightdir,
+				in lowp vec3 _spotdir,
+				inout lowp vec4 _final_color ) {
+	
+	lowp vec3 normal = texture2D( BUMP, texcoord0 ).rgb * 2.0 - 1.0;
+	
+	lowp vec3 nlightdir = normalize( _lightdir );
+
+	lowp float ndotl = max( dot( normal, nlightdir ), 0.0 );
+
+	if( ndotl > 0.0 ) {
+
+		lowp float ldots = max( dot( nlightdir, _spotdir ), 0.0 );
+		
+		if( ldots > _lamp.spot_cos_cutoff ) {
+		
+			lowp float ndoth = max( dot( normal, normalize( nlightdir + position ) ), 0.0 );
+
+			lowp float spot = ldots * clamp( ( ldots - _lamp.spot_cos_cutoff ) / _lamp.spot_blend, 0.0, 1.0 );
+
+			_final_color += MATERIAL.diffuse * _lamp.color * ndotl * spot;
+
+			_final_color += MATERIAL.specular * _lamp.color * pow( ndoth, MATERIAL.shininess ) * spot;
+		}
+	}
+}
+
+
+void main( void ) {
+
+	lowp vec4 final_color = MATERIAL.ambient;
+	
+	//directional_lamp( LAMP_FS, lightdir, final_color );
+
+	//point_lamp( LAMP_FS, lightdir, final_color );
+	
+	//point_lamp_with_attenuation( LAMP_FS, lightdir, final_color );
+
+	//point_sphere_lamp( LAMP_FS, lightdir, final_color );
+
+	//spot_lamp( LAMP_FS, lightdir, spotdir, final_color );
+
+	for( int i = 0; i < MAX_LAMP; ++i )
+	{
+		point_sphere_lamp( LAMP_FS[i], lightdir[i], final_color );
+	}
+	
+	gl_FragColor = texture2D( DIFFUSE, texcoord0 ) * final_color;
+}

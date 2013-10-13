@@ -1,0 +1,156 @@
+# Blender MTL File: 'untitled.blend'
+# Material Count: 13
+newmtl Material
+Ns 96.078431
+Ka 0.000000 0.000000 0.000000
+Kd 0.640000 0.640000 0.640000
+Ks 0.500000 0.500000 0.500000
+Ni 1.000000
+d 1.000000
+illum 2
+
+
+newmtl ball_ball
+Ns 96.078431
+Ka 0.000000 0.000000 0.000000
+Kd 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd ball.png
+map_Tr diffuse.gfx
+
+
+newmtl bridge_bridge.png
+Ns 96.078431
+Ka 0.000000 0.000000 0.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd bridge.png
+map_Tr diffuse.gfx
+
+
+newmtl end_end.png
+Ns 96.078431
+Ka 0.000000 0.000000 0.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd end.png
+map_Tr diffuse.gfx
+
+
+newmtl gem_blue_gem_blue.png
+Ns 96.078431
+Ka 0.000000 0.000000 0.000000
+Kd 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd gem_blue.png
+map_Tr diffuse.gfx
+
+
+newmtl gem_green_gem_green.png
+Ns 96.078431
+Ka 0.000000 0.000000 0.000000
+Kd 0.000000 1.000000 0.000000
+Ks 0.500000 0.500000 0.500000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd gem_green.png
+map_Tr diffuse.gfx
+
+
+newmtl gem_red_gem_red.png
+Ns 96.078431
+Ka 0.000000 0.000000 0.000000
+Kd 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd gem_red.png
+map_Tr diffuse.gfx
+
+
+newmtl gem_yellow_gem_yellow.png
+Ns 96.078431
+Ka 0.000000 0.000000 0.000000
+Kd 1.000000 1.000000 0.000000
+Ks 0.500000 0.500000 0.500000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd gem_yellow.png
+map_Tr diffuse.gfx
+
+
+newmtl lava_lava.png
+Ns 96.078431
+Ka 0.000000 0.000000 0.000000
+Kd 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd lava.png
+map_Tr scroll_texture.gfx
+
+
+newmtl maze_labyrinth.png
+Ns 96.078431
+Ka 0.000000 0.000000 0.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd labyrinth.png
+map_Tr diffuse.gfx
+
+
+newmtl start_start.png.001
+Ns 96.078431
+Ka 0.000000 0.000000 0.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd start.png
+map_Tr diffuse.gfx
+
+
+newmtl toxic_toxic.png
+Ns 96.078431
+Ka 0.000000 0.000000 0.000000
+Kd 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd toxic.png
+map_Tr scroll_texture.gfx
+
+
+newmtl water_water.png
+Ns 96.078431
+Ka 0.000000 0.000000 0.000000
+Kd 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd water.png
+map_Tr scroll_texture.gfx
+
+

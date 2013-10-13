@@ -1,0 +1,198 @@
+// !$*UTF8*$!
+{
+	08FB7793FE84155DC02AAC07 /* Project object */ = {
+		activeArchitecturePreference = x86_64;
+		activeBuildConfigurationName = Release;
+		activeExecutable = E08C5FD413BAA5FF0049E83F /* glsloptimizerCL */;
+		activeTarget = 8DD76F620486A84900D96B5E /* glsloptimizerCL */;
+		addToTargets = (
+			8DD76F620486A84900D96B5E /* glsloptimizerCL */,
+		);
+		breakpoints = (
+		);
+		codeSenseManager = E08C5FE013BAA6020049E83F /* Code sense */;
+		executables = (
+			E08C5FD413BAA5FF0049E83F /* glsloptimizerCL */,
+		);
+		perUserDictionary = {
+			"PBXConfiguration.PBXBreakpointsDataSource.v1:1CA23EDF0692099D00951B8B" = {
+				PBXFileTableDataSourceColumnSortingDirectionKey = "-1";
+				PBXFileTableDataSourceColumnSortingKey = PBXBreakpointsDataSource_BreakpointID;
+				PBXFileTableDataSourceColumnWidthsKey = (
+					20,
+					20,
+					215,
+					20,
+					115,
+					115,
+					43,
+					20,
+				);
+				PBXFileTableDataSourceColumnsKey = (
+					PBXBreakpointsDataSource_ActionID,
+					PBXBreakpointsDataSource_TypeID,
+					PBXBreakpointsDataSource_BreakpointID,
+					PBXBreakpointsDataSource_UseID,
+					PBXBreakpointsDataSource_LocationID,
+					PBXBreakpointsDataSource_ConditionID,
+					PBXBreakpointsDataSource_IgnoreCountID,
+					PBXBreakpointsDataSource_ContinueID,
+				);
+			};
+			PBXConfiguration.PBXFileTableDataSource3.PBXFileTableDataSource = {
+				PBXFileTableDataSourceColumnSortingDirectionKey = "-1";
+				PBXFileTableDataSourceColumnSortingKey = PBXFileDataSource_Filename_ColumnID;
+				PBXFileTableDataSourceColumnWidthsKey = (
+					20,
+					378,
+					20,
+					48,
+					43,
+					43,
+					20,
+				);
+				PBXFileTableDataSourceColumnsKey = (
+					PBXFileDataSource_FiletypeID,
+					PBXFileDataSource_Filename_ColumnID,
+					PBXFileDataSource_Built_ColumnID,
+					PBXFileDataSource_ObjectSize_ColumnID,
+					PBXFileDataSource_Errors_ColumnID,
+					PBXFileDataSource_Warnings_ColumnID,
+					PBXFileDataSource_Target_ColumnID,
+				);
+			};
+			PBXPerProjectTemplateStateSaveDate = 331000373;
+			PBXWorkspaceStateSaveDate = 331000373;
+		};
+		perUserProjectItems = {
+			E08C604913BAA9660049E83F /* PBXTextBookmark */ = E08C604913BAA9660049E83F /* PBXTextBookmark */;
+			E08C614913BACBA30049E83F /* PBXTextBookmark */ = E08C614913BACBA30049E83F /* PBXTextBookmark */;
+			E08C614A13BACBA30049E83F /* PBXTextBookmark */ = E08C614A13BACBA30049E83F /* PBXTextBookmark */;
+			E08C614C13BACBB80049E83F /* PBXTextBookmark */ = E08C614C13BACBB80049E83F /* PBXTextBookmark */;
+		};
+		sourceControlManager = E08C5FDF13BAA6020049E83F /* Source Control */;
+		userBuildSettings = {
+		};
+	};
+	8DD76F620486A84900D96B5E /* glsloptimizerCL */ = {
+		activeExec = 0;
+		executables = (
+			E08C5FD413BAA5FF0049E83F /* glsloptimizerCL */,
+		);
+	};
+	E08C5FD413BAA5FF0049E83F /* glsloptimizerCL */ = {
+		isa = PBXExecutable;
+		activeArgIndices = (
+			YES,
+		);
+		argumentStrings = (
+			"-in /Users/rom/Desktop/BOOK/content/SDK/chapter5-5/fragment.glsl -out /Users/rom/Desktop/BOOK/content/SDK/chapter5-5/fragment.glsl -profile GL_FRAGMENT_SHADER",
+		);
+		autoAttachOnCrash = 1;
+		breakpointsEnabled = 1;
+		configStateDict = {
+		};
+		customDataFormattersEnabled = 1;
+		dataTipCustomDataFormattersEnabled = 1;
+		dataTipShowTypeColumn = 1;
+		dataTipSortType = 0;
+		debuggerPlugin = GDBDebugging;
+		disassemblyDisplayState = 0;
+		dylibVariantSuffix = "";
+		enableDebugStr = 1;
+		environmentEntries = (
+		);
+		executableSystemSymbolLevel = 0;
+		executableUserSymbolLevel = 0;
+		libgmallocEnabled = 0;
+		name = glsloptimizerCL;
+		savedGlobals = {
+		};
+		showTypeColumn = 0;
+		sourceDirectories = (
+		);
+		variableFormatDictionary = {
+		};
+	};
+	E08C5FDF13BAA6020049E83F /* Source Control */ = {
+		isa = PBXSourceControlManager;
+		fallbackIsa = XCSourceControlManager;
+		isSCMEnabled = 0;
+		scmConfiguration = {
+			repositoryNamesForRoots = {
+				"" = "";
+			};
+		};
+	};
+	E08C5FE013BAA6020049E83F /* Code sense */ = {
+		isa = PBXCodeSenseManager;
+		indexTemplatePath = "";
+	};
+	E08C600F13BAA8120049E83F /* main.cpp */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {763, 2119}}";
+			sepNavSelRange = "{2854, 0}";
+			sepNavVisRange = "{2142, 288}";
+		};
+	};
+	E08C602F13BAA93F0049E83F /* glsl_optimizer.h */ = {
+		isa = PBXFileReference;
+		fileEncoding = 4;
+		lastKnownFileType = sourcecode.c.h;
+		name = glsl_optimizer.h;
+		path = /Users/rom/Desktop/BOOK/content/SDK/glsloptimizer/src/glsl/glsl_optimizer.h;
+		sourceTree = "<absolute>";
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {887, 728}}";
+			sepNavSelRange = "{0, 0}";
+			sepNavVisRange = "{0, 680}";
+		};
+	};
+	E08C604913BAA9660049E83F /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = E08C602F13BAA93F0049E83F /* glsl_optimizer.h */;
+		name = "glsl_optimizer.h: 1";
+		rLen = 0;
+		rLoc = 0;
+		rType = 0;
+		vrLen = 680;
+		vrLoc = 0;
+	};
+	E08C612E13BAC7010049E83F /* glsl_optimizer.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {887, 663}}";
+			sepNavSelRange = "{567, 20}";
+			sepNavVisRange = "{0, 1418}";
+		};
+	};
+	E08C614913BACBA30049E83F /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = E08C612E13BAC7010049E83F /* glsl_optimizer.h */;
+		name = "glsl_optimizer.h: 28";
+		rLen = 20;
+		rLoc = 567;
+		rType = 0;
+		vrLen = 1418;
+		vrLoc = 0;
+	};
+	E08C614A13BACBA30049E83F /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = E08C600F13BAA8120049E83F /* main.cpp */;
+		name = "main.cpp: 31";
+		rLen = 0;
+		rLoc = 833;
+		rType = 0;
+		vrLen = 780;
+		vrLoc = 933;
+	};
+	E08C614C13BACBB80049E83F /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = E08C600F13BAA8120049E83F /* main.cpp */;
+		name = "main.cpp: 30";
+		rLen = 11;
+		rLoc = 797;
+		rType = 0;
+		vrLen = 996;
+		vrLoc = 0;
+	};
+}

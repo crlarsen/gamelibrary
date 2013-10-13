@@ -1,0 +1,39 @@
+# Blender MTL File: 'untitled.blend'
+# Material Count: 3
+newmtl floor_sphere
+Ns 47.058824
+Ka 0.000000 0.000000 0.000000
+Kd 1.000000 1.000000 1.000000
+Ks 1.000000 1.000000 1.000000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd chapter10-1/sphere.png
+map_Tr /Users/rom/Desktop/BOOK/content/SDK/data/template_chapter10-1/lighting.gfx
+map_Bump chapter10-1/sphere_n.png
+
+
+newmtl fullscreen
+Ns 96.078431
+Ka 0.000000 0.000000 0.000000
+Kd 0.640000 0.640000 0.640000
+Ks 0.500000 0.500000 0.500000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Tr untitled.blend/blur.gfx
+
+
+newmtl sphere_floor
+Ns 47.058824
+Ka 0.000000 0.000000 0.000000
+Kd 1.000000 1.000000 1.000000
+Ks 1.000000 1.000000 1.000000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd chapter10-1/floor.png
+map_Tr /Users/rom/Desktop/BOOK/content/SDK/data/template_chapter10-1/lighting.gfx
+map_Bump chapter10-1/floor_n.png
+
+

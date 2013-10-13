@@ -1,0 +1,157 @@
+/*
+
+Book:      	Game and Graphics Programming for iOS and Android with OpenGL(R) ES 2.0
+Author:    	Romain Marucchi-Foino
+ISBN-10: 	1119975913
+ISBN-13: 	978-1119975915
+Publisher: 	John Wiley & Sons	
+
+Copyright (C) 2011 Romain Marucchi-Foino
+
+This software is provided 'as-is', without any express or implied warranty.
+In no event will the authors be held liable for any damages arising from the use of
+this software. Permission is granted to anyone who either own or purchase a copy of
+the book specified above, to use this software for any purpose, including commercial
+applications subject to the following restrictions:
+
+1. The origin of this software must not be misrepresented; you must not claim that
+you wrote the original software. If you use this software in a product, an acknowledgment
+in the product would be appreciated but is not required.
+
+2. Altered source versions must be plainly marked as such, and must not be misrepresented
+as being the original software.
+
+3. This notice may not be removed or altered from any source distribution.
+
+*/
+
+GL_VERTEX_SHADER
+
+struct light
+{
+	highp vec3 position;
+	
+	lowp vec3 spot_direction;	
+};
+
+
+uniform highp mat4 MODELVIEWMATRIX;
+
+uniform highp mat4 PROJECTIONMATRIX;
+
+uniform lowp mat3 NORMALMATRIX;
+
+uniform light LIGHT_VS;
+
+
+attribute highp vec3 POSITION;
+
+attribute mediump vec2 TEXCOORD0;
+
+attribute lowp vec3 NORMAL;
+
+attribute lowp vec3 TANGENT0;
+
+
+varying highp vec3 position;
+
+varying highp vec3 lightdir;
+
+varying mediump vec2 texcoord0;
+
+varying lowp vec3 spotdir;
+
+
+void main( void ) { 
+
+	texcoord0 = TEXCOORD0;
+
+	lowp mat3 tbn;
+	
+	tbn[ 2 ] = normalize( NORMALMATRIX * NORMAL );
+	tbn[ 0 ] = normalize( NORMALMATRIX * TANGENT0 );
+	tbn[ 1 ] = cross( tbn[ 2 ], tbn[ 0 ] );
+	
+	position = vec3( MODELVIEWMATRIX * vec4( POSITION, 1.0 ) );
+	
+	gl_Position = PROJECTIONMATRIX * vec4( position, 1.0 );
+
+	lightdir = ( LIGHT_VS.position - position ) * tbn;
+
+	spotdir = LIGHT_VS.spot_direction * tbn;
+		
+	position = -normalize( position * tbn );
+}
+
+
+GL_FRAGMENT_SHADER
+
+
+struct material
+{
+	lowp vec4 ambient;
+	lowp vec4 diffuse;
+	lowp vec4 specular;
+	mediump float shininess;
+};
+
+struct light 
+{
+	lowp vec4 color;
+	
+	lowp float spot_cos_cutoff;
+	
+	lowp float spot_blend;
+};
+
+
+uniform sampler2D DIFFUSE;
+
+uniform sampler2D BUMP;
+
+uniform light LIGHT_FS;
+
+uniform material MATERIAL;
+
+
+varying highp vec3 position;
+
+varying highp vec3 lightdir;
+
+varying mediump vec2 texcoord0;
+
+varying lowp vec3 spotdir;
+
+
+void main( void ) {
+
+	lowp vec4 diffuse_color = MATERIAL.ambient;
+
+	lowp vec4 specular_color = vec4( 0.0 );
+	
+	lowp vec3 normal = texture2D( BUMP, texcoord0 ).rgb * 2.0 - 1.0;
+	
+	lowp vec3 nlightdir = normalize( lightdir );
+
+	lowp float ndotl = max( dot( normal, nlightdir ), 0.0 );
+	
+	lowp float spot = 0.0;
+
+	if( ndotl > 0.0 ) {
+
+		lowp float ldots = max( dot( nlightdir, spotdir ), 0.0 );
+		
+		if( ldots > LIGHT_FS.spot_cos_cutoff ) {
+		
+			lowp float ndoth = max( dot( normal, normalize( nlightdir + position ) ), 0.0 );
+
+			spot = ldots * clamp( ( ldots - LIGHT_FS.spot_cos_cutoff ) / LIGHT_FS.spot_blend, 0.0, 1.0 );
+
+			diffuse_color += texture2D( DIFFUSE, texcoord0 ) * MATERIAL.diffuse * LIGHT_FS.color * ndotl * spot;
+			
+			specular_color = MATERIAL.specular * LIGHT_FS.color * pow( ndoth, MATERIAL.shininess ) * spot;
+		}
+	}
+
+	gl_FragColor = diffuse_color + specular_color;
+}
