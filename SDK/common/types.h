@@ -28,9 +28,9 @@ as being the original software.
 
 #define MAX_PATH	256
 
-#define DEG_TO_RAD	M_PI / 180.0f
+#define DEG_TO_RAD	(M_PI / 180.0f)
 
-#define RAD_TO_DEG	90.0f / M_PI
+#define RAD_TO_DEG	(180.0f / M_PI)
 
 #define BUFFER_OFFSET( x ) ( ( char * )NULL + x )
 

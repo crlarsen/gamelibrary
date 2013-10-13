@@ -9,7 +9,7 @@ class VertexCache
 	
 public:
 	
-	VertexCache(int size);
+	VertexCache(int size=16);
 	/*
 	{
 		numEntries = size;
