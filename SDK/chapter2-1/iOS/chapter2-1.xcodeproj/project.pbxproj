@@ -13,6 +13,8 @@
 		28AD733F0D9D9553002E5188 /* MainWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = 28AD733E0D9D9553002E5188 /* MainWindow.xib */; };
 		28FD15000DC6FC520079059D /* OpenGLES.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 28FD14FF0DC6FC520079059D /* OpenGLES.framework */; };
 		28FD15080DC6FC5B0079059D /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 28FD15070DC6FC5B0079059D /* QuartzCore.framework */; };
+		8336F81518107D0D00DCB6C7 /* first.fs in Resources */ = {isa = PBXBuildFile; fileRef = 835C3E1C180B51F1001857CE /* first.fs */; };
+		8336F81618107D1000DCB6C7 /* first.vs in Resources */ = {isa = PBXBuildFile; fileRef = 835C3E1D180B51F1001857CE /* first.vs */; };
 		835C3E1B180B4DA3001857CE /* Default-568h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 835C3E1A180B4DA3001857CE /* Default-568h@2x.png */; };
 		E002BCF5135BEC0A00FCFC0B /* EAGLView.mm in Sources */ = {isa = PBXBuildFile; fileRef = E002BCF0135BEC0A00FCFC0B /* EAGLView.mm */; };
 		E002BCF6135BEC0A00FCFC0B /* templateAppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = E002BCF2135BEC0A00FCFC0B /* templateAppDelegate.mm */; };
@@ -1471,6 +1473,8 @@
 				28AD733F0D9D9553002E5188 /* MainWindow.xib in Resources */,
 				E03906EE1380CCD400ECB6EC /* templateViewController.xib in Resources */,
 				835C3E1B180B4DA3001857CE /* Default-568h@2x.png in Resources */,
+				8336F81518107D0D00DCB6C7 /* first.fs in Resources */,
+				8336F81618107D1000DCB6C7 /* first.vs in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

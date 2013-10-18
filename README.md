@@ -5,6 +5,9 @@ My modifications to Romain Marucchi-Foino's code from the book "Game and
 Graphics Programming for iOS and Android with OpenGL ES 2.0" published by
 Wrox.
 
+My blog which discusses these changes can be found at
+http://bitfields.blogspot.com/.
+
 All copyrights are the property of their respective owner's.
 
 My changes to the code may be freely used and redistributed but the user
