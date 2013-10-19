@@ -17,13 +17,13 @@ authors for the various included works.
 History
 =======
 
-Oct 18, 2013 - Check-in Chapter4 sample programs.
+Oct 19, 2013 - Check-in Chapter 5 sample programs.
 
-               Check-in Chapter3 sample programs.
+Oct 18, 2013 - Check-in Chapter 4 sample programs.
+             - Check-in Chapter 3 sample programs.
 
 Oct 17, 2013 - Check-in chapter2-2 & chapter2-3 sample programs.
 
 Oct 13, 2013 - Check-in chapter2-1 sample program.
-
-               Initial check in of code as delivered by
+             - Initial check in of code as delivered by
                Romain Marucchi-Foino
