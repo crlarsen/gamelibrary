@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDESourceControlProjectFavoriteDictionaryKey</key>
+	<false/>
+	<key>IDESourceControlProjectIdentifier</key>
+	<string>1B4232AA-D3D0-4E83-8B49-5C817B2FED8C</string>
+	<key>IDESourceControlProjectName</key>
+	<string>templateApp</string>
+	<key>IDESourceControlProjectOriginsDictionary</key>
+	<dict>
+		<key>319C7A59-3A40-4633-8248-02A88C972D70</key>
+		<string>https://github.com/crlarsen/gamelibrary/</string>
+	</dict>
+	<key>IDESourceControlProjectPath</key>
+	<string>SDK/chapter7-4/iOS/templateApp.xcodeproj/project.xcworkspace</string>
+	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
+	<dict>
+		<key>319C7A59-3A40-4633-8248-02A88C972D70</key>
+		<string>../../../../..</string>
+	</dict>
+	<key>IDESourceControlProjectURL</key>
+	<string>https://github.com/crlarsen/gamelibrary/</string>
+	<key>IDESourceControlProjectVersion</key>
+	<integer>110</integer>
+	<key>IDESourceControlProjectWCCIdentifier</key>
+	<string>319C7A59-3A40-4633-8248-02A88C972D70</string>
+	<key>IDESourceControlProjectWCConfigurations</key>
+	<array>
+		<dict>
+			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
+			<string>public.vcs.git</string>
+			<key>IDESourceControlWCCIdentifierKey</key>
+			<string>319C7A59-3A40-4633-8248-02A88C972D70</string>
+			<key>IDESourceControlWCCName</key>
+			<string>gamelibrary</string>
+		</dict>
+	</array>
+</dict>
+</plist>
