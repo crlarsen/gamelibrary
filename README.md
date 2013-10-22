@@ -17,6 +17,8 @@ authors for the various included works.
 History
 =======
 
+Oct 22, 2013 - Check-in Chapter 8, 9, & 10 sample programs.
+
 Oct 20, 2013 - Check-in Chapter 7 sample programs.
 
 Oct 20, 2013 - Check-in Chapter 6 sample programs.

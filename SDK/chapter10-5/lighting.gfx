@@ -1,0 +1,344 @@
+/*
+
+Book:      	Game and Graphics Programming for iOS and Android with OpenGL(R) ES 2.0
+Author:    	Romain Marucchi-Foino
+ISBN-10: 	1119975913
+ISBN-13: 	978-1119975915
+Publisher: 	John Wiley & Sons	
+
+Copyright (C) 2011 Romain Marucchi-Foino
+
+This software is provided 'as-is', without any express or implied warranty.
+In no event will the authors be held liable for any damages arising from the use of
+this software. Permission is granted to anyone who either own or purchase a copy of
+the book specified above, to use this software for any purpose, including commercial
+applications subject to the following restrictions:
+
+1. The origin of this software must not be misrepresented; you must not claim that
+you wrote the original software. If you use this software in a product, an acknowledgment
+in the product would be appreciated but is not required.
+
+2. Altered source versions must be plainly marked as such, and must not be misrepresented
+as being the original software.
+
+3. This notice may not be removed or altered from any source distribution.
+
+*/
+
+GL_VERTEX_SHADER
+
+/* Create a lamp structure that has a direction property (because that is
+ * the only one that you need right now for the vertex processing phase).
+ */
+struct lamp
+{
+    /* The XYZ position of the lamp that will be received in eye space (in
+     * other words, already multiplied by the camera modelview matrix).
+     * Note that this operation will be ahndled in C/C++ at runtime.
+     */
+    highp vec3 position;
+    lowp vec3 direction;
+    lowp vec3 spot_direction;
+};
+
+uniform highp mat4 MODELVIEWMATRIX;
+
+uniform highp mat4 PROJECTIONMATRIX;
+
+uniform lowp mat3 NORMALMATRIX;
+
+uniform lamp LAMP_VS;
+
+
+attribute highp vec3 POSITION;
+
+attribute mediump vec2 TEXCOORD0;
+
+attribute lowp vec3 NORMAL;
+
+attribute lowp vec3 TANGENT0;
+
+/* The position of the vertex, is originally calculated in eye space and
+ * then converted to tangent space (because you are going to use normal
+ * mapping, and the normal map is in tangent space).
+ */
+varying highp vec3 position;
+/* The light direction vector, sent over by the C/C++ application in eye
+ * space and then converted to tangent space.
+ */
+varying highp vec3 lightdir;
+
+varying mediump vec2 texcoord0;
+
+varying lowp vec3 spotdir;
+
+void main( void ) { 
+
+	texcoord0 = TEXCOORD0;
+
+    /* Declare a 3x3 matrix to handle the TBN matrix to be able to convert
+     * the necessary lighting vectors to tangent space.
+     */
+    lowp mat3 tbn;
+    /* Rotate the vertex normal by the current normal matrix. */
+    tbn[ 2 ] = normalize( NORMALMATRIX * NORMAL );
+    /* Rotate the tangent vector, which was created based on the direction
+     * of the normal and the UV coordinate (see obj.cpp for more information).
+     */
+    tbn[ 0 ] = normalize( NORMALMATRIX * TANGENT0 );
+    /* Here the binormal is simply computed by using the cross product of
+     * the normal and the tangen, but you could also calculated it on the
+     * CPU to save some GPU calculations if the object is static.
+     */
+    tbn[ 1 ] = cross( tbn[ 2 ], tbn[ 0 ] );
+    /* Calculate the position of the vertex in eye space. */
+    position = vec3( MODELVIEWMATRIX * vec4( POSITION, 1.0 ) );
+    /* Multiply the eye space position of the vertex by the current
+     * projection matrix to be able to place it onscreen.
+     */
+    gl_Position = PROJECTIONMATRIX * vec4( position, 1.0 );
+    /* Convert the eye position of the vertex to tangent space space and
+     * invert it (because the direction in eye space is simply the invert
+     * of the vertex eye space position).
+     *
+    position = -normalize( position * tbn );
+    /* Convert the lamp direction vector from eye space to tangent space. */
+//    lightdir = LAMP_VS.direction * tbn;
+    lightdir = ( LAMP_VS.position - position ) * tbn;
+    /* Convert current spot direction from homogeneous object space to
+     * tangent space to make sure that all lighting data are in the same
+     * space before proceeding with the appropriate lighting calculation.
+     */
+    spotdir = LAMP_VS.spot_direction * tbn;
+
+    position = -normalize( position * tbn );
+}
+
+
+GL_FRAGMENT_SHADER
+
+/* Declare a material structure (similiar to the way you created the lamp
+ * structure in GLSL).  As you can see, this material structure uses similiar
+ * properties as an OBJMATERIAL structure that you have been using since the
+ * beginning of the book.  By doing this, it will be really easy for you to
+ * bridge the material data held in client memory to the video memory.
+ */
+struct material
+{
+    lowp vec4 ambient;
+    lowp vec4 diffuse;
+    lowp vec4 specular;
+    mediump float shininess;
+};
+/* Declare another lamp structure, but this time for the fragment
+ * processing phase.  Even if the name is the same as the one in the vertex
+ * shader GLSL, it will still be treated as a different entity, because
+ * vertex and fragment shaders do not share variables (except for varyings).
+ */
+struct lamp
+{
+    lowp vec4 color;
+    mediump float distance;
+    lowp float linear_attenuation;
+    lowp float quadratic_attenuation;
+    lowp float spot_cos_cutoff;
+    lowp float spot_blend;
+};
+
+uniform sampler2D DIFFUSE;
+
+uniform sampler2D BUMP;
+
+/* To be able to receive the lamp data for the fragment processing phase. */
+uniform lamp LAMP_FS;
+/* The current material data used by the geometry you are drawing onscreen. */
+uniform material MATERIAL;
+
+/* The vertex position (in tangent space). */
+varying highp vec3 position;
+/* The light direction (in tangent space). */
+varying highp vec3 lightdir;
+
+varying mediump vec2 texcoord0;
+
+varying lowp vec3 spotdir;
+
+void directional_lamp( in lamp _lamp,
+                      in lowp vec3 _lightdir,
+                      inout lowp vec4 _final_color ) {
+    /* Extract the current normal for the fragment from the normal map
+     * (which is already in tangent space) and convert it to a valid range
+     * so you can deal with it as a regular normal vector.
+     */
+    lowp vec3 normal = texture2D( BUMP, texcoord0 ).rgb * 2.0 - 1.0;
+    /* Calculate the lambert term (light intensity) for the current fragment. */
+    lowp float ndotl = max( dot( normal, _lightdir ), 0.0 );
+    /* If the result is greater than 0, it means that the fragment received
+     * light.
+     */
+    if( ndotl > 0.0 ) {
+        /* Calculate the intensity of the specular color by calculating the
+         * dot product of the normal with the half vector (light direction +
+         * position).
+         */
+        lowp float ndoth = max( dot( normal, normalize( _lightdir + position ) ), 0.0 );
+        /* Calculate the diffuse color for the current fragment based on the
+         * material diffuse color, the lamp color, and the light intensity.
+         */
+        _final_color += MATERIAL.diffuse * _lamp.color * ndotl;
+        /* Do the same for the specular color, except this time calculate the
+         * specular exponent based on the dot product of the specular intensity
+         * and the material specular exponent (shininess or material hardness
+         * if you prefer).
+         */
+        _final_color += MATERIAL.specular * _lamp.color * pow( ndoth, MATERIAL.shininess );
+    }
+}
+
+/* As you can see, this is very similar to the function you created for
+ * the directional lamp; however ther are a few differences.
+ */
+void point_lamp( in lamp _lamp,
+                in highp vec3 _lightdir,
+                inout lowp vec4 _final_color ) {
+    lowp vec3 normal = texture2D( BUMP, texcoord0 ).rgb * 2.0 - 1.0;
+    /* Normalize the light direction vector in the fragment processing
+     * phase.  You will see why in a later exercise.
+     */
+    lowp vec3 nlightdir = normalize( _lightdir );
+    /* Compare the normal with the normalized light direction based on the
+     * position of the lamp and the vertex.
+     */
+    lowp float ndotl = max( dot( normal, nlightdir ), 0.0 );
+
+    if( ndotl > 0.0 ) {
+        /* Use the normalized version of the light direction vector to
+         * calculate the half vector.
+         */
+        lowp float ndoth = max( dot( normal, normalize( nlightdir + position ) ), 0.0 );
+        _final_color += MATERIAL.diffuse * _lamp.color * ndotl;
+        _final_color += MATERIAL.specular * _lamp.color * pow( ndoth, MATERIAL.shininess );
+    }
+}
+
+void point_lamp_with_attenuation( in lamp _lamp,
+                                  in highp vec3 _lightdir,
+                                  inout lowp vec4 _final_color ) {
+    lowp vec3 normal = texture2D( BUMP, texcoord0 ).rgb * 2.0 - 1.0;
+    /* Normalize the light direction vector in the fragment processing
+     * phase.  You will see why in a later exercise.
+     */
+    lowp vec3 nlightdir = normalize( _lightdir );
+    /* Compare the normal with the normalized light direction based on the
+     * position of the lamp and the vertex.
+     */
+    lowp float ndotl = max( dot( normal, nlightdir ), 0.0 );
+
+    if( ndotl > 0.0 ) {
+        /* Get the distance of the fragment from the light position by
+         * requesting the length of the light direction vector.
+         */
+        highp float dist = length( _lightdir );
+        /* Calculate the square falloff distance. */
+        highp float lampdistsqr = _lamp.distance * _lamp.distance;
+        /* Use the linear value in conjunction with the distance to
+         * calculate how much the linear attenuation will impact the
+         * fragment.
+         */
+        lowp float att = _lamp.distance / ( _lamp.distance + _lamp.linear_attenuation * dist );
+        /* Take the current attenuation factor and process how much the
+         * quadratic attenuation will affect the fragment.
+         */
+        att *= lampdistsqr / ( lampdistsqr + _lamp.quadratic_attenuation * dist * dist );
+        /* Use the normalized version of the light direction vector to
+         * calculate the half vector.
+         */
+        lowp float ndoth = max( dot( normal, normalize( nlightdir + position ) ), 0.0 );
+        _final_color += MATERIAL.diffuse *
+                        _lamp.color *
+                        ndotl *
+                        att;    /* Multiplied by the attenuation. */
+        _final_color += MATERIAL.specular *
+                        _lamp.color *
+                        pow( ndoth, MATERIAL.shininess ) *
+                        att;    /* Multiplied by the attenuation. */
+    }
+}
+
+void point_sphere_lamp( in lamp _lamp,
+                        in highp vec3 _lightdir,
+                        inout lowp vec4 _final_color ) {
+    lowp vec3 normal = texture2D( BUMP, texcoord0 ).rgb * 2.0 - 1.0;
+    /* Normalize the light direction vector in the fragment processing
+     * phase.  You will see why in a later exercise.
+     */
+    lowp vec3 nlightdir = normalize( _lightdir );
+    /* Compare the normal with the normalized light direction based on the
+     * position of the lamp and the vertex.
+     */
+    lowp float ndotl = max( dot( normal, nlightdir ), 0.0 );
+
+    if( ndotl > 0.0 ) {
+        /* Calculate if the current fragment is inside the lamp sphere. */
+        lowp float sphere = max( _lamp.distance - length( _lightdir ), 0.0 ) / _lamp.distance;
+        /* Use the normalized version of the light direction vector to
+         * calculate the half vector.
+         */
+        lowp float ndoth = max( dot( normal, normalize( nlightdir + position ) ), 0.0 );
+        _final_color += MATERIAL.diffuse * _lamp.color * ndotl * sphere;
+
+        _final_color += MATERIAL.specular * _lamp.color * pow( ndoth, MATERIAL.shininess ) * sphere;
+    }
+}
+
+void spot_lamp( in lamp _lamp,
+                in highp vec3 _lightdir,
+                in lowp vec3 _spotdir,
+                inout lowp vec4 _final_color ) {
+    lowp vec3 normal = texture2D( BUMP, texcoord0 ).rgb * 2.0 - 1.0;
+    lowp vec3 nlightdir = normalize( _lightdir );
+    lowp float ndotl = max( dot( normal, nlightdir ), 0.0 );
+
+    if( ndotl > 0.0 ) {
+        /* Calculate the dot product between the normalized light direction
+         * and the spot direction.
+         */
+        lowp float ldots = max( dot( nlightdir, _spotdir ), 0.0 );
+        /* If the result is greater than the spot cos cutoff, it means that
+         * the fragment receives light and is inside the cone of light
+         * projected by the spot.
+         */
+        if( ldots > _lamp.spot_cos_cutoff ) {
+            lowp float ndoth = max( dot( normal, normalize( nlightdir + position ) ), 0.0 );
+            /* Progressively smooth the edges of the light circle of the
+             * spot based on the current dot product of the spot direction
+             * and the light direction.
+             */
+            lowp float spot = ldots * clamp( ( ldots - _lamp.spot_cos_cutoff ) / _lamp.spot_blend, 0.0, 1.0 );
+            /* Multiply the result by the attentuation. */
+            _final_color += MATERIAL.diffuse * _lamp.color * ndotl * spot;
+            _final_color += MATERIAL.specular * _lamp.color * pow( ndoth, MATERIAL.shininess ) * spot;
+        }
+    }
+}
+
+void main( void ) {
+    /* Declare a new variable to handle the final color of the fragment and
+     * initialize it with the current material ambient color.
+     */
+    lowp vec4 final_color = MATERIAL.ambient;
+//    /* Call the directional_lamp function to send in the parameters for the
+//     * current LAMP_FS variable, light direction, and the final color to use
+//     * for the current fragment.
+//     */
+//    directional_lamp( LAMP_FS, lightdir, final_color );
+//    point_lamp ( LAMP_FS, lightdir, final_color );
+//    point_lamp_with_attenuation ( LAMP_FS, lightdir, final_color );
+//    point_sphere_lamp ( LAMP_FS, lightdir, final_color );
+    spot_lamp ( LAMP_FS, lightdir, spotdir, final_color );
+    /* Execute a simple texture loopkup on the diffuse texture channel and
+     * multiply it by the final color accumulated in the directional_lamp
+     * function.
+     */
+    gl_FragColor = texture2D( DIFFUSE, texcoord0 ) * final_color;
+}
