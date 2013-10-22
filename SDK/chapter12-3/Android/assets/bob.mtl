@@ -1,0 +1,54 @@
+# Blender MTL File: 'bob.blend'
+# Material Count: 4
+newmtl body_body
+Ns 96.078431
+Ka 0.050000 0.050000 0.050000
+Kd 1.000000 1.000000 1.000000
+Ks 0.250000 0.250000 0.250000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd bob_body_diffuse.png
+map_Tr lighting.gfx
+map_Bump bob_body_normal.png
+
+
+newmtl head_head
+Ns 96.078431
+Ka 0.050000 0.050000 0.050000
+Kd 1.000000 1.000000 1.000000
+Ks 0.100000 0.100000 0.100000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd bob_face_diffuse.png
+map_Tr lighting.gfx
+map_Bump bob_face_normal.png
+
+
+newmtl helmet_helmet
+Ns 96.078431
+Ka 0.050000 0.050000 0.050000
+Kd 1.000000 0.971591 1.000000
+Ks 0.250000 0.250000 0.250000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd bob_helmet_diffuse.png
+map_Tr lighting.gfx
+map_Bump bob_helmet_normal.png
+
+
+newmtl lamp_lamp
+Ns 96.078431
+Ka 0.050000 0.050000 0.050000
+Kd 1.000000 1.000000 1.000000
+Ks 1.000000 1.000000 1.000000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd bob_lamp_diffuse.png
+map_Tr lighting.gfx
+map_Bump bob_lamp_normal.png
+
+

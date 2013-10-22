@@ -1,0 +1,27 @@
+# Blender MTL File: 'untitled.blend'
+# Material Count: 2
+newmtl floor_sphere
+Ns 96.078431
+Ka 0.000000 0.000000 0.000000
+Kd 1.000000 1.000000 1.000000
+Ks 1.000000 1.000000 1.000000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd /Users/rom/Desktop/BOOK/content/SDK/data/chapter11-4/chapter10-1/sphere.png
+map_Tr /Users/rom/Desktop/BOOK/content/SDK/data/chapter11-4/untitled.blend/lighting.gfx
+map_Bump /Users/rom/Desktop/BOOK/content/SDK/data/chapter11-4/chapter10-1/sphere_n.png
+
+
+newmtl particle_particle.png
+Ns 96.078431
+Ka 0.000000 0.000000 0.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd /Users/rom/Desktop/BOOK/content/SDK/data/chapter11-4/untitled.blend/particle.png
+map_Tr /Users/rom/Desktop/BOOK/content/SDK/data/chapter11-4/untitled.blend/particles.gfx
+
+
