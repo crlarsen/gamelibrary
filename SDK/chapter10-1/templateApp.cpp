@@ -247,7 +247,7 @@ void program_draw( void *ptr )
          */
         LAMP_get_direction_in_eye_space( lamp,
                                          &gfx.modelview_matrix[ gfx.modelview_matrix_index - 1 ],
-                                         asicl&direction );
+                                         &direction );
 
         glUniform3fv( PROGRAM_get_uniform_location( program, tmp ),
                       1,
