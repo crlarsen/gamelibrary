@@ -20,86 +20,83 @@ as being the original software.
 3. This notice may not be removed or altered from any source distribution.
 
 */
+/*
+ * Source code modified by Chris Larsen to make the following data types into
+ * proper C++ classes:
+ * - PROGRAM
+ * - SHADER
+ */
 
 #include "gfx.h"
 
-SHADER *SHADER_init( char *name, unsigned int type )
+SHADER::SHADER(char *name, GLenum type) : type(type), sid(0)
 {
-	SHADER *shader = ( SHADER * ) calloc( 1, sizeof( SHADER ) );
+    assert(strlen(name)<sizeof(this->name));
 
-	strcpy( shader->name, name );
-
-	shader->type = type;
-	
-	return shader;
+    strcpy(this->name, name);
 }
 
 
-SHADER *SHADER_free( SHADER *shader )
+SHADER::~SHADER()
 {
-	if( shader->sid ) SHADER_delete_id( shader );
-
-	free( shader );
-	return NULL;
+    this->delete_id();
 }
 
- 
-unsigned char SHADER_compile( SHADER *shader, const char *code, unsigned char debug )
+
+bool SHADER::compile(const char *code, bool debug)
 {
 	char type[ MAX_CHAR ] = {""};
 	
-	int loglen,
-		status;
+	GLint   loglen,
+            status;
 	
-	if( shader->sid ) return 0;
+	if( this->sid ) return false;
 	
-	shader->sid = glCreateShader( shader->type );
+	this->sid = glCreateShader( this->type );
 	
-    glShaderSource( shader->sid, 1, &code, NULL );
+    glShaderSource( this->sid, 1, &code, NULL );
 	
-    glCompileShader( shader->sid );
+    glCompileShader( this->sid );
     
-	if( debug )
-	{
-		if( shader->type == GL_VERTEX_SHADER ) strcpy( type, "GL_VERTEX_SHADER" );
+	if (debug) {
+		if( this->type == GL_VERTEX_SHADER ) strcpy( type, "GL_VERTEX_SHADER" );
 		else strcpy( type, "GL_FRAGMENT_SHADER" );
 		
-		glGetShaderiv( shader->sid, GL_INFO_LOG_LENGTH, &loglen );
+		glGetShaderiv( this->sid, GL_INFO_LOG_LENGTH, &loglen );
 		
-		if( loglen )
-		{
-			char *log = ( char * ) malloc( loglen );
+		if (loglen) {
+			GLchar  *log = (GLchar *) malloc(static_cast<size_t>(loglen));
 
-			glGetShaderInfoLog( shader->sid, loglen, &loglen, log );
+			glGetShaderInfoLog(this->sid,
+                               static_cast<GLsizei>(loglen),
+                               static_cast<GLsizei *>(&loglen),
+                               log);
 			
 			#ifdef __IPHONE_4_0
-			
-				printf("[ %s:%s ]\n%s", shader->name, type, log );
+				printf("[ %s:%s ]\n%s", this->name, type, log);
 			#else
-				__android_log_print( ANDROID_LOG_ERROR, "", "[ %s:%s ]\n%s", shader->name, type, log );
+				__android_log_print(ANDROID_LOG_ERROR, "", "[ %s:%s ]\n%s", this->name, type, log);
 			#endif
 			
 			free( log );
 		}
 	}
     
-    glGetShaderiv( shader->sid, GL_COMPILE_STATUS, &status );
+    glGetShaderiv(this->sid, GL_COMPILE_STATUS, &status);
 	
-	if( !status )
-	{
-		SHADER_delete_id( shader );
-		return 0;
+	if (!status) {
+		this->delete_id();
+		return false;
 	}
 
-	return 1;
+	return true;
 }
 
  
-void SHADER_delete_id( SHADER *shader )
+void SHADER::delete_id()
 {
-	if( shader->sid )
-	{
-		glDeleteShader( shader->sid );
-		shader->sid = 0;
-	}
+    if (this->sid) {
+        glDeleteShader(this->sid);
+        this->sid = 0;
+    }
 }

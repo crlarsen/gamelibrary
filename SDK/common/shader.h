@@ -20,27 +20,27 @@ as being the original software.
 3. This notice may not be removed or altered from any source distribution.
 
 */
+/*
+ * Source code modified by Chris Larsen to make the following data types into
+ * proper C++ classes:
+ * - PROGRAM
+ * - SHADER
+ */
 
 #ifndef SHADER_H
 #define SHADER_H
 
-typedef struct
-{
+struct SHADER {
 	char			name[ MAX_CHAR ];
 	
-	unsigned int	type;
+	GLenum          type;
 
-	unsigned int	sid;
+	GLuint          sid;
+public:
+    SHADER(char *name, GLenum type);
+    ~SHADER();
+    bool compile(const char *code, bool debug);
+    void delete_id();
+};
 	
-} SHADER;
-
-
-SHADER *SHADER_init( char *name, unsigned int type );
-
-SHADER *SHADER_free( SHADER *shader );
-
-unsigned char SHADER_compile( SHADER *shader, const char *code, unsigned char debug );
-
-void SHADER_delete_id( SHADER *shader );
-
 #endif

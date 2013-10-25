@@ -20,6 +20,12 @@ as being the original software.
 3. This notice may not be removed or altered from any source distribution.
 
 */
+/*
+ * Source code modified by Chris Larsen to make the following data types into
+ * proper C++ classes:
+ * - PROGRAM
+ * - SHADER
+ */
 
 #ifndef PROGRAM_H
 #define PROGRAM_H
@@ -29,11 +35,11 @@ typedef struct
 {
 	char			name[ MAX_CHAR ];
 	
-	unsigned int	type;
+	GLenum          type;
 	
-	int				location;
-	
-	unsigned char	constant;
+	GLint			location;
+
+	bool            constant;
 
 } UNIFORM;
 
@@ -42,9 +48,9 @@ typedef struct
 {
 	char			name[ MAX_CHAR ];
 	
-	unsigned int	type;
+	GLenum          type;
 	
-	int				location;
+	GLint			location;
 	
 } VERTEX_ATTRIB;
 
@@ -54,53 +60,43 @@ typedef void( PROGRAMDRAWCALLBACK( void * ) );
 typedef void( PROGRAMBINDATTRIBCALLBACK( void * ) );
 
 
-typedef struct
-{
-	char						 name[ MAX_CHAR ];
+struct PROGRAM {
+	char                        name[ MAX_CHAR ];
 	
-	SHADER						 *vertex_shader;
+	SHADER                      *vertex_shader;
 	
-	SHADER						 *fragment_shader;
+	SHADER                      *fragment_shader;
 	
-	unsigned int				 pid;
+	GLuint                      pid;
 	
-	unsigned char				 uniform_count;
+    std::vector<UNIFORM>        uniform_array;
+
+    std::vector<VERTEX_ATTRIB>  vertex_attrib_array;
+
+	PROGRAMDRAWCALLBACK         *programdrawcallback;
 	
-	UNIFORM						 *uniform_array;	
-	
-	unsigned char				 vertex_attrib_count;
-	
-	VERTEX_ATTRIB				 *vertex_attrib_array;
-	
-	PROGRAMDRAWCALLBACK			 *programdrawcallback;
-	
-	PROGRAMBINDATTRIBCALLBACK	 *programbindattribcallback;
-
-} PROGRAM;
-
-
-PROGRAM *PROGRAM_init( char *name );
-
-PROGRAM *PROGRAM_free( PROGRAM *program );
-
-PROGRAM *PROGRAM_create( char *name, char *vertex_shader_filename, char *fragment_shader_filename, unsigned char relative_path, unsigned char debug_shader, PROGRAMBINDATTRIBCALLBACK *programbindattribcallback, PROGRAMDRAWCALLBACK *programdrawcallback );
-
-unsigned char PROGRAM_link( PROGRAM *program, unsigned char debug );
-
-void PROGRAM_set_draw_callback( PROGRAM *program, PROGRAMDRAWCALLBACK *programdrawcallback );
-
-void PROGRAM_set_bind_attrib_location_callback( PROGRAM *program, PROGRAMBINDATTRIBCALLBACK *programbindattribcallback );
-
-char PROGRAM_get_vertex_attrib_location( PROGRAM *program, char *name );
-
-char PROGRAM_get_uniform_location( PROGRAM *program, char *name );
-
-void PROGRAM_delete_id( PROGRAM *program );
-
-void PROGRAM_draw( PROGRAM *program );
-
-void PROGRAM_reset( PROGRAM *program );
-
-unsigned char PROGRAM_load_gfx( PROGRAM *program, PROGRAMBINDATTRIBCALLBACK	*programbindattribcallback, PROGRAMDRAWCALLBACK	*programdrawcallback, char *filename, unsigned char	debug_shader, unsigned char relative_path );
+	PROGRAMBINDATTRIBCALLBACK   *programbindattribcallback;
+private:
+    void init(char *name);
+    unsigned char add_vertex_attrib(char *name, GLenum type);
+    unsigned char add_uniform(char *name, GLenum type);
+public:
+    PROGRAM(char *name);
+    PROGRAM(char *name, char *vertex_shader_filename,
+            char *fragment_shader_filename, bool relative_path,
+            bool debug_shader,
+            PROGRAMBINDATTRIBCALLBACK *programbindattribcallback,
+            PROGRAMDRAWCALLBACK *programdrawcallback);
+    ~PROGRAM();
+    bool link(bool debug);
+    void set_draw_callback(PROGRAMDRAWCALLBACK *programdrawcallback);
+    void set_bind_attrib_location_callback(PROGRAMBINDATTRIBCALLBACK *programbindattribcallback);
+    GLint get_vertex_attrib_location(char *name);
+    GLint get_uniform_location(char *name);
+    void delete_id();
+    void draw();
+    void reset();
+    bool load_gfx(PROGRAMBINDATTRIBCALLBACK	*programbindattribcallback, PROGRAMDRAWCALLBACK	*programdrawcallback, char *filename, bool debug_shader, bool relative_path);
+};
 
 #endif

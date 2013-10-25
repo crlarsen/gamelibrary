@@ -20,6 +20,12 @@ as being the original software.
 3. This notice may not be removed or altered from any source distribution.
 
 */
+/*
+ * Source code modified by Chris Larsen to make the following data types into
+ * proper C++ classes:
+ * - PROGRAM
+ * - SHADER
+ */
 
 #ifndef GFX_H
 #define GFX_H
@@ -109,6 +115,9 @@ as being the original software.
 	extern PFNGLDELETEVERTEXARRAYSOESPROC glDeleteVertexArraysOES;
 
 #endif
+
+#include <vector>
+#include <memory>
 
 #include <pthread.h>
 #include <stdio.h>

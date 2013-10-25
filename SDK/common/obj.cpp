@@ -20,6 +20,12 @@ as being the original software.
 3. This notice may not be removed or altered from any source distribution.
 
 */
+/*
+ * Source code modified by Chris Larsen to make the following data types into
+ * proper C++ classes:
+ * - PROGRAM
+ * - SHADER
+ */
 
 #include "gfx.h"
 
@@ -124,7 +130,7 @@ void OBJ_add_program( OBJ  *obj,
 										   obj->n_program *
 										   sizeof( PROGRAM * ) );
 	
-	obj->program[ obj->n_program - 1 ] = PROGRAM_init( filename );
+	obj->program[ obj->n_program - 1 ] = new PROGRAM(filename);
 }
 
 
@@ -174,12 +180,11 @@ void OBJ_build_program( OBJ							*obj,
 	
 	sprintf( filename, "%s%s", program_path, program->name );
 
-	PROGRAM_load_gfx( program,
-					  programbindattribcallback,
+	program->load_gfx(programbindattribcallback,
 					  programdrawcallback,
 					  filename,
 					  debug_shader,
-					  0 );
+					  0);
 }
 
 
@@ -739,7 +744,7 @@ void OBJ_draw_material( OBJMATERIAL *objmaterial )
 {
 	if( objmaterial )
 	{
-		if( objmaterial->program ) PROGRAM_draw( objmaterial->program );
+		if( objmaterial->program ) objmaterial->program->draw();
 
 
 		if( objmaterial->texture_ambient )
@@ -1545,10 +1550,8 @@ OBJ *OBJ_free( OBJ *obj )
 	i = 0;
 	while( i != obj->n_program )
 	{
-		if( obj->program[ i ]->vertex_shader   ) obj->program[ i ]->vertex_shader   = SHADER_free( obj->program[ i ]->vertex_shader   );
-		if( obj->program[ i ]->fragment_shader ) obj->program[ i ]->fragment_shader = SHADER_free( obj->program[ i ]->fragment_shader );
-		
-		obj->program[ i ] = PROGRAM_free( obj->program[ i ] );
+        delete obj->program[i];
+		obj->program[i] = NULL;
 		++i;
 	}
 	

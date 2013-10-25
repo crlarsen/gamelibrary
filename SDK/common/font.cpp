@@ -20,6 +20,12 @@ as being the original software.
 3. This notice may not be removed or altered from any source distribution.
 
 */
+/*
+ * Source code modified by Chris Larsen to make the following data types into
+ * proper C++ classes:
+ * - PROGRAM
+ * - SHADER
+ */
 
 #include "gfx.h"
 
@@ -30,36 +36,34 @@ FONT *FONT_init( char *name )
 	
 	strcpy( font->name, name );
 	
-	font->program = PROGRAM_init( name );
+	font->program = new PROGRAM(name);
 	
-	font->program->vertex_shader = SHADER_init( name, GL_VERTEX_SHADER );
+	font->program->vertex_shader = new SHADER( name, GL_VERTEX_SHADER );
 	
-	SHADER_compile( font->program->vertex_shader,
-					"uniform mediump mat4 MODELVIEWPROJECTIONMATRIX;"
-					"attribute mediump vec2 POSITION;"
-					"attribute lowp vec2 TEXCOORD0;"
-					"varying lowp vec2 texcoord0;"
-					"void main( void ) {"
-					"texcoord0 = TEXCOORD0;"
-					"gl_Position = MODELVIEWPROJECTIONMATRIX * vec4( POSITION.x, POSITION.y, 0.0, 1.0 ); }",
-					0 );
+	font->program->vertex_shader->compile("uniform mediump mat4 MODELVIEWPROJECTIONMATRIX;"
+                                          "attribute mediump vec2 POSITION;"
+                                          "attribute lowp vec2 TEXCOORD0;"
+                                          "varying lowp vec2 texcoord0;"
+                                          "void main( void ) {"
+                                          "texcoord0 = TEXCOORD0;"
+                                          "gl_Position = MODELVIEWPROJECTIONMATRIX * vec4( POSITION.x, POSITION.y, 0.0, 1.0 ); }",
+                                          0);
 
-	font->program->fragment_shader = SHADER_init( name, GL_FRAGMENT_SHADER );
+	font->program->fragment_shader = new SHADER( name, GL_FRAGMENT_SHADER );
 	
-	SHADER_compile( font->program->fragment_shader,
-					"uniform sampler2D DIFFUSE;"
-					"uniform lowp vec4 COLOR;"
-					"varying lowp vec2 texcoord0;"
-					"void main( void ) {"
-					"lowp vec4 color = texture2D( DIFFUSE, texcoord0 );"
-					"color.x = COLOR.x;"
-					"color.y = COLOR.y;"
-					"color.z = COLOR.z;"
-					"color.w *= COLOR.w;"
-					"gl_FragColor = color; }",
-					0 );
+	font->program->fragment_shader->compile("uniform sampler2D DIFFUSE;"
+                                            "uniform lowp vec4 COLOR;"
+                                            "varying lowp vec2 texcoord0;"
+                                            "void main( void ) {"
+                                            "lowp vec4 color = texture2D( DIFFUSE, texcoord0 );"
+                                            "color.x = COLOR.x;"
+                                            "color.y = COLOR.y;"
+                                            "color.z = COLOR.z;"
+                                            "color.w *= COLOR.w;"
+                                            "gl_FragColor = color; }",
+                                            0);
 
-	PROGRAM_link( font->program, 0 );
+	font->program->link(0);
 
 	return font;
 }
@@ -69,11 +73,7 @@ FONT *FONT_free( FONT *font )
 {
 	if( font->program )
 	{
-		SHADER_free( font->program->vertex_shader );
-
-		SHADER_free( font->program->fragment_shader );
-	
-		PROGRAM_free( font->program );
+		delete font->program;
 	}
 
 	if( font->character_data ) free( font->character_data );
@@ -150,11 +150,9 @@ unsigned char FONT_load( FONT			*font,
 
 void FONT_print( FONT *font, float x, float y, char *text, vec4 *color )
 {
-	char vertex_attribute =  PROGRAM_get_vertex_attrib_location( font->program,
-																 ( char * )"POSITION" ),
+	char vertex_attribute =  font->program->get_vertex_attrib_location(( char * )"POSITION" ),
 																 
-		 texcoord_attribute = PROGRAM_get_vertex_attrib_location( font->program,
-																 ( char * )"TEXCOORD0" );
+		 texcoord_attribute = font->program->get_vertex_attrib_location(( char * )"TEXCOORD0" );
 
 	glBindVertexArrayOES( 0 );
 
@@ -172,16 +170,16 @@ void FONT_print( FONT *font, float x, float y, char *text, vec4 *color )
 		
 	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 	
-	PROGRAM_draw( font->program );
+	font->program->draw();
 
-	glUniformMatrix4fv( PROGRAM_get_uniform_location( font->program, ( char * )"MODELVIEWPROJECTIONMATRIX"),
-						1,
-						GL_FALSE, 
-						( float * )GFX_get_modelview_projection_matrix() );
+	glUniformMatrix4fv(font->program->get_uniform_location((char *)"MODELVIEWPROJECTIONMATRIX"),
+                                                           1,
+                                                           GL_FALSE,
+                                                           (float *)GFX_get_modelview_projection_matrix());
 
-	glUniform1i( PROGRAM_get_uniform_location( font->program, ( char * )"DIFFUSE" ), 0 );
+	glUniform1i( font->program->get_uniform_location((char *)"DIFFUSE"), 0);
 	
-	if( color ) glUniform4fv( PROGRAM_get_uniform_location( font->program, ( char * )"COLOR" ), 1, ( float * )color );
+	if( color ) glUniform4fv( font->program->get_uniform_location((char *)"COLOR"), 1, (float *)color);
 
 	glActiveTexture( GL_TEXTURE0 );
 

@@ -17,6 +17,8 @@ authors for the various included works.
 History
 =======
 
+Oct 24, 2013 - Tag "baseline" release of code before rewriting as objects.
+
 Oct 22, 2013 - Check-in Chapters 11, & 12 sample programs.
 
 Oct 22, 2013 - Check-in Chapters 8, 9, & 10 sample programs.

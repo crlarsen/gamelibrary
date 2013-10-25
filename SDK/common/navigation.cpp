@@ -20,6 +20,12 @@ as being the original software.
 3. This notice may not be removed or altered from any source distribution.
 
 */
+/*
+ * Source code modified by Chris Larsen to make the following data types into
+ * proper C++ classes:
+ * - PROGRAM
+ * - SHADER
+ */
 
 #include "gfx.h"
 
@@ -44,13 +50,8 @@ NAVIGATION *NAVIGATION_free( NAVIGATION *navigation )
 {
 	if( navigation->dtnavmesh ) dtFreeNavMesh( navigation->dtnavmesh );
 	
-	if( navigation->program )
-	{
-		SHADER_free( navigation->program->vertex_shader );
-
-		SHADER_free( navigation->program->fragment_shader );
-	
-		PROGRAM_free( navigation->program );
+	if( navigation->program ) {
+		delete navigation->program;
 	}
 	
 	free( navigation );
@@ -435,29 +436,26 @@ void NAVIGATION_draw( NAVIGATION *navigation )
 {
 	if( !navigation->program )
 	{
-		navigation->program = PROGRAM_init( navigation->name );
+		navigation->program = new PROGRAM(navigation->name);
 		
-		navigation->program->vertex_shader = SHADER_init( navigation->name, GL_VERTEX_SHADER );
+		navigation->program->vertex_shader = new SHADER(navigation->name, GL_VERTEX_SHADER);
 		
-		SHADER_compile( navigation->program->vertex_shader,
-						"uniform highp mat4 MODELVIEWPROJECTIONMATRIX;"
-						"attribute highp vec3 POSITION;"
-						"void main( void ) {"
-						"gl_Position = MODELVIEWPROJECTIONMATRIX * vec4( POSITION, 1.0 ); }",
-						0 );
+		navigation->program->vertex_shader->compile("uniform highp mat4 MODELVIEWPROJECTIONMATRIX;"
+                                                    "attribute highp vec3 POSITION;"
+                                                    "void main( void ) {"
+                                                    "gl_Position = MODELVIEWPROJECTIONMATRIX * vec4( POSITION, 1.0 ); }",
+                                                    0);
 
-		navigation->program->fragment_shader = SHADER_init( navigation->name, GL_FRAGMENT_SHADER );
+		navigation->program->fragment_shader = new SHADER(navigation->name, GL_FRAGMENT_SHADER);
 		
-		SHADER_compile( navigation->program->fragment_shader,
-						"void main( void ) {"
-						"gl_FragColor = vec4( 0.25, 0.5, 1.0, 0.65 ); }",
-						0 );
+		navigation->program->fragment_shader->compile("void main( void ) {"
+                                                      "gl_FragColor = vec4( 0.25, 0.5, 1.0, 0.65 ); }",
+                                                      0);
 
-		PROGRAM_link( navigation->program, 0 );	
+		navigation->program->link(0);
 	}
 
-	char vertex_attribute = PROGRAM_get_vertex_attrib_location( navigation->program,
-															    ( char * )"POSITION" );
+	char vertex_attribute = navigation->program->get_vertex_attrib_location((char *)"POSITION");
 
 	glBindVertexArrayOES( 0 );
 
@@ -469,12 +467,12 @@ void NAVIGATION_draw( NAVIGATION *navigation )
 		
 	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 	
-	PROGRAM_draw( navigation->program );
+	navigation->program->draw();
 
-	glUniformMatrix4fv( PROGRAM_get_uniform_location( navigation->program, ( char * )"MODELVIEWPROJECTIONMATRIX"),
-						1,
-						GL_FALSE, 
-						( float * )GFX_get_modelview_projection_matrix() );
+	glUniformMatrix4fv(navigation->program->get_uniform_location((char *)"MODELVIEWPROJECTIONMATRIX"),
+                       1,
+                       GL_FALSE,
+                       (float *)GFX_get_modelview_projection_matrix());
 
 	glEnableVertexAttribArray( vertex_attribute );
 

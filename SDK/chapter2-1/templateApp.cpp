@@ -24,6 +24,12 @@ as being the original software.
 3. This notice may not be removed or altered from any source distribution.
 
 */
+/*
+ * Source code modified by Chris Larsen to make the following data types into
+ * proper C++ classes:
+ * - PROGRAM
+ * - SHADER
+ */
 
 #include "templateApp.h"
 
@@ -32,31 +38,31 @@ as being the original software.
    which event callback you want to use. */
 
 TEMPLATEAPP templateApp = {
-							/* Will be called once when the program start. */
-							templateAppInit,
-							
-							/* Will be called every frame. This is the best location to plug your drawing. */
-							templateAppDraw,
+                            /* Will be called once when the program starts. */
+                            templateAppInit,
+
+                            /* Will be called every frame. This is the best location to plug your drawing. */
+                            templateAppDraw,
 						  };
 
 #define VERTEX_SHADER   (char *)"first.vs"
 #define FRAGMENT_SHADER (char *)"first.fs"
 
-#define DEBUG_SHADERS   1
+#define DEBUG_SHADERS   true
 
 PROGRAM *program = NULL;
 MEMORY  *m = NULL;
 
-void templateAppInit( int width, int height )
+void templateAppInit(int width, int height)
 {
 	// Setup the exit callback function.
-	atexit( templateAppExit );
+	atexit(templateAppExit);
 	
 	// Initialize GLES.
 	GFX_start();
-	
+
 	// Setup a GLES viewport using the current width and height of the screen.
-	glViewport( 0, 0, width, height );
+	glViewport(0, 0, width, height);
 	
 	/* Insert your initialization code here */
     GFX_set_matrix_mode(PROJECTION_MATRIX);
@@ -72,14 +78,14 @@ void templateAppInit( int width, int height )
     glDisable(GL_DEPTH_TEST);
     glDepthMask(GL_FALSE);
 
-    program = PROGRAM_init((char *)"default");
+    program = new PROGRAM((char *)"default");
 
-    program->vertex_shader = SHADER_init(VERTEX_SHADER, GL_VERTEX_SHADER);
-    program->fragment_shader = SHADER_init(FRAGMENT_SHADER, GL_FRAGMENT_SHADER);
-    
+    program->vertex_shader = new SHADER(VERTEX_SHADER, GL_VERTEX_SHADER);
+    program->fragment_shader = new SHADER(FRAGMENT_SHADER, GL_FRAGMENT_SHADER);
+
     m = mopen(VERTEX_SHADER, 1);
     if (m) {
-        if (!SHADER_compile(program->vertex_shader, (char *)m->buffer, DEBUG_SHADERS)) {
+        if (!program->vertex_shader->compile((char *)m->buffer, DEBUG_SHADERS)) {
             exit(1);
         }
     }
@@ -87,19 +93,19 @@ void templateAppInit( int width, int height )
 
     m = mopen(FRAGMENT_SHADER, 1);
     if (m) {
-        if (!SHADER_compile(program->fragment_shader, (char *)m->buffer, DEBUG_SHADERS)) {
+        if (!program->fragment_shader->compile((char *)m->buffer, DEBUG_SHADERS)) {
             exit(1);
         }
     }
     m = mclose(m);
 
-    if (!PROGRAM_link(program, DEBUG_SHADERS)) {
+    if (!program->link(DEBUG_SHADERS)) {
         exit(3);
     }
 }
 
 
-void templateAppDraw( void )
+void templateAppDraw(void)
 {
     static const float POSITION[8] = {
         0.0f, 0.0f, // Down left (pivot point)
@@ -115,12 +121,11 @@ void templateAppDraw( void )
     };
 
     glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
-    
+
 	// Clear the depth, stencil and colorbuffer.
-	glClear( GL_COLOR_BUFFER_BIT );
+	glClear(GL_COLOR_BUFFER_BIT);
 
 	/* Insert your drawing code here */
-
     /* Select the model view matrix. */
     GFX_set_matrix_mode(MODELVIEW_MATRIX);
 
@@ -131,11 +136,11 @@ void templateAppDraw( void )
     GFX_scale(100.0f, 100.0f, 0.0f);
 
     if (program->pid) {
-        char    attribute, uniform;
+        GLint   attribute, uniform;
 
         glUseProgram(program->pid);
 
-        uniform = PROGRAM_get_uniform_location(program, (char *)"MODELVIEWPROJECTIONMATRIX");
+        uniform = program->get_uniform_location((char *)"MODELVIEWPROJECTIONMATRIX");
         glUniformMatrix4fv(uniform,     // The location value of the uniform.
                            1,           // How many 4x4 matrices
                            GL_FALSE,    // Specify to do not transpose the matrix.
@@ -144,16 +149,18 @@ void templateAppDraw( void )
                                                                             // current model view matrix
                                                                             // multiplied by the current
                                                                             // projection matrix.
-        attribute = PROGRAM_get_vertex_attrib_location(program, (char *)"POSITION");
+        
+        attribute = program->get_vertex_attrib_location((char *)"POSITION");
         glEnableVertexAttribArray(attribute);
         glVertexAttribPointer(attribute,    // The attribute location
                               2,            // How many elements; XY in this case, so 2.
                               GL_FLOAT,     // The variable type.
-                              GL_FALSE,     //Do not normalize the data.
+                              GL_FALSE,     // Do not normalize the data.
                               0,            // The stride in bytes of the array delimiting the elements,
                                             // in this case none.
-                              POSITION);    //The vertex position array pointer.
-        attribute = PROGRAM_get_vertex_attrib_location(program, (char *)"COLOR");
+                              POSITION);    // The vertex position array pointer.
+
+        attribute = program->get_vertex_attrib_location((char *)"COLOR");
         glEnableVertexAttribArray(attribute);
         glVertexAttribPointer(attribute,
                               4,
@@ -161,7 +168,8 @@ void templateAppDraw( void )
                               GL_FALSE,
                               0,
                               COLOR);
-        glDrawArrays(GL_TRIANGLE_STRIP, //The drawing mode.
+
+        glDrawArrays(GL_TRIANGLE_STRIP, // The drawing mode.
                      0,                 // Start at which index.
                      4);                // Stop at which index.
     }
@@ -170,17 +178,15 @@ void templateAppDraw( void )
 }
 
 
-void templateAppExit( void )
+void templateAppExit(void)
 {
-	/* Code to run when the application exit, perfect location to free everything. */
+	/* Code to run when the application exits, perfect location to free everything. */
     printf("templateAppExit...\n");
 
     if(m) m = mclose(m);
 
-    if(program && program->vertex_shader)
-        program->vertex_shader = SHADER_free(program->vertex_shader);
-    if(program && program->fragment_shader)
-        program->fragment_shader = SHADER_free(program->fragment_shader);
-    if(program)
-        program = PROGRAM_free(program);
+    if(program) {
+        delete program;
+        program = NULL;
+    }
 }
