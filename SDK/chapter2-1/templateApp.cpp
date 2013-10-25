@@ -78,28 +78,15 @@ void templateAppInit(int width, int height)
     glDisable(GL_DEPTH_TEST);
     glDepthMask(GL_FALSE);
 
-    program = new PROGRAM((char *)"default");
+    program = new PROGRAM((char *)"default",
+                          VERTEX_SHADER,
+                          FRAGMENT_SHADER,
+                          true,
+                          DEBUG_SHADERS,
+                          NULL,
+                          NULL);
 
-    program->vertex_shader = new SHADER(VERTEX_SHADER, GL_VERTEX_SHADER);
-    program->fragment_shader = new SHADER(FRAGMENT_SHADER, GL_FRAGMENT_SHADER);
-
-    m = mopen(VERTEX_SHADER, 1);
-    if (m) {
-        if (!program->vertex_shader->compile((char *)m->buffer, DEBUG_SHADERS)) {
-            exit(1);
-        }
-    }
-    m = mclose(m);
-
-    m = mopen(FRAGMENT_SHADER, 1);
-    if (m) {
-        if (!program->fragment_shader->compile((char *)m->buffer, DEBUG_SHADERS)) {
-            exit(1);
-        }
-    }
-    m = mclose(m);
-
-    if (!program->link(DEBUG_SHADERS)) {
+    if (program==NULL || program->pid==0) {
         exit(3);
     }
 }

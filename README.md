@@ -17,6 +17,10 @@ authors for the various included works.
 History
 =======
 
+Oct 24, 2013 - Tag "chapter2" release of for all Chapter 2 examples.
+
+Oct 24, 2013 - Tag "chapter2-1" release of first sample program w/objects.
+
 Oct 24, 2013 - Tag "baseline" release of code before rewriting as objects.
 
 Oct 22, 2013 - Check-in Chapters 11, & 12 sample programs.
