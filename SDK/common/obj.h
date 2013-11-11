@@ -20,84 +20,131 @@ as being the original software.
 3. This notice may not be removed or altered from any source distribution.
 
 */
+/*
+ * Source code modified by Chris Larsen to make the following data types into
+ * proper C++ classes:
+ * - OBJ
+ * - OBJMATERIAL
+ * - OBJMESH
+ * - OBJTRIANGLEINDEX
+ * - OBJTRIANGLELIST
+ * - OBJVERTEXDATA
+ * - PROGRAM
+ * - SHADER
+ */
 
 #ifndef OBJ_H
 #define OBJ_H
 
 typedef void( MATERIALDRAWCALLBACK( void * ) );
 
+struct OBJ;
 
-typedef struct
-{
+enum TextureMap {
+    TM_map_Ka   = 0,
+    TM_map_Kd   = 1,
+    TM_map_Ks   = 2,
+    TM_map_Disp = 3,
+    TM_map_Bump = 4,
+    TM_map_Tr   = 5,
+    TM_Unused   = 7
+    };
+
+struct OBJMATERIAL {
 	char					name[ MAX_CHAR ];				// newmtl
-	
+
 	vec4					ambient;						// Ka
-	
+
 	vec4					diffuse;						// Kd
-	
+
 	vec4					specular;						// Ks
-	
+
 	vec3					transmission_filter;			// Tf
-	
+
 	int						illumination_model;				// illum
-	
+
 	float					dissolve;						// d
-	
+
 	float					specular_exponent;				// Ns
-	
+
 	float					optical_density;				// Ni
-	
+
 	char					map_ambient[ MAX_CHAR ];		// map_Ka
-	
+
 	char					map_diffuse[ MAX_CHAR ];		// map_Kd
-	
+
 	char					map_specular[ MAX_CHAR ];		// map_Ks
 
 	char					map_translucency[ MAX_CHAR ];	// map_Tr
-		
+
 	char					map_disp[ MAX_CHAR ];			// disp or map_disp
-	
-	char					map_bump[ MAX_CHAR ];			// bump or map_bump	
-	
+
+	char					map_bump[ MAX_CHAR ];			// bump or map_bump
+
 	TEXTURE					*texture_ambient;
-	
+
 	TEXTURE					*texture_diffuse;
-	
+
 	TEXTURE					*texture_specular;
 
 	TEXTURE					*texture_translucency;
-		
+
 	TEXTURE					*texture_disp;
-	
+
 	TEXTURE					*texture_bump;
-	
+
 	PROGRAM					*program;
-	
+
 	MATERIALDRAWCALLBACK	*materialdrawcallback;
-	
-} OBJMATERIAL;
+
+    OBJ                     *parent;
+
+public:
+    OBJMATERIAL(char *name=NULL, OBJ *parent=NULL);
+    ~OBJMATERIAL();
+    OBJMATERIAL(const OBJMATERIAL &src);
+    OBJMATERIAL &operator=(const OBJMATERIAL &rhs);
+    void draw();
+    void build(PROGRAM *program);
+    void set_draw_callback(MATERIALDRAWCALLBACK *materialdrawcallback);
+};
 
 
-typedef struct
+struct OBJTRIANGLEINDEX
 {
-	int vertex_index[ 3 ];
-	
-	int uv_index[ 3 ];
+    int vertex_index[3];
 
-} OBJTRIANGLEINDEX;
+    int uv_index[3];
+
+public:
+    OBJTRIANGLEINDEX(int vi[3], int uvi[3]) {
+        vertex_index[0] = vi[0];
+        vertex_index[1] = vi[1];
+        vertex_index[2] = vi[2];
+
+        uv_index[0] = uvi[0];
+        uv_index[1] = uvi[1];
+        uv_index[2] = uvi[2];
+    }
+};
 
 
-typedef struct
+struct OBJTRIANGLELIST
 {
-	unsigned int	 n_objtriangleindex;
-	
-	OBJTRIANGLEINDEX *objtriangleindex;
+    std::vector<OBJTRIANGLEINDEX>   objtriangleindex;
 
-	unsigned char	 useuvs;
+	bool	 useuvs;
 	
+    // Nasty!  Nasty!  Nasty!
+    // This is one case where the vector foobar can't just use its
+    // size() method as a substitute for n_foobar.  The code releases
+    // the indices (indice_array) to free up memory.  When that happens
+    // indice_array.size() goes to 0.  So later in the code when we
+    // call glDrawElements() we're passing in zero.  Retain
+    // n_indice_array in the data structure to prevent bugs.
 	unsigned short	 n_indice_array;
 	
-	unsigned short   *indice_array;
+	std::vector<unsigned short> indice_array;
 	
 	OBJMATERIAL		 *objmaterial;
 	
@@ -105,154 +152,158 @@ typedef struct
 	
 	unsigned int	 vbo;
 
-} OBJTRIANGLELIST;
+public:
+    OBJTRIANGLELIST();
+    OBJTRIANGLELIST(int mode, bool useuvs, OBJMATERIAL *objmaterial);
+    ~OBJTRIANGLELIST();
+    OBJTRIANGLELIST(const OBJTRIANGLELIST &src);
+    OBJTRIANGLELIST &operator=(const OBJTRIANGLELIST &rhs);
+};
 
 
-typedef struct
-{
-	int vertex_index;
+struct OBJVERTEXDATA {
+    int vertex_index;
+
+    int uv_index;
+
+public:
+    OBJVERTEXDATA(const int vi=0, const int uvi=0);
+};
+
+enum VertexAttribute {  // Use with glBindAttribLocation()
+    VA_Position  = 0,
+    VA_Normal    = 1,
+    VA_TexCoord0 = 2,
+    VA_Tangent0  = 3,
+    VA_FNormal   = 4
+    };
+
+#define VA_Position_String  ((char *)"POSITION")
+#define VA_Normal_String    ((char *)"NORMAL")
+#define VA_TexCoord0_String ((char *)"TEXCOORD0")
+#define VA_Tangent0_String  ((char *)"TANGENT0")
+#define VA_FNormal_String   ((char *)"FNORMAL")
+
+enum AttributeOffset {  // Use with OBJMESH->offset below
+    AO_Position = 0,
+    AO_Normal = 1,
+    AO_FNormal = 2,
+    AO_TexCoord0 = 3,
+    AO_Tangent0 = 4
+    };
+
+#define OFFSET_NO_TEXCOORD_NEEDED  (~0)
+
+struct OBJMESH {
+	char                            name[ MAX_CHAR ];  // o
 	
-	int uv_index;
-
-} OBJVERTEXDATA;
-
-
-typedef struct
-{
-	char			name[ MAX_CHAR ];  // o
-	
-	unsigned char	visible;
+	bool                            visible;
 		
-	char			group[ MAX_CHAR ]; // g
+	char                            group[ MAX_CHAR ]; // g
 
-	unsigned short	n_objvertexdata;
+	std::vector<OBJVERTEXDATA>      objvertexdata;
 	
-	OBJVERTEXDATA	*objvertexdata;
+	std::vector<OBJTRIANGLELIST>    objtrianglelist;
 	
-	unsigned char	n_objtrianglelist;
+	OBJMATERIAL                     *current_material;
 	
-	OBJTRIANGLELIST	*objtrianglelist;
+	vec3                            location;
 	
-	OBJMATERIAL		*current_material;
+	vec3                            rotation;
 	
-	vec3			location;
+	vec3                            scale;
 	
-	vec3			rotation;
+	vec3                            min;
 	
-	vec3			scale;
+	vec3                            max;
 	
-	vec3			min;
+	vec3                            dimension;
 	
-	vec3			max;
-	
-	vec3			dimension;
-	
-	float			radius;	
+	float                           radius;
 
-	float			distance;
+	float                           distance;
 	
-	unsigned int	vbo;
+	unsigned int                    vbo;
 	
-	unsigned int	stride;
+	unsigned int                    stride;
 	
-	unsigned int	size;
-	
-	unsigned int	offset[ 5 ];
-	
-	unsigned int	vao;	
-	
-	btRigidBody		*btrigidbody;
-	
-	unsigned char	use_smooth_normals;
+	unsigned int                    size;
 
-} OBJMESH;
+	unsigned int                    offset[ 5 ];    // offsets for vector attributes
+	
+	unsigned int                    vao;
+	
+	btRigidBody                     *btrigidbody;
+	
+	bool                            use_smooth_normals;
+
+    OBJ                             *parent;
+
+public:
+    OBJMESH(OBJ *parent=NULL);
+    OBJMESH(char *name, bool visible, char *group, float scale_x,
+            float scale_y, float scale_z, float distance,
+            bool use_smooth_normals, OBJ *parent);
+    ~OBJMESH();
+    OBJMESH(const OBJMESH &src);
+    OBJMESH &operator=(const OBJMESH &rhs);
+    void add_vertex_data(OBJTRIANGLELIST *objtrianglelist,
+                         int vertex_index, int uv_index);
+    void update_bounds();
+    void build_vbo();
+    void set_attributes();
+    void build();
+    void build2();
+    void optimize(unsigned int vertex_cache_size);
+    void draw();
+    void draw2(OBJMESH *objmesh);
+    void draw3(OBJMESH *objmesh);
+    void free_vertex_data();
+};
 
 
-typedef struct
-{
-	char			texture_path[ MAX_PATH ];
+struct OBJ {
+	char                        texture_path[ MAX_PATH ];
 
-	char			program_path[ MAX_PATH ];
+	char                        program_path[ MAX_PATH ];
 	
-	unsigned int	n_objmesh;
-	
-	OBJMESH			*objmesh;
-	
-	unsigned int	n_objmaterial;
-	
-	OBJMATERIAL		*objmaterial;
-	
-	unsigned int	n_texture;
-	
-	TEXTURE			**texture;
+	std::vector<OBJMESH>        objmesh;
 
-	unsigned int	n_program;
+    std::vector<OBJMATERIAL>    objmaterial;
+
+	std::vector<TEXTURE *>      texture;
+
+	std::vector<PROGRAM *>      program;
 	
-	PROGRAM			**program;
-	
-	unsigned int	n_indexed_vertex;
-	
-	vec3			*indexed_vertex;	// v
+	std::vector<vec3>           indexed_vertex;	// v
 
-	vec3			*indexed_normal;
+	std::vector<vec3>           indexed_normal;
 
-	vec3			*indexed_fnormal;
+	std::vector<vec3>           indexed_fnormal;
 
-	vec3			*indexed_tangent;
+	std::vector<vec3>           indexed_tangent;
 
-	unsigned int	n_indexed_uv;
-	
-	vec2			*indexed_uv;		// vt
+	std::vector<vec2>           indexed_uv;		// vt
 
-} OBJ;
+public:
+    OBJ(char *filename=NULL, bool relative_path=true);
+    ~OBJ();
+    OBJMESH *get_mesh(const char *name, bool exact_name);
+    int get_mesh_index(const char *name, bool exact_name);
+    TEXTURE *get_texture(const char *name, bool exact_name);
+    OBJMATERIAL *get_material(const char *name, bool exact_name);
+    PROGRAM *get_program(const char *name, bool exact_name);
+    bool load_mtl(char *filename, bool relative_path);
+    void free_vertex_data();
+    friend OBJMATERIAL;
+private:
+    int get_texture_index(char *filename);
+    void add_texture(char *filename);
+    int get_program_index(char *filename);
+    void add_program(char *filename);
+};
 
 
 void OBJ_build_texture( OBJ *obj, unsigned int texture_index, char *texture_path, unsigned int flags, unsigned char filter, float anisotropic_filter );
-
-void OBJ_build_program( OBJ	*obj, unsigned int program_index, PROGRAMBINDATTRIBCALLBACK *programbindattribcallback, PROGRAMDRAWCALLBACK *programdrawcallback, unsigned char debug_shader, char *program_path );
-
-void OBJ_build_material( OBJ *obj, unsigned int material_index, PROGRAM	*program );
-
-void OBJ_set_draw_callback_material( OBJ *obj, unsigned int material_index, MATERIALDRAWCALLBACK *materialdrawcallback );
-
-void OBJ_update_bound_mesh( OBJ *obj, unsigned int mesh_index );
-
-void OBJ_build_vbo_mesh( OBJ *obj, unsigned int mesh_index );
-
-void OBJ_set_attributes_mesh( OBJ *obj, unsigned int mesh_index );
-
-void OBJ_build_mesh( OBJ *obj, unsigned int mesh_index );
-
-void OBJ_build_mesh2( OBJ *obj, unsigned int mesh_index );
-
-void OBJ_optimize_mesh( OBJ *obj, unsigned int mesh_index, unsigned int vertex_cache_size );
-
-OBJMESH *OBJ_get_mesh( OBJ *obj, const char *name, unsigned char exact_name );
-
-int OBJ_get_mesh_index( OBJ *obj, const char *name, unsigned char exact_name );
-
-PROGRAM *OBJ_get_program( OBJ *obj, const char *name, unsigned char exact_name );
-
-OBJMATERIAL *OBJ_get_material( OBJ *obj, const char *name, unsigned char exact_name );
-
-TEXTURE *OBJ_get_texture( OBJ *obj, const char *name, unsigned char exact_name );
-
-void OBJ_draw_material( OBJMATERIAL *objmaterial );
-
-void OBJ_draw_mesh( OBJ *obj, unsigned int mesh_index );
-
-void OBJ_draw_mesh2( OBJ *obj, OBJMESH *objmesh );
-
-void OBJ_draw_mesh3( OBJ *obj, OBJMESH *objmesh );
-
-void OBJ_free_mesh_vertex_data( OBJ *obj, unsigned int mesh_index );
-
-unsigned char OBJ_load_mtl( OBJ *obj, char *filename, unsigned char relative_path );
-
-OBJ *OBJ_load( char *filename, unsigned char relative_path );
-
-void OBJ_free_vertex_data( OBJ *obj );
-
-OBJ *OBJ_free( OBJ *obj );
 
 #endif

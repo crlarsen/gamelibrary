@@ -24,16 +24,28 @@ as being the original software.
 3. This notice may not be removed or altered from any source distribution.
 
 */
+/*
+ * Source code modified by Chris Larsen to make the following data types into
+ * proper C++ classes:
+ * - OBJ
+ * - OBJMATERIAL
+ * - OBJMESH
+ * - OBJTRIANGLEINDEX
+ * - OBJTRIANGLELIST
+ * - OBJVERTEXDATA
+ * - PROGRAM
+ * - SHADER
+ */
 
 #include "templateApp.h"
 
-#define OBJ_FILE ( char * )"maze.obj"
+#define OBJ_FILE (char *)"maze.obj"
 
-#define PHYSIC_FILE ( char * )"maze.bullet"
+#define PHYSIC_FILE (char *)"maze.bullet"
 
-#define VERTEX_SHADER ( char * )"vertex.glsl"
+#define VERTEX_SHADER (char *)"vertex.glsl"
 
-#define FRAGMENT_SHADER ( char * )"fragment.glsl"
+#define FRAGMENT_SHADER (char *)"fragment.glsl"
 
 
 OBJ *obj = NULL;
@@ -86,79 +98,70 @@ btConstraintSolver *solver = NULL;
 btSoftRigidDynamicsWorld *dynamicsworld = NULL;
 
 
-void init_physic_world( void )
+void init_physic_world(void)
 {
 	collisionconfiguration = new btSoftBodyRigidBodyCollisionConfiguration();
 
-	dispatcher = new btCollisionDispatcher( collisionconfiguration );
+	dispatcher = new btCollisionDispatcher(collisionconfiguration);
 
 	broadphase = new btDbvtBroadphase();
 
 	solver = new btSequentialImpulseConstraintSolver();
 
-	dynamicsworld = new btSoftRigidDynamicsWorld( dispatcher,	
-												  broadphase,
-												  solver,
-												  collisionconfiguration );
+	dynamicsworld = new btSoftRigidDynamicsWorld(dispatcher,
+                                                 broadphase,
+                                                 solver,
+                                                 collisionconfiguration);
 
-	dynamicsworld->setGravity( btVector3( 0.0f, 0.0f, -9.8f ) );
+	dynamicsworld->setGravity(btVector3(0.0f, 0.0f, -9.8f));
 }
 
 
-void load_physic_world( void )
+void load_physic_world(void)
 {
-	btBulletWorldImporter *btbulletworldimporter = new btBulletWorldImporter( dynamicsworld );
+	btBulletWorldImporter *btbulletworldimporter = new btBulletWorldImporter(dynamicsworld);
 
-	MEMORY *memory = mopen( PHYSIC_FILE, 1 );
+	MEMORY *memory = mopen(PHYSIC_FILE, 1);
 
-	btbulletworldimporter->loadFileFromMemory( ( char * )memory->buffer, memory->size );
+	btbulletworldimporter->loadFileFromMemory((char *)memory->buffer, memory->size);
 
-	mclose( memory );
+	mclose(memory);
 
-	unsigned int i = 0;
-
-	while( i != btbulletworldimporter->getNumRigidBodies() ) { 
-
-		OBJMESH *objmesh = OBJ_get_mesh( obj,
-										 btbulletworldimporter->getNameForPointer(
-										 btbulletworldimporter->getRigidBodyByIndex( i ) ), 0 ); 
-
-		if( objmesh ) { 
-
-			objmesh->btrigidbody = ( btRigidBody * )btbulletworldimporter->getRigidBodyByIndex( i );
+	for (int i=0; i!=btbulletworldimporter->getNumRigidBodies(); ++i) {
+		OBJMESH *objmesh = obj->get_mesh(btbulletworldimporter->getNameForPointer(
+                                         btbulletworldimporter->getRigidBodyByIndex(i)), false);
+        
+		if (objmesh) {
+			objmesh->btrigidbody = (btRigidBody *)btbulletworldimporter->getRigidBodyByIndex(i);
 			
-			objmesh->btrigidbody->setUserPointer( objmesh );
+			objmesh->btrigidbody->setUserPointer(objmesh);
 		} 
-
-		++i; 
-	} 
-
+	}
+    
 	delete btbulletworldimporter;
 }
 
 
-void free_physic_world( void )
+void free_physic_world(void)
 {
-	while( dynamicsworld->getNumCollisionObjects() )
-	{
-		btCollisionObject *btcollisionobject = dynamicsworld->getCollisionObjectArray()[ 0 ];
-		
-		btRigidBody *btrigidbody = btRigidBody::upcast( btcollisionobject );
+	while (dynamicsworld->getNumCollisionObjects()) {
+		btCollisionObject *btcollisionobject = dynamicsworld->getCollisionObjectArray()[0];
 
-		if( btrigidbody )
-		{
+		btRigidBody *btrigidbody = btRigidBody::upcast(btcollisionobject);
+
+		if (btrigidbody) {
 			delete btrigidbody->getCollisionShape();
-			
+
 			delete btrigidbody->getMotionState();
-			
-			dynamicsworld->removeRigidBody( btrigidbody );
-			
-			dynamicsworld->removeCollisionObject( btcollisionobject );
-			
+
+			dynamicsworld->removeRigidBody(btrigidbody);
+
+			dynamicsworld->removeCollisionObject(btcollisionobject);
+
 			delete btrigidbody;
 		}
 	}
-	
+
 	delete collisionconfiguration; collisionconfiguration = NULL;
 
 	delete dispatcher; dispatcher = NULL;
@@ -166,48 +169,46 @@ void free_physic_world( void )
 	delete broadphase; broadphase = NULL;
 
 	delete solver; solver = NULL;
-	
-	delete dynamicsworld; dynamicsworld = NULL;	
+
+	delete dynamicsworld; dynamicsworld = NULL;
 }
 
 
-void program_bind_attrib_location( void *ptr ) {
+void program_bind_attrib_location(void *ptr) {
 
-	PROGRAM *program = ( PROGRAM * )ptr;
+	PROGRAM *program = (PROGRAM *)ptr;
 
-	glBindAttribLocation( program->pid, 0, "POSITION" );
-	glBindAttribLocation( program->pid, 2, "TEXCOORD0" );
+	glBindAttribLocation(program->pid, 0, "POSITION");
+	glBindAttribLocation(program->pid, 2, "TEXCOORD0");
 }
 
 
-void templateAppInit( int width, int height ) {
+void templateAppInit(int width, int height) {
 
-	atexit( templateAppExit );
+	atexit(templateAppExit);
 
 	GFX_start();
 
-	glViewport( 0.0f, 0.0f, width, height );
+	glViewport(0.0f, 0.0f, width, height);
 
-	GFX_set_matrix_mode( PROJECTION_MATRIX );
+	GFX_set_matrix_mode(PROJECTION_MATRIX);
 	GFX_load_identity();
-	
-	
-	GFX_set_perspective( 80.0f,
-						 ( float )width / ( float )height,
-						 1.0f,
-						 100.0f,
-						 -90.0f );
-						 
 
-	obj = OBJ_load( OBJ_FILE, 1 );
 
-	unsigned int i = 0;
+	GFX_set_perspective(80.0f,
+                        (float)width / (float)height,
+                        1.0f,
+                        100.0f,
+                        -90.0f);
 
-	while( i != obj->n_objmesh ) {
+
+	obj = new OBJ(OBJ_FILE, true);
+
+	for (int i=0; i!=obj->objmesh.size(); ++i) {
         /* If the current mesh is the maze... */
-        if( strstr( obj->objmesh[ i ].name, "maze" ) ) {
+        if (strstr(obj->objmesh[i].name, "maze")) {
             /* Initialize the NAVIGATION structure. */
-            navigation = NAVIGATION_init( ( char * )"maze" );
+            navigation = NAVIGATION_init((char *)"maze");
             /* Set up the height of the player, which is basically the same
              * as the Z dimension of the player.
              */
@@ -225,90 +226,83 @@ void templateAppInit( int width, int height ) {
              * triangles that can be used.  Always make sure that you call this
              * function before building or optimizing the mesh.
              */
-            if( NAVIGATION_build( navigation, obj, i ) )
-            { console_print( "Navigation generated.\n"); }
-	
-            else
-            { console_print( "Unable to create the navigation mesh." ); }
+            if (NAVIGATION_build(navigation, obj, i)) {
+                console_print("Navigation generated.\n");
+            } else {
+                console_print("Unable to create the navigation mesh.");
+            }
         }
 
-		OBJ_optimize_mesh( obj, i, 128 );
+		obj->objmesh[i].optimize(128);
 
-		/* OBJ_build_mesh2 is another version of the OBJ_build_mesh that do not 
-		   use VAO (only pure glDraw calls), at the time of writing this book mixing
-		   direct rendering using glDraw commands (as you will do in this chapter) with
-		   VAO cause issues on some Android drivers. */
-		OBJ_build_mesh2( obj, i );
-		
-		OBJ_free_mesh_vertex_data( obj, i );
+		/* OBJ_build_mesh2 is another version of the OBJ_build_mesh that
+         * do not use VAO (only pure glDraw calls), at the time of
+         * writing this book mixing direct rendering using glDraw
+         * commands (as you will do in this chapter) with VAO cause
+         * issues on some Android drivers.
+         */
+		obj->objmesh[i].build2();
 
-		++i;
+		obj->objmesh[i].free_vertex_data();
 	}
-	
-	
+
+
 	init_physic_world();
-	
+
 	load_physic_world();
-	
+
     /* Get the player mesh pointer. */
-    player = OBJ_get_mesh( obj, "player", 0 );
+    player = obj->get_mesh("player", false);
     /* Set the player to be a dynamic rigid body. */
-    player->btrigidbody->setAngularFactor( 0.0f );
+    player->btrigidbody->setAngularFactor(0.0f);
     /* Get the maze object. */
-    maze = OBJ_get_mesh( obj, "maze", 0 );
+    maze = obj->get_mesh("maze", false);
     /* Adjust the camera distance so it can frame the maze. */
     distance = maze->radius * 2.0f;
 
-	i = 0;
-	while( i != obj->n_texture ) { 
-
-		OBJ_build_texture( obj,
-						   i,
-						   obj->texture_path,
-						   TEXTURE_MIPMAP | TEXTURE_16_BITS,
-						   TEXTURE_FILTER_2X,
-						   0.0f );
-		++i;
-	}
+	for (int i=0; i!=obj->texture.size(); ++i)
+		OBJ_build_texture(obj,
+                          i,
+                          obj->texture_path,
+                          TEXTURE_MIPMAP | TEXTURE_16_BITS,
+                          TEXTURE_FILTER_2X,
+                          0.0f);
 
 
-	i = 0;
-	while( i != obj->n_objmaterial ) { 
+	for (auto objmaterial=obj->objmaterial.begin();
+         objmaterial!=obj->objmaterial.end(); ++objmaterial) {
+		objmaterial->build(NULL);
+    }
 
-		OBJ_build_material( obj, i, NULL );
-		
-		++i;
-	}	
-	
-	program = PROGRAM_create( ( char * )"default",
-							  VERTEX_SHADER,
-							  FRAGMENT_SHADER,
-							  1,
-							  0,
-							  program_bind_attrib_location,
-							  NULL );
+	program = new PROGRAM((char *)"default",
+                          VERTEX_SHADER,
+                          FRAGMENT_SHADER,
+                          1,
+                          0,
+                          program_bind_attrib_location,
+                          NULL);
 }
 
 
-void templateAppDraw( void ) {
+void templateAppDraw(void) {
 
-	glClearColor( 0.5f, 0.5f, 0.5f, 1.0f );
-	glClear( GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT );
+	glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
+	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
 
-	GFX_set_matrix_mode( MODELVIEW_MATRIX );
+	GFX_set_matrix_mode(MODELVIEW_MATRIX);
 	GFX_load_identity();
 
 
-	if( view_delta.x || view_delta.y ) { 
+	if (view_delta.x || view_delta.y) {
 
-		if( view_delta.y ) next_rotz -= view_delta.y;
+		if (view_delta.y) next_rotz -= view_delta.y;
 
-		if( view_delta.x ) { 
+		if (view_delta.x) {
 			next_rotx -= view_delta.x;
-			next_rotx = CLAMP( next_rotx, 0.0f, 90.0f ); 
+			next_rotx = CLAMP(next_rotx, 0.0f, 90.0f);
 		}
-		
+
 		view_delta.x =
 		view_delta.y = 0.0f;
 	}
@@ -318,22 +312,22 @@ void templateAppDraw( void ) {
 
 
 
-	eye.x = center.x + 
-			distance * 
-			cosf( rotx * DEG_TO_RAD ) * 
-			sinf( rotz * DEG_TO_RAD );
-	
-	eye.y = center.y - 
-			distance *
-			cosf( rotx * DEG_TO_RAD ) *
-			cosf( rotz * DEG_TO_RAD );
-	
-	
+	eye.x = center.x +
+    distance *
+    cosf(rotx * DEG_TO_RAD) *
+    sinf(rotz * DEG_TO_RAD);
+
+	eye.y = center.y -
+    distance *
+    cosf(rotx * DEG_TO_RAD) *
+    cosf(rotz * DEG_TO_RAD);
+
+
 	eye.z = center.z +
-			distance *
-			sinf( rotx * DEG_TO_RAD );
-			
-			
+    distance *
+    sinf(rotx * DEG_TO_RAD);
+
+
 	rotx = rotx * 0.9f + next_rotx * 0.1f;
 	rotz = rotz * 0.9f + next_rotz * 0.1f;
 
@@ -341,76 +335,68 @@ void templateAppDraw( void ) {
     center.y = maze->location.y;
     center.z = maze->location.z;
 
-	GFX_look_at( &eye,
-				 &center,
-				 &up );
+	GFX_look_at(&eye,
+                &center,
+                &up);
 
 
-	PROGRAM_draw( program );
+	program->draw();
 
-	glUniform1i( PROGRAM_get_uniform_location( program, ( char * )"DIFFUSE" ), 1 );
+	glUniform1i(program->get_uniform_location((char *)"DIFFUSE"), 1);
 
-	unsigned int i = 0;
-
-	while( i != obj->n_objmesh ) {
-
-		OBJMESH *objmesh = &obj->objmesh[ i ];
+	for (auto objmesh=obj->objmesh.begin();
+         objmesh!=obj->objmesh.end(); ++objmesh) {
 
 		GFX_push_matrix();
 
 		mat4 mat;
 
-		objmesh->btrigidbody->getWorldTransform().getOpenGLMatrix( ( float * )&mat );
+		objmesh->btrigidbody->getWorldTransform().getOpenGLMatrix((float *)&mat);
 
-		memcpy( &objmesh->location, ( vec3 * )&mat.m[ 3 ], sizeof( vec3 ) );
+		memcpy(&objmesh->location, (vec3 *)&mat.m[3], sizeof(vec3));
 
-		GFX_multiply_matrix( &mat );
+		GFX_multiply_matrix(&mat);
 
-		glUniformMatrix4fv( PROGRAM_get_uniform_location( program, ( char * )"MODELVIEWPROJECTIONMATRIX" ),
-							1,
-							GL_FALSE,
-							( float * )GFX_get_modelview_projection_matrix() );
-
-		OBJ_draw_mesh( obj, i );
-
+		glUniformMatrix4fv(program->get_uniform_location((char *)"MODELVIEWPROJECTIONMATRIX"),
+                           1,
+                           GL_FALSE,
+                           (float *)GFX_get_modelview_projection_matrix());
+        
+		objmesh->draw();
+        
 		GFX_pop_matrix();
-
-		++i;
 	}
 	
     NAVIGATION_draw(navigation);
-
-	dynamicsworld->stepSimulation( 1.0f / 60.0f );
+    
+	dynamicsworld->stepSimulation(1.0f / 60.0f);
 }
 
 
-void templateAppToucheBegan( float x, float y, unsigned int tap_count )
+void templateAppToucheBegan(float x, float y, unsigned int tap_count)
 {
 	view_location.x = x;
 	view_location.y = y;
 }
 
 
-void templateAppToucheMoved( float x, float y, unsigned int tap_count )
+void templateAppToucheMoved(float x, float y, unsigned int tap_count)
 {
-	view_delta.x = view_delta.x * 0.75f + ( x - view_location.x ) * 0.25f;
-	view_delta.y = view_delta.y * 0.75f + ( y - view_location.y ) * 0.25f;
+	view_delta.x = view_delta.x * 0.75f + (x - view_location.x) * 0.25f;
+	view_delta.y = view_delta.y * 0.75f + (y - view_location.y) * 0.25f;
 
 	view_location.x = x;
 	view_location.y = y;
 }
 
 
-void templateAppExit( void ) {
+void templateAppExit(void) {
     NAVIGATION_free(navigation);
 
 	free_physic_world();
 
-	SHADER_free( program->vertex_shader );
+    delete program;
+    program = NULL;
 
-	SHADER_free( program->fragment_shader );
-
-	PROGRAM_free( program );
-
-	OBJ_free( obj );
+    delete obj;
 }

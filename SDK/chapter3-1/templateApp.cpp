@@ -24,6 +24,18 @@ as being the original software.
 3. This notice may not be removed or altered from any source distribution.
 
 */
+/*
+ * Source code modified by Chris Larsen to make the following data types into
+ * proper C++ classes:
+ * - OBJ
+ * - OBJMATERIAL
+ * - OBJMESH
+ * - OBJTRIANGLEINDEX
+ * - OBJTRIANGLELIST
+ * - OBJVERTEXDATA
+ * - PROGRAM
+ * - SHADER
+ */
 
 #include "templateApp.h"
 
@@ -32,7 +44,7 @@ as being the original software.
 /* Your vertex and fragment shader files. */
 #define VERTEX_SHADER   (char *)"momo_nc.vs"
 #define FRAGMENT_SHADER (char *)"momo_nc.fs"
-#define DEBUG_SHADERS 1
+#define DEBUG_SHADERS   true
 /* The main OBJ structure that you will use to load the .obj. */
 OBJ *obj = NULL;
 /* Pointer to an mesh inside the OBJ object. */
@@ -45,38 +57,56 @@ PROGRAM *program = NULL;
    which event callback you want to use. */
 
 TEMPLATEAPP templateApp = {
-							/* Will be called once when the program starts. */
-							templateAppInit,
-							
-							/* Will be called every frame. This is the best location to plug your drawing. */
-							templateAppDraw,
-							
-							/* This function will be triggered when a new touche is recorded on screen. */
-							templateAppToucheBegan,
-							
-							/* This function will be triggered when an existing touche is moved on screen. */
-							templateAppToucheMoved,
-						  };
+    /* Will be called once when the program starts. */
+    templateAppInit,
 
-void program_draw_callback( void *ptr )
+    /* Will be called every frame. This is the best location to plug your drawing. */
+    templateAppDraw,
+
+    /* This function will be triggered when a new touche is recorded on screen. */
+    templateAppToucheBegan,
+
+    /* This function will be triggered when an existing touche is moved on screen. */
+    templateAppToucheMoved,
+};
+
+void program_draw_callback(void *ptr)
 {
     /* Convert the void * in the parameter to a valid PROGRAM pointer. */
     PROGRAM *curr_program = (PROGRAM *)ptr;
-    
-    for (int i=0; i!=curr_program->uniform_count; ++i) {
-        /* Check if the current uniform is the MODELVIEWPROJECTIONMATRIX.
-         * If yes, enter the condition clause to update the matrix data.
-         */
-        if(!strcmp(curr_program->uniform_array[i].name, "MODELVIEWPROJECTIONMATRIX")) {
+
+    for (auto it=curr_program->uniform_map.begin();
+         it!=curr_program->uniform_map.end(); ++it) {
+        auto    &name = it->first;
+        auto    &uniform = it->second;
+        if (name == "MODELVIEWPROJECTIONMATRIX") {
             /* Update the matrix. */
-            glUniformMatrix4fv(curr_program->uniform_array[i].location,         // The uniform location.
-                               1,                                               // Number of matrix.
+            glUniformMatrix4fv(uniform.location,                                // The uniform location.
+                               1,                                               // Number of matrices.
                                GL_FALSE,                                        // Don't transpose the matrix.
                                (float *)GFX_get_modelview_projection_matrix()); // The result of the current projection
                                                                                 // matrix multiplied by the model view
                                                                                 // matrix.
         } /* End if */
     }
+// You can use this loop if your compiler supports it instead of the
+// loop above.  Supposedly "range for" loops are a C++ 11 feature but
+// the default Xcode 5.0.1 C++ compiler supports them even if you're not
+// using the -std=c++11 compiler option.  Likewise, for the "range for"
+// loop below in templateAppInit().
+//    for (auto it : curr_program->uniform_map) {
+//        auto    &name    = it.first;
+//        auto    &uniform = it.second;
+//        if (name == "MODELVIEWPROJECTIONMATRIX") {
+//            /* Update the matrix. */
+//            glUniformMatrix4fv(uniform.location,                                // The uniform location.
+//                               1,                                               // Number of matrices.
+//                               GL_FALSE,                                        // Don't transpose the matrix.
+//                               (float *)GFX_get_modelview_projection_matrix()); // The result of the current projection
+//                                                                                // matrix multiplied by the model view
+//                                                                                // matrix.
+//        } /* End if */
+//    }
 }
 
 void templateAppInit(int width, int height)
@@ -92,23 +122,23 @@ void templateAppInit(int width, int height)
 	
     GFX_set_matrix_mode(PROJECTION_MATRIX);
     GFX_load_identity();
-    GFX_set_perspective(45.0f,
+    GFX_set_perspective( 45.0f,
                         (float)width / (float)height,
-                        0.1f,
+                          0.1f,
                         100.0f,
-                        0.0f);
+                          0.0f);
 
-    program = PROGRAM_create((char *)"default",         // The shader program name.
-                             VERTEX_SHADER,             // The vertex shader file.
-                             FRAGMENT_SHADER,           // The fragment shader file.
-                             1,                         // Use relative file path.
-                             DEBUG_SHADERS,             // Debug program and shaders.
-                             NULL,                      // Not in use for now.
-                             program_draw_callback);    // The draw function callback
-                                                        // that you previously declared
-                                                        // in steps 2 and 3.
+    program = new PROGRAM((char *)"default",        // The shader program name.
+                          VERTEX_SHADER,            // The vertex shader file.
+                          FRAGMENT_SHADER,          // The fragment shader file.
+                          true,                     // Use relative file path.
+                          DEBUG_SHADERS,            // Debug program and shaders.
+                          NULL,                     // Not in use for now.
+                          program_draw_callback);   // The draw function callback
+                                                    // that you previously declared
+                                                    // in steps 2 and 3.
 
-    obj = OBJ_load(OBJ_FILE, 1);
+    obj = new OBJ(OBJ_FILE, true);
 
     objmesh = &obj->objmesh[0];
 
@@ -126,13 +156,14 @@ void templateAppInit(int width, int height)
      * independent vertex data multiplied by the size of a vertex
      * position and the size of a vertex normal.
      */
-    size = objmesh->n_objvertexdata * (sizeof(vec3) + sizeof(vec3));
+    // BTW, the book gives the wrong formula.  The one here is correct.
+    size = objmesh->objvertexdata.size() * (sizeof(vec3) + sizeof(vec3));
     /* Allocate the total amount of bytes in memory. */
     vertex_array = (unsigned char *) malloc(size);
     /* Remember the starting memory address of the vertex array. */
     vertex_start = vertex_array;
 
-    for (int i=0; i!=objmesh->n_objvertexdata; ++i) {
+    for (int i=0; i!=objmesh->objvertexdata.size(); ++i) {
         /* Get the current vertex data index. */
         index = objmesh->objvertexdata[i].vertex_index;
         /* Append the vertex position to the vertex data array. */
@@ -144,6 +175,23 @@ void templateAppInit(int width, int height)
         /* Move on to the next insertion point. */
         vertex_array += sizeof(vec3);
     }
+// You can use this loop if your compiler supports it instead of the
+// loop above.  Supposedly "range for" loops are a C++ 11 feature but
+// the default Xcode 5.0.1 C++ compiler supports them even if you're not
+// using the -std=c++11 compiler option.  Likewise, for the "range for"
+// loop above in program_draw_callback().
+//    for (auto objvertexdata : objmesh->objvertexdata) {
+//        /* Get the current vertex data index. */
+//        auto    &index = objvertexdata.vertex_index;
+//        /* Append the vertex position to the vertex data array. */
+//        memcpy(vertex_array, &obj->indexed_vertex[index], sizeof(vec3));
+//        /* Increment the current memory position to move on to the next insertion point. */
+//        vertex_array += sizeof(vec3);
+//        /* Insert the vertex normal at the current position. */
+//        memcpy(vertex_array, &obj->indexed_normal[index], sizeof(vec3));
+//        /* Move on to the next insertion point. */
+//        vertex_array += sizeof(vec3);
+//    }
 
     /* Generate a new VBO id. */
     glGenBuffers(1, &objmesh->vbo);
@@ -172,21 +220,20 @@ void templateAppInit(int width, int height)
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, objmesh->objtrianglelist[0].vbo);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER,                   // The type of array.
                  objmesh->objtrianglelist[0].n_indice_array * sizeof(unsigned short),   // The total size of the indices array.
-                 objmesh->objtrianglelist[0].indice_array,  // The indices array.
+                 &objmesh->objtrianglelist[0].indice_array[0],  // The indices array.
                  GL_STATIC_DRAW);
     /* Once again specify that the array is static as the indices won't change. */
     /* Deactivate the current VBO id attached as an indices array. */
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-    unsigned char attribute;                // Vertex position size in bytes.
+    GLint   attribute;                      // Vertex position size in bytes.
     stride = sizeof(vec3) + sizeof(vec3);   // Vertex normal size in bytes.
 
     glGenVertexArraysOES(1, &objmesh->vao);
     glBindVertexArrayOES(objmesh->vao);
     glBindBuffer(GL_ARRAY_BUFFER, objmesh->vbo);
     /* Get the attribute location from the shader program. */
-    attribute = PROGRAM_get_vertex_attrib_location(program,
-                                                   (char *)"POSITION");
+    attribute = program->get_vertex_attrib_location((char *)"POSITION");
     /* Enable the attribute location. */
     glEnableVertexAttribArray(attribute);
     glVertexAttribPointer(attribute,        // The location of the attribute.
@@ -196,7 +243,7 @@ void templateAppInit(int width, int height)
                           stride,           // The size in bytes of the next vertex position.
                           (void *)NULL);    // No need to pass the vertex position array because you are using a VBO.
 
-    attribute = PROGRAM_get_vertex_attrib_location(program, (char *)"NORMAL");
+    attribute = program->get_vertex_attrib_location((char *)"NORMAL");
     glEnableVertexAttribArray(attribute);
     glVertexAttribPointer(attribute,
                           3,
@@ -227,7 +274,7 @@ void templateAppDraw(void)
 
     glBindVertexArrayOES(objmesh->vao);
 
-    PROGRAM_draw(program);
+    program->draw();
     /* Function to use when drawing using elements (aka indices). */
     glDrawElements(GL_TRIANGLES,                                // The order in which the indices are listed.
                    objmesh->objtrianglelist[0].n_indice_array,  // How many indices have to be used for drawing.
@@ -250,8 +297,7 @@ void templateAppToucheMoved(float x, float y, unsigned int tap_count)
 
 void templateAppExit(void)
 {
-    SHADER_free(program->vertex_shader);
-    SHADER_free(program->fragment_shader);
-    PROGRAM_free(program);
-    OBJ_free(obj);
+    delete program;
+    program = NULL;
+    delete obj;
 }

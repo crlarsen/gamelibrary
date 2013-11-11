@@ -23,6 +23,12 @@ as being the original software.
 /*
  * Source code modified by Chris Larsen to make the following data types into
  * proper C++ classes:
+ * - OBJ
+ * - OBJMATERIAL
+ * - OBJMESH
+ * - OBJTRIANGLEINDEX
+ * - OBJTRIANGLELIST
+ * - OBJVERTEXDATA
  * - PROGRAM
  * - SHADER
  */
@@ -89,7 +95,7 @@ unsigned char NAVIGATION_build( NAVIGATION *navigation, OBJ *obj, unsigned int m
 	
 	OBJMESH *objmesh = &obj->objmesh[ mesh_index ];
 	
-	vec3 *vertex_array = ( vec3 * ) malloc( objmesh->n_objvertexdata * sizeof( vec3 ) ),
+	vec3 *vertex_array = ( vec3 * ) malloc( objmesh->objvertexdata.size() * sizeof( vec3 ) ),
 		 *vertex_start = vertex_array;
 
 	rcHeightfield *rcheightfield;
@@ -103,7 +109,7 @@ unsigned char NAVIGATION_build( NAVIGATION *navigation, OBJ *obj, unsigned int m
 	rcPolyMeshDetail *rcpolymeshdetail;
 	
 	
-	while( i != objmesh->n_objvertexdata )
+	while( i != objmesh->objvertexdata.size() )
 	{ 
 		memcpy( vertex_array,
 				&obj->indexed_vertex[ objmesh->objvertexdata[ i ].vertex_index ],
@@ -117,7 +123,7 @@ unsigned char NAVIGATION_build( NAVIGATION *navigation, OBJ *obj, unsigned int m
 	
 	
 	i = 0;
-	while( i != objmesh->n_objtrianglelist )
+	while( i != objmesh->objtrianglelist.size())
 	{
 		triangle_count += objmesh->objtrianglelist[ i ].n_indice_array;
 	
@@ -157,7 +163,7 @@ unsigned char NAVIGATION_build( NAVIGATION *navigation, OBJ *obj, unsigned int m
 			
 	
 	rcCalcBounds( ( float * )vertex_start,
-				  objmesh->n_objvertexdata,
+				  objmesh->objvertexdata.size(),
 				  rcconfig.bmin,
 				  rcconfig.bmax );
 	
@@ -186,14 +192,14 @@ unsigned char NAVIGATION_build( NAVIGATION *navigation, OBJ *obj, unsigned int m
 	
 	rcMarkWalkableTriangles( rcconfig.walkableSlopeAngle,
 							 ( float * )vertex_start,
-							 objmesh->n_objvertexdata,
+							 objmesh->objvertexdata.size(),
 							 indices,
 							 triangle_count,
 							 navigation->triangle_flags );
 	
 
 	rcRasterizeTriangles( ( float * )vertex_start,
-						  objmesh->n_objvertexdata,
+						  objmesh->objvertexdata.size(),
 						  indices,
 						  navigation->triangle_flags,
 						  triangle_count,
@@ -444,18 +450,18 @@ void NAVIGATION_draw( NAVIGATION *navigation )
                                                     "attribute highp vec3 POSITION;"
                                                     "void main( void ) {"
                                                     "gl_Position = MODELVIEWPROJECTIONMATRIX * vec4( POSITION, 1.0 ); }",
-                                                    0);
+                                                    false);
 
 		navigation->program->fragment_shader = new SHADER(navigation->name, GL_FRAGMENT_SHADER);
 		
 		navigation->program->fragment_shader->compile("void main( void ) {"
                                                       "gl_FragColor = vec4( 0.25, 0.5, 1.0, 0.65 ); }",
-                                                      0);
+                                                      false);
 
-		navigation->program->link(0);
+		navigation->program->link(false);
 	}
 
-	char vertex_attribute = navigation->program->get_vertex_attrib_location((char *)"POSITION");
+	char vertex_attribute = navigation->program->get_vertex_attrib_location(VA_Position_String);
 
 	glBindVertexArrayOES( 0 );
 

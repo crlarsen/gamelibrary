@@ -156,10 +156,10 @@ void templateAppDraw( void )
         glVertexAttribPointer(attribute,    // The attribute location
                               3,            // How many elements; XYZ in this case, so 3.
                               GL_FLOAT,     // The variable type.
-                              GL_FALSE,     //Do not normalize the data.
+                              GL_FALSE,     // Do not normalize the data.
                               0,            // The stride in bytes of the array delimiting the elements,
                                             // in this case none.
-                              POSITION);    //The vertex position array pointer.
+                              POSITION);    // The vertex position array pointer.
 
         attribute = program->get_vertex_attrib_location((char *)"COLOR");
         glEnableVertexAttribArray(attribute);
@@ -170,7 +170,7 @@ void templateAppDraw( void )
                               0,
                               COLOR);
 
-        glDrawArrays(GL_TRIANGLE_STRIP, //The drawing mode.
+        glDrawArrays(GL_TRIANGLE_STRIP, // The drawing mode.
                      0,                 // Start at which index.
                      4);                // Stop at which index.
     }

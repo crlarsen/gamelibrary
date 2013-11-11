@@ -24,6 +24,18 @@ as being the original software.
 3. This notice may not be removed or altered from any source distribution.
 
 */
+/*
+ * Source code modified by Chris Larsen to make the following data types into
+ * proper C++ classes:
+ * - OBJ
+ * - OBJMATERIAL
+ * - OBJMESH
+ * - OBJTRIANGLEINDEX
+ * - OBJTRIANGLELIST
+ * - OBJVERTEXDATA
+ * - PROGRAM
+ * - SHADER
+ */
 
 #include "templateApp.h"
 
@@ -32,27 +44,27 @@ as being the original software.
    which event callback you want to use. */
 
 TEMPLATEAPP templateApp = {
-							/* Will be called once when the program start. */
-							templateAppInit,
-							
-							/* Will be called every frame. This is the best location to plug your drawing. */
-							templateAppDraw,
-							
-							/* This function will be triggered when a new touche is recorded on screen. */
-							//templateAppToucheBegan,
-							
-							/* This function will be triggered when an existing touche is moved on screen. */
-							//templateAppToucheMoved,
-							
-							/* This function will be triggered when an existing touche is released from the the screen. */
-							//templateAppToucheEnded,
-							
-							/* This function will be called everytime the accelerometer values are refreshed. Please take
-							not that the accelerometer can only work on a real device, and not on the simulator. In addition
-							you will have to turn ON the accelerometer functionality to be able to use it. This will be
-							demonstrated in the book later on. */
-							//templateAppAccelerometer // Turned off by default.
-						  };
+    /* Will be called once when the program start. */
+    templateAppInit,
+
+    /* Will be called every frame. This is the best location to plug your drawing. */
+    templateAppDraw,
+
+    /* This function will be triggered when a new touche is recorded on screen. */
+    //templateAppToucheBegan,
+
+    /* This function will be triggered when an existing touche is moved on screen. */
+    //templateAppToucheMoved,
+
+    /* This function will be triggered when an existing touche is released from the the screen. */
+    //templateAppToucheEnded,
+
+    /* This function will be called everytime the accelerometer values are refreshed. Please take
+     not that the accelerometer can only work on a real device, and not on the simulator. In addition
+     you will have to turn ON the accelerometer functionality to be able to use it. This will be
+     demonstrated in the book later on. */
+    //templateAppAccelerometer // Turned off by default.
+};
 
 /* The hardware device to use with OpenAL. */
 ALCdevice *al_device;

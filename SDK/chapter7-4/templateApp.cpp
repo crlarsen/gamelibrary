@@ -24,16 +24,28 @@ as being the original software.
 3. This notice may not be removed or altered from any source distribution.
 
 */
+/*
+ * Source code modified by Chris Larsen to make the following data types into
+ * proper C++ classes:
+ * - OBJ
+ * - OBJMATERIAL
+ * - OBJMESH
+ * - OBJTRIANGLEINDEX
+ * - OBJTRIANGLELIST
+ * - OBJVERTEXDATA
+ * - PROGRAM
+ * - SHADER
+ */
 
 #include "templateApp.h"
 
-#define OBJ_FILE ( char * )"Scene.obj"
+#define OBJ_FILE (char *)"Scene.obj"
 
-#define PHYSIC_FILE ( char * )"Scene.bullet"
+#define PHYSIC_FILE (char *)"Scene.bullet"
 
-#define VERTEX_SHADER ( char * )"vertex.glsl"
+#define VERTEX_SHADER (char *)"vertex.glsl"
 
-#define FRAGMENT_SHADER ( char * )"fragment.glsl"
+#define FRAGMENT_SHADER (char *)"fragment.glsl"
 
 OBJ *obj = NULL;
 
@@ -71,74 +83,64 @@ btConstraintSolver *solver = NULL;
 btSoftRigidDynamicsWorld *dynamicsworld = NULL;
 
 
-void init_physic_world( void )
+void init_physic_world(void)
 {
 	collisionconfiguration = new btSoftBodyRigidBodyCollisionConfiguration();
 
-	dispatcher = new btCollisionDispatcher( collisionconfiguration );
+	dispatcher = new btCollisionDispatcher(collisionconfiguration);
 
 	broadphase = new btDbvtBroadphase();
 
 	solver = new btSequentialImpulseConstraintSolver();
 
-	dynamicsworld = new btSoftRigidDynamicsWorld( dispatcher,	
-												  broadphase,
-												  solver,
-												  collisionconfiguration );
+	dynamicsworld = new btSoftRigidDynamicsWorld(dispatcher,
+                                                 broadphase,
+                                                 solver,
+                                                 collisionconfiguration);
 
-	dynamicsworld->setGravity( btVector3( 0.0f, 0.0f, -9.8f ) );
+	dynamicsworld->setGravity(btVector3(0.0f, 0.0f, -9.8f));
 }
 
 
-void load_physic_world( void )
+void load_physic_world(void)
 {
-	btBulletWorldImporter *btbulletworldimporter = new btBulletWorldImporter( dynamicsworld );
+	btBulletWorldImporter *btbulletworldimporter = new btBulletWorldImporter(dynamicsworld);
 
-	MEMORY *memory = mopen( PHYSIC_FILE, 1 );
+	MEMORY *memory = mopen(PHYSIC_FILE, 1);
 
-	btbulletworldimporter->loadFileFromMemory( ( char * )memory->buffer, memory->size );
+	btbulletworldimporter->loadFileFromMemory((char *)memory->buffer, memory->size);
 
-	mclose( memory );
+	mclose(memory);
 
-	unsigned int i = 0;
+	for (int i=0; i!=btbulletworldimporter->getNumRigidBodies(); ++i) {
+		OBJMESH *objmesh = obj->get_mesh(btbulletworldimporter->getNameForPointer(btbulletworldimporter->getRigidBodyByIndex(i)), false);
 
-	while( i != btbulletworldimporter->getNumRigidBodies() ) { 
-
-		OBJMESH *objmesh = OBJ_get_mesh( obj,
-										 btbulletworldimporter->getNameForPointer(
-										 btbulletworldimporter->getRigidBodyByIndex( i ) ), 0 ); 
-
-		if( objmesh ) { 
-
-			objmesh->btrigidbody = ( btRigidBody * )btbulletworldimporter->getRigidBodyByIndex( i );
+		if (objmesh) {
+			objmesh->btrigidbody = (btRigidBody *)btbulletworldimporter->getRigidBodyByIndex(i);
 			
-			objmesh->btrigidbody->setUserPointer( objmesh );
+			objmesh->btrigidbody->setUserPointer(objmesh);
 		} 
-
-		++i; 
-	} 
+	}
 
 	delete btbulletworldimporter;
 }
 
 
-void free_physic_world( void )
+void free_physic_world(void)
 {
-	while( dynamicsworld->getNumCollisionObjects() )
-	{
-		btCollisionObject *btcollisionobject = dynamicsworld->getCollisionObjectArray()[ 0 ];
+	while (dynamicsworld->getNumCollisionObjects()) {
+		btCollisionObject *btcollisionobject = dynamicsworld->getCollisionObjectArray()[0];
 		
-		btRigidBody *btrigidbody = btRigidBody::upcast( btcollisionobject );
+		btRigidBody *btrigidbody = btRigidBody::upcast(btcollisionobject);
 
-		if( btrigidbody )
-		{
+		if (btrigidbody) {
 			delete btrigidbody->getCollisionShape();
 			
 			delete btrigidbody->getMotionState();
 			
-			dynamicsworld->removeRigidBody( btrigidbody );
+			dynamicsworld->removeRigidBody(btrigidbody);
 			
-			dynamicsworld->removeCollisionObject( btcollisionobject );
+			dynamicsworld->removeCollisionObject(btcollisionobject);
 			
 			delete btrigidbody;
 		}
@@ -156,47 +158,41 @@ void free_physic_world( void )
 }
 
 
-void program_bind_attrib_location( void *ptr ) {
+void program_bind_attrib_location(void *ptr) {
+	PROGRAM *program = (PROGRAM *)ptr;
 
-	PROGRAM *program = ( PROGRAM * )ptr;
-
-	glBindAttribLocation( program->pid, 0, "POSITION" );
-	glBindAttribLocation( program->pid, 2, "TEXCOORD0" );
+	glBindAttribLocation(program->pid, 0, "POSITION");
+	glBindAttribLocation(program->pid, 2, "TEXCOORD0");
 }
 
 
-void templateAppInit( int width, int height ) {
+void templateAppInit(int width, int height) {
+	screen_size = (width > height) ? width : height;
 
-	screen_size = ( width > height ) ? width : height;
-
-	atexit( templateAppExit );
+	atexit(templateAppExit);
 
 	GFX_start();
 
-	glViewport( 0.0f, 0.0f, width, height );
+	glViewport(0.0f, 0.0f, width, height);
 
-	GFX_set_matrix_mode( PROJECTION_MATRIX );
+	GFX_set_matrix_mode(PROJECTION_MATRIX);
 	GFX_load_identity();
 	
-	GFX_set_perspective( 80.0f,
-						 ( float )width / ( float )height,
-						 0.1f,
-						 100.0f,
-						 -90.0f );
+	GFX_set_perspective(80.0f,
+                        (float)width / (float)height,
+                        0.1f,
+                        100.0f,
+                        -90.0f);
 
-	obj = OBJ_load( OBJ_FILE, 1 );
+	obj = new OBJ(OBJ_FILE, true);
 
-	unsigned int i = 0;
-
-	while( i != obj->n_objmesh ) {
-
-		OBJ_optimize_mesh( obj, i, 128 );
+	for (auto objmesh=obj->objmesh.begin();
+         objmesh!=obj->objmesh.end(); ++objmesh) {
+		objmesh->optimize(128);
 	
-		OBJ_build_mesh( obj, i );
+		objmesh->build();
 		
-		OBJ_free_mesh_vertex_data( obj, i );
-
-		++i;
+		objmesh->free_vertex_data();
 	}
 	
 	
@@ -205,64 +201,57 @@ void templateAppInit( int width, int height ) {
 	load_physic_world();
 	
     /* Query the camera mesh pointer. */
-    camera = OBJ_get_mesh( obj, "camera", 0 );
+    camera = obj->get_mesh("camera", false);
     /* Set the rigid body to be a dynamic body. */
-    camera->btrigidbody->setAngularFactor( 0.0f );
+    camera->btrigidbody->setAngularFactor(0.0f);
     /* Make the object invisible at render time. */
-    camera->visible = 0;
+    camera->visible = true;
 
-	i = 0;
-	while( i != obj->n_texture ) { 
-
-		OBJ_build_texture( obj,
-						   i,
-						   obj->texture_path,
-						   TEXTURE_MIPMAP | TEXTURE_16_BITS,
-						   TEXTURE_FILTER_2X,
-						   0.0f );
-		++i;
-	}
+	for (int i=0; i!=obj->texture.size(); ++i)
+		OBJ_build_texture(obj,
+                          i,
+                          obj->texture_path,
+                          TEXTURE_MIPMAP | TEXTURE_16_BITS,
+                          TEXTURE_FILTER_2X,
+                          0.0f);
 
 
-	i = 0;
-	while( i != obj->n_objmaterial ) { 
+	for (auto objmaterial=obj->objmaterial.begin();
+         objmaterial!=obj->objmaterial.end(); ++objmaterial) {
+		objmaterial->build(NULL);
+    }
 
-		OBJ_build_material( obj, i, NULL );
-		
-		++i;
-	}	
+	program = new PROGRAM((char *)"default",
+                          VERTEX_SHADER,
+                          FRAGMENT_SHADER,
+                          1,
+                          0,
+                          program_bind_attrib_location,
+                          NULL);
+    
+	program->draw();
 	
-	program = PROGRAM_create( ( char * )"default",
-							  VERTEX_SHADER,
-							  FRAGMENT_SHADER,
-							  1,
-							  0,
-							  program_bind_attrib_location,
-							  NULL );
-
-	PROGRAM_draw( program );
-	
-	glUniform1i( PROGRAM_get_uniform_location( program, ( char * )"DIFFUSE" ), 1 );	
+	glUniform1i(program->get_uniform_location( (char *)"DIFFUSE"), 1);
 }
 
 
-void templateAppDraw( void ) {
+void templateAppDraw(void) {
 
-	glClearColor( 0.5f, 0.5f, 0.5f, 1.0f );
-	glClear( GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT );
+	glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
+	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
 
-	GFX_set_matrix_mode( MODELVIEW_MATRIX );
+	GFX_set_matrix_mode(MODELVIEW_MATRIX);
 	GFX_load_identity();
 
 
-	if( view_delta.x || view_delta.y ) { 
+	if (view_delta.x || view_delta.y) { 
 
-		if( view_delta.y ) rotz -= view_delta.y;
+		if (view_delta.y) rotz -= view_delta.y;
 
-		if( view_delta.x ) {
+		if (view_delta.x) {
 			rotx += view_delta.x;
-			rotx = CLAMP( rotx, 0.0f, 180.0f );
+			rotx = CLAMP(rotx, 0.0f, 180.0f);
 		}
 
 		view_delta.x =
@@ -270,13 +259,12 @@ void templateAppDraw( void ) {
 	}
 	
 
-	if( move_delta.z )
-	{
+	if (move_delta.z) {
 		vec3 forward;
 
 		float r = rotz * DEG_TO_RAD,
-			  c = cosf( r ),
-			  s = sinf( r );
+			  c = cosf(r),
+			  s = sinf(r);
 		
 		forward.x = c * move_delta.y - s * move_delta.x;
 		forward.y = s * move_delta.y + c * move_delta.x;
@@ -284,17 +272,15 @@ void templateAppDraw( void ) {
          * the delta by 6.7m/s (the average velocity that human's achieve while
          * running.
          */
-        camera->btrigidbody->setLinearVelocity( btVector3( forward.x * move_delta.z * 6.7f,
-                                                          forward.y * move_delta.z * 6.7f,
-                                                          0.0f ) );
+        camera->btrigidbody->setLinearVelocity(btVector3(forward.x * move_delta.z * 6.7f,
+                                                         forward.y * move_delta.z * 6.7f,
+                                                         0.0f));
         /* Make sure that the rigid body is activated; otherwise the
          * setLinearVelocity call above will have no effect, because the body
          * might be deactivated.
          */
-        camera->btrigidbody->setActivationState( ACTIVE_TAG );
-	}
-	else
-	{
+        camera->btrigidbody->setActivationState(ACTIVE_TAG);
+	} else {
         camera->btrigidbody->setActivationState(ISLAND_SLEEPING);
 	}
 
@@ -309,17 +295,14 @@ void templateAppDraw( void ) {
                    */
                   camera->location.z + (camera->dimension.z * 0.5f));
 
-	GFX_rotate( rotz, 0.0f, 0.0f, 1.0f );
+	GFX_rotate(rotz, 0.0f, 0.0f, 1.0f);
 
-	GFX_rotate( rotx, 1.0f, 0.0f, 0.0f );
+	GFX_rotate(rotx, 1.0f, 0.0f, 0.0f);
 	
-	mat4_invert( GFX_get_modelview_matrix() );
+	mat4_invert(GFX_get_modelview_matrix());
 	
-	unsigned int i = 0;
-
-	while( i != obj->n_objmesh ) {
-
-		OBJMESH *objmesh = &obj->objmesh[ i ];
+	for (auto objmesh=obj->objmesh.begin();
+         objmesh!=obj->objmesh.end(); ++objmesh) {
 
 		GFX_push_matrix();
 
@@ -327,51 +310,45 @@ void templateAppDraw( void ) {
         /* Ask Bullet to return the OpenGL matrix for the current mesh and store
          * it inside a 4x4 matrix.
          */
-        objmesh->btrigidbody->getWorldTransform().getOpenGLMatrix( ( float * )&mat );
+        objmesh->btrigidbody->getWorldTransform().getOpenGLMatrix((float *)&mat);
         /* Update the mesh location by copying the last row of the matrix,
          * to make sure the latest location will be used by the clipping
          * method (if any).
          */
-        memcpy( &objmesh->location, ( vec3 * )&mat.m[ 3 ], sizeof( vec3 ) );
+        memcpy(&objmesh->location, (vec3 *)&mat.m[3], sizeof(vec3));
         /* Multiply the matrix by the current modelview matrix. */
-        GFX_multiply_matrix( &mat );
+        GFX_multiply_matrix(&mat);
 
-		glUniformMatrix4fv( program->uniform_array[ 0 ].location,
+            glUniformMatrix4fv(program->uniform_map["MODELVIEWPROJECTIONMATRIX"].location,
 							1,
 							GL_FALSE,
-							( float * )GFX_get_modelview_projection_matrix() );
+							(float *)GFX_get_modelview_projection_matrix());
 
-		OBJ_draw_mesh( obj, i );
+		objmesh->draw();
 
 		GFX_pop_matrix();
-		
-		++i;
 	}
 	
-	dynamicsworld->stepSimulation( 1.0f / 60.0f );
+	dynamicsworld->stepSimulation(1.0f / 60.0f);
 }
 
 
-void templateAppToucheBegan( float x, float y, unsigned int tap_count )
+void templateAppToucheBegan(float x, float y, unsigned int tap_count)
 {
-	if( y < ( screen_size * 0.5f ) )
-	{
+	if (y < (screen_size * 0.5f)) {
 		move_location.x = x;
 		move_location.y = y;
-	}
-	else
-	{
+	} else {
 		view_location.x = x;
 		view_location.y = y;
 	}
 }
 
 
-void templateAppToucheMoved( float x, float y, unsigned int tap_count )
+void templateAppToucheMoved(float x, float y, unsigned int tap_count)
 {
-	if( y > ( ( screen_size * 0.5f ) - ( screen_size * 0.05f ) ) && 
-		y < ( ( screen_size * 0.5f ) + ( screen_size * 0.05f ) ) ) {
-		
+	if (y > ((screen_size * 0.5f) - (screen_size * 0.05f)) && 
+		y < ((screen_size * 0.5f) + (screen_size * 0.05f))) {
 		move_delta.z =
 		view_delta.x =
 		view_delta.y = 0.0f;
@@ -381,30 +358,24 @@ void templateAppToucheMoved( float x, float y, unsigned int tap_count )
 		
 		view_location.x = x;
 		view_location.y = y;
-	}
-	
-	else if( y < ( screen_size * 0.5f ) ) {
-
+	} else if (y < (screen_size * 0.5f)) {
 		vec3 touche = { x, 
 						y,
 						0.0f };
 
-		vec3_diff( &move_delta, 
-				   &touche,
-				   &move_location );				   
+		vec3_diff(&move_delta,
+                  &touche,
+                  &move_location);
 
-		vec3_normalize( &move_delta,
-						&move_delta );
-		
-		move_delta.z = CLAMP( vec3_dist( &move_location, &touche ) / 128.0f,
-							  0.0f,
-							  1.0f );
-	}
-	
-	else {
-	
-		view_delta.x = view_delta.x * 0.75f + ( x - view_location.x ) * 0.25f;
-		view_delta.y = view_delta.y * 0.75f + ( y - view_location.y ) * 0.25f;
+		vec3_normalize(&move_delta,
+                       &move_delta);
+
+		move_delta.z = CLAMP(vec3_dist(&move_location, &touche) / 128.0f,
+                             0.0f,
+                             1.0f);
+	} else {
+		view_delta.x = view_delta.x * 0.75f + (x - view_location.x) * 0.25f;
+		view_delta.y = view_delta.y * 0.75f + (y - view_location.y) * 0.25f;
 
 		view_location.x = x;
 		view_location.y = y;
@@ -412,21 +383,15 @@ void templateAppToucheMoved( float x, float y, unsigned int tap_count )
 }
 
 
-void templateAppToucheEnded( float x, float y, unsigned int tap_count )
+void templateAppToucheEnded(float x, float y, unsigned int tap_count)
 {
 	move_delta.z = 0.0f;
 }
 
 
-void templateAppExit( void ) {
+void templateAppExit(void) {
+    delete program;
+    program = NULL;
 
-	free_physic_world();
-	
-	SHADER_free( program->vertex_shader );
-
-	SHADER_free( program->fragment_shader );
-
-	PROGRAM_free( program );
-
-	OBJ_free( obj );
+    delete obj;
 }

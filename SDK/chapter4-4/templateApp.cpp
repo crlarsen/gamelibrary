@@ -24,6 +24,18 @@ as being the original software.
 3. This notice may not be removed or altered from any source distribution.
 
 */
+/*
+ * Source code modified by Chris Larsen to make the following data types into
+ * proper C++ classes:
+ * - OBJ
+ * - OBJMATERIAL
+ * - OBJMESH
+ * - OBJTRIANGLEINDEX
+ * - OBJTRIANGLELIST
+ * - OBJVERTEXDATA
+ * - PROGRAM
+ * - SHADER
+ */
 
 #include "templateApp.h"
 #define OBJ_FILE (char *)"scene.obj"
@@ -48,22 +60,22 @@ void material_draw_callback(void *ptr)
 {
     OBJMATERIAL *objmaterial = (OBJMATERIAL *)ptr;
     PROGRAM *program = objmaterial->program;
-    unsigned int i = 0;
-    while (i != program->uniform_count) {
-        if (!strcmp(program->uniform_array[i].name, "DIFFUSE")) {
+
+    for (auto it=program->uniform_map.begin(); it!=program->uniform_map.end(); ++it) {
+        auto    &name = it->first;
+        auto    &uniform = it->second;
+        if (name == "DIFFUSE") {
             /* If a diffuse texture is specified inside the MTL file, it
              * will always be bound to the second texture channel
              * (GL_TEXTURE1).
              */
-              glUniform1i(program->uniform_array[i].location, 1);
-        } else if (!strcmp(program->uniform_array[i].name, "MODELVIEWPROJECTIONMATRIX")) {
+            glUniform1i(uniform.location, 1);
+        } else if (name == "MODELVIEWPROJECTIONMATRIX") {
             /* Send over the current model view matrix multiplied by the
              * projection matrix.
              */
-            glUniformMatrix4fv(program->uniform_array[i].location, 1, GL_FALSE, (float *)GFX_get_modelview_projection_matrix());
+            glUniformMatrix4fv(uniform.location, 1, GL_FALSE, (float *)GFX_get_modelview_projection_matrix());
         }
-
-        ++i;
     }
 }
 
@@ -85,42 +97,37 @@ void templateAppInit(int width, int height)
                                     // view, so rotate the projection
                                     // matrix 90 degrees.
 
-    obj = OBJ_load(OBJ_FILE, 1);
+    obj = new OBJ(OBJ_FILE, true);
 
-    /* Initialize the counter. */
-    unsigned int i = 0;
     /* While there are some objects. */
-    while (i != obj->n_objmesh) {
+    for (auto objmesh=obj->objmesh.begin(); objmesh!=obj->objmesh.end(); ++objmesh) {
         /* Generate the VBOs and VAO for the current object. */
-        OBJ_build_mesh(obj, // The OBJ structure to use.
-                       i);  // The object index inside the OBJ structure.
+        objmesh->build();  // The object index inside the OBJ structure.
 
         /* Free all the vertex data related arrays. At this point, they
          * have all been transferred to the video memory by the
          * OBJ_build_mesh call.
          */
-        OBJ_free_mesh_vertex_data(obj, i);
-        ++i;
+        objmesh->free_vertex_data();
     } /* Move to the next object. */
 
-    i = 0;
-    while (i != obj->n_texture) {
+    for (int i=0; i != obj->texture.size(); ++i) {
         OBJ_build_texture(obj,  i,  /* By default the same as where the .mtl is located. */
-                          obj->texture_path,  TEXTURE_MIPMAP,  TEXTURE_FILTER_2X,  0.0f);
-        /* Next texture. */
-        ++i;
+                          obj->texture_path,
+                          TEXTURE_MIPMAP,
+                          TEXTURE_FILTER_2X,
+                          0.0f);
     }
 
-    i = 0;
     /* Load the global vertex shader that you are going to use for all
      * the material shader programs.
      */
     MEMORY *vertex_shader = mopen((char *)"Uber.vs", 1);
-    while (i != obj->n_objmaterial) {
+    for (auto objmaterial=obj->objmaterial.begin();
+         objmaterial!=obj->objmaterial.end(); ++objmaterial) {
         MEMORY *fragment_shader = mopen((char *)"Uber.fs", 1);
 
-        OBJMATERIAL *objmaterial = &obj->objmaterial[i];
-        OBJ_build_material(obj, i, NULL);
+        objmaterial->build(NULL);
         /* The material has no alpha, so it is considered a solid
          * object. In addition, please note that the current and
          * following conditions are strictly based on the dissolve
@@ -167,41 +174,38 @@ void templateAppInit(int width, int height)
         }
 
         /* Use the objmaterial program pointer to initialize the shader program. */
-        objmaterial->program = PROGRAM_init(objmaterial->name);
+        objmaterial->program = new PROGRAM(objmaterial->name);
         /* Create the vertex shader. */
-        objmaterial->program->vertex_shader = SHADER_init((char *)"vertex",
+        objmaterial->program->vertex_shader = new SHADER((char *)"vertex",
                                                           GL_VERTEX_SHADER);
 
         /* Create the fragment shader. */
-        objmaterial->program->fragment_shader = SHADER_init((char *)"fragment",
+        objmaterial->program->fragment_shader = new SHADER((char *)"fragment",
                                                             GL_FRAGMENT_SHADER);
         
         /* Compile both the vertex and fragment programs. */
-        SHADER_compile(objmaterial->program->vertex_shader,
-                       (char *)vertex_shader->buffer,
-                       1);
+        objmaterial->program->vertex_shader->compile((char *)vertex_shader->buffer, true);
         
-        SHADER_compile(objmaterial->program->fragment_shader,
-                       (char *)fragment_shader->buffer,
-                       1);
+        objmaterial->program->fragment_shader->compile((char *)fragment_shader->buffer, true);
         
-        /* Link the bind attribute location callback BEFORE the linking phase of the shader program to insure that the location of the attribute that you specify will be taken into consideration. */
-        PROGRAM_set_bind_attrib_location_callback(objmaterial->program,
-                                                  program_bind_attrib_location);
+        /* Link the bind attribute location callback BEFORE the linking
+         * phase of the shader program to insure that the location of
+         * the attribute that you specify will be taken into
+         * consideration.
+         */
+        objmaterial->program->set_bind_attrib_location_callback(program_bind_attrib_location);
         
         /* Link the shader program so you can use it for drawing. */
-        PROGRAM_link(objmaterial->program, 1);
+        objmaterial->program->link(true);
 
         /* Assign the draw callback to the material so you can receive
          * live feedback before drawing in order to update your uniform
          * variables based on the current material data.
          */
-        OBJ_set_draw_callback_material(obj, i, material_draw_callback);
+        objmaterial->set_draw_callback(material_draw_callback);
 
         /* Close and free the memory stream. */
         mclose(fragment_shader);
-
-        ++i;
     }
 
     mclose(vertex_shader);
@@ -220,10 +224,8 @@ void templateAppDraw(void)
     
      GFX_look_at(&e, &c, &u);
 
-    /* Initialize a counter. */
-    unsigned int i = 0;
     /* Solid Objects */
-    while (i != obj->n_objmesh) {
+    for (auto objmesh=obj->objmesh.begin(); objmesh!=obj->objmesh.end(); ++objmesh) {
         /* Get the material pointer of the first triangle list of the
          * current mesh. All your objects are using a single material,
          * so only one triangle list is available. By getting access to
@@ -232,17 +234,16 @@ void templateAppDraw(void)
          * material dissolve property as you did earlier to classify
          * your object at render time.
          */
-        OBJMATERIAL *objmaterial = obj->objmesh[i].objtrianglelist[0].objmaterial;
+        OBJMATERIAL *objmaterial = objmesh->objtrianglelist[0].objmaterial;
         /* Is it a solid object? */
         if (objmaterial->dissolve == 1.0f) {
             GFX_push_matrix();
-            GFX_translate(obj->objmesh[i].location.x,
-                          obj->objmesh[i].location.y,
-                          obj->objmesh[i].location.z);
-            OBJ_draw_mesh(obj, i);
+            GFX_translate(objmesh->location.x,
+                          objmesh->location.y,
+                          objmesh->location.z);
+            objmesh->draw();
             GFX_pop_matrix();
         }
-        ++i;
     }
 
     /* Tell the GPU to enable blending. */
@@ -254,26 +255,25 @@ void templateAppDraw(void)
      */
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     /* Transparent Objects */
-    i = 0;
-    while (i != obj->n_objmesh) {
-        OBJMATERIAL *objmaterial = obj->objmesh[i].objtrianglelist[0].objmaterial;
+    for (auto objmesh=obj->objmesh.begin(); objmesh!=obj->objmesh.end(); ++objmesh) {
+        OBJMATERIAL *objmaterial = objmesh->objtrianglelist[0].objmaterial;
         /* If the current dissolve value doesn't fit the conditions of
          * the solid or alpha tested objects, the current object has to
          * be transparent, so draw it onscreen.
          */
         if (objmaterial->dissolve != 1.0f) {
             GFX_push_matrix();
-            GFX_translate(obj->objmesh[i].location.x,
-                          obj->objmesh[i].location.y,
-                          obj->objmesh[i].location.z);
+            GFX_translate(objmesh->location.x,
+                          objmesh->location.y,
+                          objmesh->location.z);
             glCullFace(GL_FRONT);
-            OBJ_draw_mesh(obj, i);
+            objmesh->draw();
             glCullFace(GL_BACK);
-            OBJ_draw_mesh(obj, i);
+            objmesh->draw();
             GFX_pop_matrix();
         }
-        ++i;
     }
+
     /* Every time you enable a machine state, remember to turn it back
      * OFF when you don't need it. This way, you won't have any
      * surprises when drawing the next frame.
@@ -283,12 +283,5 @@ void templateAppDraw(void)
 
 void templateAppExit(void)
 {
-    unsigned i = 0;
-    while (i != obj->n_objmaterial) {
-        SHADER_free(obj->objmaterial[i].program->vertex_shader);
-        SHADER_free(obj->objmaterial[i].program->fragment_shader);
-        PROGRAM_free(obj->objmaterial[i].program);   ++i;
-    }
-
-    OBJ_free(obj);
+    delete obj;
 }

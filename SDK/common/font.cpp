@@ -23,6 +23,12 @@ as being the original software.
 /*
  * Source code modified by Chris Larsen to make the following data types into
  * proper C++ classes:
+ * - OBJ
+ * - OBJMATERIAL
+ * - OBJMESH
+ * - OBJTRIANGLEINDEX
+ * - OBJTRIANGLELIST
+ * - OBJVERTEXDATA
  * - PROGRAM
  * - SHADER
  */
@@ -47,7 +53,7 @@ FONT *FONT_init( char *name )
                                           "void main( void ) {"
                                           "texcoord0 = TEXCOORD0;"
                                           "gl_Position = MODELVIEWPROJECTIONMATRIX * vec4( POSITION.x, POSITION.y, 0.0, 1.0 ); }",
-                                          0);
+                                          false);
 
 	font->program->fragment_shader = new SHADER( name, GL_FRAGMENT_SHADER );
 	
@@ -61,9 +67,9 @@ FONT *FONT_init( char *name )
                                             "color.z = COLOR.z;"
                                             "color.w *= COLOR.w;"
                                             "gl_FragColor = color; }",
-                                            0);
+                                            false);
 
-	font->program->link(0);
+	font->program->link(false);
 
 	return font;
 }
@@ -150,9 +156,9 @@ unsigned char FONT_load( FONT			*font,
 
 void FONT_print( FONT *font, float x, float y, char *text, vec4 *color )
 {
-	char vertex_attribute =  font->program->get_vertex_attrib_location(( char * )"POSITION" ),
+	char vertex_attribute =  font->program->get_vertex_attrib_location(VA_Position_String),
 																 
-		 texcoord_attribute = font->program->get_vertex_attrib_location(( char * )"TEXCOORD0" );
+		 texcoord_attribute = font->program->get_vertex_attrib_location(VA_TexCoord0_String);
 
 	glBindVertexArrayOES( 0 );
 
@@ -177,7 +183,7 @@ void FONT_print( FONT *font, float x, float y, char *text, vec4 *color )
                                                            GL_FALSE,
                                                            (float *)GFX_get_modelview_projection_matrix());
 
-	glUniform1i( font->program->get_uniform_location((char *)"DIFFUSE"), 0);
+	glUniform1i( font->program->get_uniform_location((char *)"DIFFUSE"), TM_map_Ka);
 	
 	if( color ) glUniform4fv( font->program->get_uniform_location((char *)"COLOR"), 1, (float *)color);
 

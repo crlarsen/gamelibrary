@@ -51,7 +51,6 @@ TEMPLATEAPP templateApp = {
 #define DEBUG_SHADERS   true
 
 PROGRAM *program = NULL;
-MEMORY  *m = NULL;
 
 void templateAppInit(int width, int height)
 {
@@ -169,8 +168,6 @@ void templateAppExit(void)
 {
 	/* Code to run when the application exits, perfect location to free everything. */
     printf("templateAppExit...\n");
-
-    if(m) m = mclose(m);
 
     if(program) {
         delete program;

@@ -24,14 +24,26 @@ as being the original software.
 3. This notice may not be removed or altered from any source distribution.
 
 */
+/*
+ * Source code modified by Chris Larsen to make the following data types into
+ * proper C++ classes:
+ * - OBJ
+ * - OBJMATERIAL
+ * - OBJMESH
+ * - OBJTRIANGLEINDEX
+ * - OBJTRIANGLELIST
+ * - OBJVERTEXDATA
+ * - PROGRAM
+ * - SHADER
+ */
 
 #include "templateApp.h"
 
-#define OBJ_FILE ( char * )"Scene.obj"
+#define OBJ_FILE (char *)"Scene.obj"
 
-#define VERTEX_SHADER ( char * )"vertex.glsl"
+#define VERTEX_SHADER (char *)"vertex.glsl"
 
-#define FRAGMENT_SHADER ( char * )"fragment.glsl"
+#define FRAGMENT_SHADER (char *)"fragment.glsl"
 
 OBJ *obj = NULL;
 
@@ -43,7 +55,7 @@ vec3 location = { 0.0f, 0.0f, 1.84f };
 float rotz = 0.0f,
 	  rotx = 90.0f;
 
-vec4 frustum[ 6 ];
+vec4 frustum[6];
 
 /* Since you are basically going to split the screen in two in order to
  * have the left and right sides as an independent analog stick, declare the
@@ -71,111 +83,95 @@ TEMPLATEAPP templateApp = { templateAppInit,
 							templateAppToucheEnded };
 
 
-void program_bind_attrib_location( void *ptr ) {
+void program_bind_attrib_location(void *ptr) {
+	PROGRAM *program = (PROGRAM *)ptr;
 
-	PROGRAM *program = ( PROGRAM * )ptr;
-
-	glBindAttribLocation( program->pid, 0, "POSITION" );
-	glBindAttribLocation( program->pid, 2, "TEXCOORD0" );
+	glBindAttribLocation(program->pid, 0, "POSITION");
+	glBindAttribLocation(program->pid, 2, "TEXCOORD0");
 }
 
 
-void templateAppInit( int width, int height ) {
+void templateAppInit(int width, int height) {
     /* Remember the screen height (in landscape mode, the width of the
      * screen).
      */
     screen_size = height;
 
-	atexit( templateAppExit );
+	atexit(templateAppExit);
 
 	GFX_start();
 
-	glViewport( 0.0f, 0.0f, width, height );
+	glViewport(0.0f, 0.0f, width, height);
 
-	GFX_set_matrix_mode( PROJECTION_MATRIX );
+	GFX_set_matrix_mode(PROJECTION_MATRIX);
 	GFX_load_identity();
-	GFX_set_perspective( 80.0f,
-						 ( float )width / ( float )height,
-						 0.1f,
-						 100.0f,
-						 -90.0f );
+	GFX_set_perspective(80.0f,
+                        (float)width / (float)height,
+                        0.1f,
+                        100.0f,
+                        -90.0f);
 
-	obj = OBJ_load( OBJ_FILE, 1 );
+	obj = new OBJ(OBJ_FILE, true);
 
-	unsigned int i = 0;
+	for (auto objmesh=obj->objmesh.begin();
+         objmesh!=obj->objmesh.end(); ++objmesh) {
+		objmesh->optimize(128);
 
-	while( i != obj->n_objmesh ) {
-	
-		OBJ_optimize_mesh( obj, i, 128 );
+		objmesh->build();
 
-		OBJ_build_mesh( obj, i );
-
-		OBJ_free_mesh_vertex_data( obj, i ); 
-
-		++i;
-	}
-	
-	i = 0;
-	while( i != obj->n_texture ) { 
-
-		OBJ_build_texture( obj,
-						   i,
-						   obj->texture_path,
-						   TEXTURE_MIPMAP | TEXTURE_16_BITS,
-						   TEXTURE_FILTER_2X,
-						   0.0f );
-		++i;
+		objmesh->free_vertex_data();
 	}
 
+	for (int i=0; i!=obj->texture.size(); ++i)
+		OBJ_build_texture(obj,
+                          i,
+                          obj->texture_path,
+                          TEXTURE_MIPMAP | TEXTURE_16_BITS,
+                          TEXTURE_FILTER_2X,
+                          0.0f);
 
-	i = 0;
-	while( i != obj->n_objmaterial ) { 
-
-		OBJ_build_material( obj, i, NULL );
+	for (auto objmaterial=obj->objmaterial.begin();
+         objmaterial!=obj->objmaterial.end(); ++objmaterial) {
+		objmaterial->build(NULL);
+    }
 		
-		++i;
-	}
-		
-	
-	program = PROGRAM_create( ( char * )"default",
-							  VERTEX_SHADER,
-							  FRAGMENT_SHADER,
-							  1,
-							  0,
-							  program_bind_attrib_location,
-							  NULL );
+	program = new PROGRAM((char *)"default",
+                          VERTEX_SHADER,
+                          FRAGMENT_SHADER,
+                          1,
+                          0,
+                          program_bind_attrib_location,
+                          NULL);
 
-	PROGRAM_draw( program );
+	program->draw();
 	
-	glUniform1i( PROGRAM_get_uniform_location( program, ( char * )"DIFFUSE" ), 1 );
+	glUniform1i(program->get_uniform_location((char *)"DIFFUSE"), 1);
 }
 
 
-void templateAppDraw( void ) {
+void templateAppDraw(void) {
+	glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
+	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
-	glClearColor( 0.5f, 0.5f, 0.5f, 1.0f );
-	glClear( GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT );
-
-
-	GFX_set_matrix_mode( MODELVIEW_MATRIX );
+	GFX_set_matrix_mode(MODELVIEW_MATRIX);
 	GFX_load_identity();
 
     /* First make sure that either the X or Y view_delta actually has a
      * value, in order to avoid processing movements for nothing.
      */
-    if( view_delta.x || view_delta.y ) {
+    if (view_delta.x || view_delta.y) {
         /* If the delta Y is active (!=0), apply it to the Z rotation of
          * the camera.
          */
-        if( view_delta.y ) rotz -= view_delta.y;
+        if (view_delta.y) rotz -= view_delta.y;
         /* If the delta X is active, apply it to the X rotation.  And since
          * you don't want the view to start flipping, clamp it in the range
          * of 0 to 180.  This way, the user will be restricted to look from
          * straight up to straight down (since forward is 90 degrees).
          */
-        if( view_delta.x ) {
+        if (view_delta.x) {
             rotx += view_delta.x;
-            rotx = CLAMP( rotx, 0.0f, 180.0f );
+            rotx = CLAMP(rotx, 0.0f, 180.0f);
         }
 
         /* Set the deltas back to 0. */
@@ -184,7 +180,7 @@ void templateAppDraw( void ) {
     }
 
     /* Check if you have a force (!=0). */
-    if( move_delta.z ) {
+    if (move_delta.z) {
         /* Rotate the move_delta coordinate system by the current Z rotation
          * of the camera.  This way, forward will always be up, backward will
          * always be down, left will always be left, and right will always be
@@ -193,8 +189,8 @@ void templateAppDraw( void ) {
         vec3 forward;
 
         float r = rotz * DEG_TO_RAD, /* Convert the rotz to radians. */
-              c = cosf( r ), /* Get the cosine for the Z rotation. */
-              s = sinf( r ); /* "   "   "      "   "   X rotation. */
+              c = cosf(r), /* Get the cosine for the Z rotation. */
+              s = sinf(r); /* "   "   "      "   "   X rotation. */
         /* Calculate the movement direction rotated on the Z axis; in other
          * words, the forward vector based on the movement direction (delta)
          * using the camera rotation space.
@@ -209,66 +205,58 @@ void templateAppDraw( void ) {
         /* Get the sine for the rotz and offset it 90 degrees to make sure it
          * fits with the world positive Y axis (the forward vector).
          */
-        forward.z = sinf( ( rotx - 90.0f ) * DEG_TO_RAD );
+        forward.z = sinf((rotx - 90.0f) * DEG_TO_RAD);
         /* If the movement delta on the X axis (either positive or negative) is
          * almost a fully straight movement (near -1 or 1), take in consideration
          * the Z elevation.
          */
-        if( move_delta.x < -0.99f )
+        if (move_delta.x < -0.99f)
             location.z -= forward.z * move_delta.z * 0.1f;
 
-        else if( move_delta.x > 0.99f )
+        else if (move_delta.x > 0.99f)
             location.z += forward.z * move_delta.z * 0.1f;
     }
 
-	GFX_translate( location.x, location.y, location.z );
+	GFX_translate(location.x, location.y, location.z);
 	
-	GFX_rotate( rotz, 0.0f, 0.0f, 1.0f );
+	GFX_rotate(rotz, 0.0f, 0.0f, 1.0f);
 
-	GFX_rotate( rotx, 1.0f, 0.0f, 0.0f );
+	GFX_rotate(rotx, 1.0f, 0.0f, 0.0f);
 	
-	mat4_invert( GFX_get_modelview_matrix() );
-	
+	mat4_invert(GFX_get_modelview_matrix());
 
-	build_frustum( frustum,
+	build_frustum(frustum,
 				   GFX_get_modelview_matrix(),
-				   GFX_get_projection_matrix() );
+				   GFX_get_projection_matrix());
 	
+	for (auto objmesh=obj->objmesh.begin();
+         objmesh!=obj->objmesh.end(); ++objmesh) {
 
-	unsigned int i = 0;
+		objmesh->distance = sphere_distance_in_frustum(frustum,
+                                                       &objmesh->location,
+                                                       objmesh->radius);
 
-	while( i != obj->n_objmesh ) {
-
-		OBJMESH *objmesh = &obj->objmesh[ i ];
-
-		objmesh->distance = sphere_distance_in_frustum( frustum,
-														&objmesh->location,
-														objmesh->radius );
-
-		if( objmesh->distance > 0.0f )
-		{
+		if (objmesh->distance > 0.0f) {
 			GFX_push_matrix();
 
-			GFX_translate( objmesh->location.x,
-						   objmesh->location.y,
-						   objmesh->location.z );
-						   
-			glUniformMatrix4fv( program->uniform_array[ 0 ].location,
-								1,
-								GL_FALSE,
-								( float * )GFX_get_modelview_projection_matrix() );
+			GFX_translate(objmesh->location.x,
+                          objmesh->location.y,
+                          objmesh->location.z);
 
-			OBJ_draw_mesh( obj, i );
+            glUniformMatrix4fv(program->uniform_map["MODELVIEWPROJECTIONMATRIX"].location,
+                               1,
+                               GL_FALSE,
+                               (float *)GFX_get_modelview_projection_matrix());
+
+			objmesh->draw();
 
 			GFX_pop_matrix();
-		}
-		
-		++i;
+        }
 	}
 }
 
 
-void templateAppToucheBegan( float x, float y, unsigned int tap_count )
+void templateAppToucheBegan(float x, float y, unsigned int tap_count)
 {
     /* Analyze from which side of the screen the touch was emitted.  And
      * depending on whether it's on the left or the right, remember the
@@ -280,19 +268,19 @@ void templateAppToucheBegan( float x, float y, unsigned int tap_count )
     } else {
         view_location.x = x;
         view_location.y = y;
-}
+    }
 }
 
 
-void templateAppToucheMoved( float x, float y, unsigned int tap_count )
+void templateAppToucheMoved(float x, float y, unsigned int tap_count)
 {
     /* First create a "dead zone" that occupies 10% of the screen size,
      * located at the center of the screen.  This way, if the user is on one side
      * of the screen and swipes all the way to the other side, you can then stop
      * the movement.
      */
-    if( y > ( ( screen_size * 0.5f ) - ( screen_size * 0.05f ) ) &&
-        y < ( ( screen_size * 0.5f ) + ( screen_size * 0.05f ) ) ) {
+    if (y > ((screen_size * 0.5f) - (screen_size * 0.05f)) &&
+        y < ((screen_size * 0.5f) + (screen_size * 0.05f))) {
         /* Stop the current movement for the view or if the camera is on the move.
          */
         move_delta.z =
@@ -308,7 +296,7 @@ void templateAppToucheMoved( float x, float y, unsigned int tap_count )
 
         view_location.x = x;
         view_location.y = y;
-    } else if( y < ( screen_size * 0.5f ) ) {
+    } else if (y < (screen_size * 0.5f)) {
         /* If the touch start is on the left side of the screen, deal with it
          * as a camera movement.
          */
@@ -318,23 +306,23 @@ void templateAppToucheMoved( float x, float y, unsigned int tap_count )
         /* Calculate the delta to determine which direction the touch is
          * going.
          */
-        vec3_diff( &move_delta,
-                   &touche,
-                   &move_location );
+        vec3_diff(&move_delta,
+                  &touche,
+                  &move_location);
         /* Normalize the delta to have a direction vector in the range of
          * -1 to 1.
          */
-        vec3_normalize( &move_delta,
-                        &move_delta );
+        vec3_normalize(&move_delta,
+                       &move_delta);
         /* Calculate the force (basically the distance from the starting
          * movement location to the current touch location) and divide it
          * by a factor in pixels.  This way, the closer to the starting point,
          * the slower the movement will be, and as the touch distance increases,
          * the movement speed will increase up to its maximum.
          */
-        move_delta.z = CLAMP( vec3_dist( &move_location, &touche ) / 128.0f,
+        move_delta.z = CLAMP(vec3_dist(&move_location, &touche) / 128.0f,
                               0.0f,
-                              1.0f );
+                              1.0f);
     } else {
         /* Since the touch is on the right side of the screen, simply calculate
          * the delta for the view so you can then use it to manipulate the X
@@ -343,29 +331,25 @@ void templateAppToucheMoved( float x, float y, unsigned int tap_count )
         /* Calculate the view delta and linearly interpolate the values to
          * smooth things out a bit.
          */
-        view_delta.x = view_delta.x * 0.75f + ( x - view_location.x ) * 0.25f;
-        view_delta.y = view_delta.y * 0.75f + ( y - view_location.y ) * 0.25f;
+        view_delta.x = view_delta.x * 0.75f + (x - view_location.x) * 0.25f;
+        view_delta.y = view_delta.y * 0.75f + (y - view_location.y) * 0.25f;
         /* Remember the current location as the starting point for the next
          * movement (if any). */
         view_location.x = x;
         view_location.y = y;
-}
+    }
 }
 
 
-void templateAppToucheEnded( float x, float y, unsigned int tap_count )
+void templateAppToucheEnded(float x, float y, unsigned int tap_count)
 {
     move_delta.z = 0.0f;
 }
 
 
-void templateAppExit( void ) {
+void templateAppExit(void) {
+    delete program;
+    program = NULL;
 
-	SHADER_free( program->vertex_shader );
-
-	SHADER_free( program->fragment_shader );
-
-	PROGRAM_free( program );
-
-	OBJ_free( obj );
+    delete obj;
 }

@@ -24,19 +24,31 @@ as being the original software.
 3. This notice may not be removed or altered from any source distribution.
 
 */
+/*
+ * Source code modified by Chris Larsen to make the following data types into
+ * proper C++ classes:
+ * - OBJ
+ * - OBJMATERIAL
+ * - OBJMESH
+ * - OBJTRIANGLEINDEX
+ * - OBJTRIANGLELIST
+ * - OBJVERTEXDATA
+ * - PROGRAM
+ * - SHADER
+ */
 
 #include "templateApp.h"
 
-             /* The color buffer texture ID */
+/* The color buffer texture ID */
 unsigned int colorbuffer_texture = 0,
-             /* The width and height of the texture.  When it comes to
-              * texture in OpenGLES, a width and height using a power
-              * of 2 will always give better performance compared to a
-              * non-power of two texture (assuming that the non-power
-              * of 2 texture extension is supported by your hardware).
-              */
-			 colorbuffer_width	 = 128,
-			 colorbuffer_height	 = 256;
+/* The width and height of the texture.  When it comes to
+ * texture in OpenGLES, a width and height using a power
+ * of 2 will always give better performance compared to a
+ * non-power of two texture (assuming that the non-power
+ * of 2 texture extension is supported by your hardware).
+ */
+colorbuffer_width	 = 128,
+colorbuffer_height	 = 256;
 /* The number of pixels to use in order to blur the texture vertically
  * and horizontally.
  */
@@ -49,278 +61,215 @@ OBJMESH *fullscreen = NULL;
  */
 unsigned char pass = 0;
 
-
-#define OBJ_FILE ( char * )"Scene.obj"
+#define OBJ_FILE (char *)"Scene.obj"
 
 OBJ *obj = NULL;
 
 TEMPLATEAPP templateApp = { templateAppInit,
 							templateAppDraw };
 
-OBJMESH *objmesh = NULL;
+std::vector<OBJMESH>::iterator objmesh;
 
-int viewport_matrix[ 4 ];
+int viewport_matrix[4];
 
 LIGHT *light = NULL;
 
 
-void program_bind_attrib_location( void *ptr ) {
+void program_bind_attrib_location(void *ptr) {
 
-	PROGRAM *program = ( PROGRAM * )ptr;
+	PROGRAM *program = (PROGRAM *)ptr;
 
-	glBindAttribLocation( program->pid, 0, "POSITION"  );
-	glBindAttribLocation( program->pid, 1, "NORMAL"    );
-	glBindAttribLocation( program->pid, 2, "TEXCOORD0" );
-	glBindAttribLocation( program->pid, 3, "TANGENT0" );
+	glBindAttribLocation(program->pid, 0, "POSITION");
+	glBindAttribLocation(program->pid, 1, "NORMAL" );
+	glBindAttribLocation(program->pid, 2, "TEXCOORD0");
+	glBindAttribLocation(program->pid, 3, "TANGENT0");
 }
 
 
-void program_draw( void *ptr )
+void program_draw(void *ptr)
 {
-	unsigned int i = 0;
-	
-	PROGRAM *program = ( PROGRAM * )ptr;
-	
-	while( i != program->uniform_count )
-	{
-		if( program->uniform_array[ i ].constant ) 
-		{
-			++i;
+	PROGRAM *program = (PROGRAM *)ptr;
+
+    for (auto it=program->uniform_map.begin(); it!=program->uniform_map.end(); ++it){
+        auto    &name = it->first;
+        auto    &uniform = it->second;
+
+		if (uniform.constant) {
 			continue;
-		}
-	
-		else if( !strcmp( program->uniform_array[ i ].name, "MODELVIEWPROJECTIONMATRIX" ) )
-		{
-			glUniformMatrix4fv( program->uniform_array[ i ].location,
-								1,
-								GL_FALSE,
-								( float * )GFX_get_modelview_projection_matrix() );			
-		}
-		
-		else if( !strcmp( program->uniform_array[ i ].name, "DIFFUSE" ) )
-		{
-			glUniform1i( program->uniform_array[ i ].location,
-						 1 );
-			
-			program->uniform_array[ i ].constant = 1;
-		}
+		} else if (name == "MODELVIEWPROJECTIONMATRIX") {
+			glUniformMatrix4fv(uniform.location,
+                               1,
+                               GL_FALSE,
+                               (float *)GFX_get_modelview_projection_matrix());
+		} else if (name == "DIFFUSE") {
+			glUniform1i(uniform.location, 1);
 
-		else if( !strcmp( program->uniform_array[ i ].name, "BUMP" ) )
-		{
-			glUniform1i( program->uniform_array[ i ].location,
-						 4 );
-						 
-			program->uniform_array[ i ].constant = 1;
-		}
+			uniform.constant = true;
+		} else if (name == "BUMP") {
+			glUniform1i(uniform.location, 4);
 
-		// Matrix Data
-		else if( !strcmp( program->uniform_array[ i ].name, "MODELVIEWMATRIX" ) )
-		{
-			glUniformMatrix4fv( program->uniform_array[ i ].location,
-								1,
-								GL_FALSE,
-								( float * )GFX_get_modelview_matrix() );			
-		}
+			uniform.constant = true;
+		} else if (name == "MODELVIEWMATRIX") {
+            // Matrix Data
+            glUniformMatrix4fv(uniform.location,
+                               1,
+                               GL_FALSE,
+                               (float *)GFX_get_modelview_matrix());
+        } else if (name == "PROJECTIONMATRIX") {
+            glUniformMatrix4fv(uniform.location,
+                               1,
+                               GL_FALSE,
+                               (float *)GFX_get_projection_matrix());
 
-		else if( !strcmp( program->uniform_array[ i ].name, "PROJECTIONMATRIX" ) )
-		{
-			glUniformMatrix4fv( program->uniform_array[ i ].location,
-								1,
-								GL_FALSE,
-								( float * )GFX_get_projection_matrix() );
-			
-			program->uniform_array[ i ].constant = 1;
-		}
-
-		else if( !strcmp( program->uniform_array[ i ].name, "NORMALMATRIX" ) )
-		{
-			glUniformMatrix3fv( program->uniform_array[ i ].location,
-								1,
-								GL_FALSE,
-								( float * )GFX_get_normal_matrix() );			
-		}
-
-
-		// Material Data
-		else if( !strcmp( program->uniform_array[ i ].name, "MATERIAL.ambient" ) )
-		{
-			glUniform4fv( program->uniform_array[ i ].location,
-						  1,
-						  ( float * )&objmesh->current_material->ambient );
-						 
-			program->uniform_array[ i ].constant = 1;
-		}		
-
-		else if( !strcmp( program->uniform_array[ i ].name, "MATERIAL.diffuse" ) )
-		{
-			if( pass == 1 )
-			{
+			uniform.constant = true;
+        } else if (name == "NORMALMATRIX") {
+            glUniformMatrix3fv(uniform.location,
+                               1,
+                               GL_FALSE,
+                               (float *)GFX_get_normal_matrix());
+        } else if (name == "MATERIAL.ambient") {
+            // Material Data
+            glUniform4fv(uniform.location,
+                         1,
+                         (float *)&objmesh->current_material->ambient);
+            /* In this scene, all the materials (in this case, there are
+             * only two) have the exact same properties, so simply tag the
+             * uniforms for the current material to be constant.  This will
+             * also allow you to get better performance at runtime, because
+             * the data will not be sent over and over for nothing.
+             */
+			uniform.constant = true;
+        } else if (name == "MATERIAL.diffuse") {
+			if (pass == 1) {
 				vec4 black = { 0.0f, 0.0f, 0.0f, 1.0f };
-				
-			glUniform4fv( program->uniform_array[ i ].location,
-						  1,
-                          ( float * )&black );
-			}
-			else 
-			{
-				glUniform4fv( program->uniform_array[ i ].location,
-							  1,
-                              ( float * )&objmesh->current_material->diffuse );
-            }
-		}		
 
-		else if( !strcmp( program->uniform_array[ i ].name, "MATERIAL.specular" ) )
-		{
-			if( pass == 2 )
-			{
+                glUniform4fv(uniform.location,
+                             1,
+                             (float *)&black);
+			} else {
+				glUniform4fv(uniform.location,
+                             1,
+                             (float *)&objmesh->current_material->diffuse);
+            }
+        } else if (name == "MATERIAL.specular") {
+			if (pass == 2) {
 				vec4 black = { 0.0f, 0.0f, 0.0f, 1.0f };
-						   /*
-						   // Or your could use half of the orignal specular color like this (which also gives good results):
-						   = { objmesh->current_material->specular.x * 0.5f,
-							   objmesh->current_material->specular.y * 0.5f,
-							   objmesh->current_material->specular.z * 0.5f,
-							   1.0f };
-							*/
- 						    
-			glUniform4fv( program->uniform_array[ i ].location,
-						  1,
-                          ( float * )&black );
-			}
-			else
-			{
-				glUniform4fv( program->uniform_array[ i ].location,
-							  1,
-                              ( float * )&objmesh->current_material->specular );
+                /*
+                 // Or your could use half of the original specular color like this (which also gives good results):
+                 = { objmesh->current_material->specular.x * 0.5f,
+                     objmesh->current_material->specular.y * 0.5f,
+                     objmesh->current_material->specular.z * 0.5f,
+                     1.0f };
+                 */
+
+                glUniform4fv(uniform.location,
+                             1,
+                             (float *)&black);
+			} else {
+				glUniform4fv(uniform.location,
+                             1,
+                             (float *)&objmesh->current_material->specular);
             }
-		}		
+        } else if (name == "MATERIAL.shininess") {
+			glUniform1f(uniform.location,
+                        objmesh->current_material->specular_exponent * 0.128f);
 
-		else if( !strcmp( program->uniform_array[ i ].name, "MATERIAL.shininess" ) )
-		{
-			glUniform1f( program->uniform_array[ i ].location,
-						 objmesh->current_material->specular_exponent * 0.128f );
+			uniform.constant = true;
+		} else if(name == "LIGHT_FS.color") {
+            // Lamp Data
+			glUniform4fv(uniform.location,
+                         1,
+                         (float *)&light->color);
 
-			program->uniform_array[ i ].constant = 1;
-		}
-		
-
-		// Lamp Data
-		else if( !strcmp( program->uniform_array[ i ].name, "LIGHT_FS.color" ) )
-		{
-			glUniform4fv( program->uniform_array[ i ].location,
-						  1,
-						  ( float * )&light->color );
-
-			program->uniform_array[ i ].constant = 1;						  
-		}
-
-		else if( !strcmp( program->uniform_array[ i ].name, "LIGHT_VS.position" ) )
-		{
+			uniform.constant = true;
+		} else if(name == "LIGHT_VS.position") {
 			vec4 position;
-		
-			static float rot_angle = 0.0f;
-		
-			light->position.x = 7.5f * cosf( rot_angle * DEG_TO_RAD );
-			light->position.y = 7.5f * sinf( rot_angle * DEG_TO_RAD );
-		
-			rot_angle += 0.25f;
-			
-			LIGHT_get_position_in_eye_space( light,
-											 &gfx.modelview_matrix[ gfx.modelview_matrix_index - 1 ], 
-											 &position );
-			
-			glUniform3fv( program->uniform_array[ i ].location,
-						  1,
-						  ( float * )&position );
-		}
 
-		++i;
-	}	
+			static float rot_angle = 0.0f;
+
+			light->position.x = 7.5f * cosf(rot_angle * DEG_TO_RAD);
+			light->position.y = 7.5f * sinf(rot_angle * DEG_TO_RAD);
+
+			rot_angle += 0.25f;
+
+			LIGHT_get_position_in_eye_space(light,
+                                            &gfx.modelview_matrix[gfx.modelview_matrix_index - 1],
+                                            &position);
+			
+			glUniform3fv(uniform.location,
+                         1,
+                         (float *)&position);
+		}
+	}
 }
 
 
-void templateAppInit( int width, int height ) {
+void templateAppInit(int width, int height) {
 
-	atexit( templateAppExit );
+	atexit(templateAppExit);
 
 	GFX_start();
 
-	glViewport( 0.0f, 0.0f, width, height );
+	glViewport(0.0f, 0.0f, width, height);
 	
-	glGetIntegerv( GL_VIEWPORT, viewport_matrix );
+	glGetIntegerv(GL_VIEWPORT, viewport_matrix);
 
-	obj = OBJ_load( OBJ_FILE, 1 );
+	obj = new OBJ(OBJ_FILE, true);
 
-	unsigned int i = 0;
+    for (objmesh=obj->objmesh.begin();
+         objmesh != obj->objmesh.end(); ++objmesh) {
 
-	while( i != obj->n_objmesh ) {
-		
-		OBJ_optimize_mesh( obj, i, 128 );
+        objmesh->optimize(128);
 
-		OBJ_build_mesh( obj, i );
+        objmesh->build();
 
-		OBJ_free_mesh_vertex_data( obj, i ); 
+        objmesh->free_vertex_data();
+    }
 
-		++i;
-	}
-	
+	for (int i=0; i!=obj->texture.size(); ++i)
+		OBJ_build_texture(obj,
+                          i,
+                          obj->texture_path,
+                          TEXTURE_MIPMAP | TEXTURE_16_BITS,
+                          TEXTURE_FILTER_3X,
+                          0.0f);
 
-	i = 0;
-	while( i != obj->n_texture ) { 
+    for (auto program=obj->program.begin();
+         program != obj->program.end(); ++program) {
+        (*program)->build(program_bind_attrib_location,
+                          program_draw,
+                          1,
+                          obj->program_path);
+    }
 
-		OBJ_build_texture( obj,
-						   i,
-						   obj->texture_path,
-						   TEXTURE_MIPMAP | TEXTURE_16_BITS,
-						   TEXTURE_FILTER_3X,
-						   0.0f );
-		++i;
-	}
+	for (auto objmaterial=obj->objmaterial.begin();
+         objmaterial!=obj->objmaterial.end(); ++objmaterial) {
+		objmaterial->build(NULL);
+    }
 
-
-	i = 0;
-	while( i != obj->n_program ) { 
-		
-		OBJ_build_program( obj,
-						   i,
-						   program_bind_attrib_location,
-						   program_draw,
-						   1,
-						   obj->program_path );
-		++i;
-	}
-
-
-	i = 0;
-	while( i != obj->n_objmaterial ) { 
-
-		OBJ_build_material( obj, i, NULL );
-		++i;
-	}
-	
-	
 	vec4 color = { 1.0f, 1.0f, 1.0f, 1.0f };
-	
+
 	vec3 position = { 7.5f, 0.0f, 6.0f };	
 	
-	light = LIGHT_create_point( ( char * )"point", &color, &position );
+	light = LIGHT_create_point((char *)"point", &color, &position);
 	
 	
 	/* Generate a new texture ID. */
-	glGenTextures( 1, &colorbuffer_texture );
+	glGenTextures(1, &colorbuffer_texture);
     /* Bind the new texture ID. */
-	glBindTexture( GL_TEXTURE_2D, colorbuffer_texture );
+	glBindTexture(GL_TEXTURE_2D, colorbuffer_texture);
     /* Make sure that the texture coordinates will be clamped to the
      * range of 0 to 1.
      */
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     /* Specify that the texture pixels will be linearly interpolated
      * when magnified or minified.
      */
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	/* Create a new 2D image. */
-	glTexImage2D( GL_TEXTURE_2D,
+	glTexImage2D(GL_TEXTURE_2D,
 				  0,
                  /* Only RGB, no alpha necessary. */
 				  GL_RGB,
@@ -339,51 +288,44 @@ void templateAppInit( int width, int height ) {
                   * dynamically fill the texture when requesting to
                   * render the current color buffer to it.
                   */
-				  NULL );	
+				  NULL);	
 
-	fullscreen = OBJ_get_mesh( obj, "fullscreen", 0 );
-	fullscreen->visible = 0;		
+	fullscreen = obj->get_mesh("fullscreen", false);
+	fullscreen->visible = false;
 }
 
 
-void draw_scene( void )
+void draw_scene(void)
 {
-	glClear( GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT );
+	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
-	GFX_set_matrix_mode( MODELVIEW_MATRIX );
+	GFX_set_matrix_mode(MODELVIEW_MATRIX);
 	GFX_load_identity();
 
-	GFX_translate( 14.0f, -12.0f, 7.0f );
+	GFX_translate(14.0f, -12.0f, 7.0f);
 
-	GFX_rotate( 48.5f, 0.0f, 0.0f, 1.0f );
+	GFX_rotate(48.5f, 0.0f, 0.0f, 1.0f);
 
-	GFX_rotate( 72.0, 1.0f, 0.0f, 0.0f );
-	
-	mat4_invert( GFX_get_modelview_matrix() );
+	GFX_rotate(72.0, 1.0f, 0.0f, 0.0f);
 
+	mat4_invert(GFX_get_modelview_matrix());
 
-	unsigned int i = 0;
-
-	while( i != obj->n_objmesh ) {
-
-		objmesh = &obj->objmesh[ i ];
+	for (objmesh=obj->objmesh.begin();
+         objmesh!=obj->objmesh.end(); ++objmesh) {
 
 		GFX_push_matrix();
 
-		GFX_translate( objmesh->location.x,
-					   objmesh->location.y,
-					   objmesh->location.z );
-					   
-		OBJ_draw_mesh( obj, i );
-
+		GFX_translate(objmesh->location.x,
+                      objmesh->location.y,
+                      objmesh->location.z);
+        
+		objmesh->draw();
+        
 		GFX_pop_matrix();
-		
-		++i;
 	}
 }
 
-
-void first_pass( void )
+void first_pass(void)
 {
     /* Tag that the first pass is about to be drawn onscreen. */
 	pass = 1;
@@ -394,147 +336,146 @@ void first_pass( void )
      * perspective ration in which the scene is drawn fits the
      * original fullscreen viewport size.
      */
-	glViewport( 0, 0, colorbuffer_width, colorbuffer_height );
+	glViewport(0, 0, colorbuffer_width, colorbuffer_height);
     /* Call the draw_scene function and render the scene at a lower
      * resolution with the same width and height of the texture that
      * you want to save the color buffer result to.
      */
 	draw_scene();
     /* Bind the color buffer texture ID to be able to save the image. */
-	glBindTexture( GL_TEXTURE_2D, colorbuffer_texture );
+	glBindTexture(GL_TEXTURE_2D, colorbuffer_texture);
 	/* The function to call in order to transfer the current result of
      * the color buffer to an arbitrary texture ID previously bound to
      * the current GL context.
      */
-	glCopyTexSubImage2D( GL_TEXTURE_2D,
-						 0, 0, 0, 0, 0,
-						 colorbuffer_width,
-						 colorbuffer_height );
+	glCopyTexSubImage2D(GL_TEXTURE_2D,
+                        0, 0, 0, 0, 0,
+                        colorbuffer_width,
+                        colorbuffer_height);
 }
 
 
-void second_pass( void )
+void second_pass(void)
 {
 	pass = 2;
 
-	glViewport( 0, 0, viewport_matrix[ 2 ], viewport_matrix[ 3 ] );
-	
+	glViewport(0, 0, viewport_matrix[2], viewport_matrix[3]);
+
 	draw_scene();
 }
 
 
-void fullscreen_pass( void )
+void fullscreen_pass(void)
 {
-	GFX_set_matrix_mode( PROJECTION_MATRIX );
+	GFX_set_matrix_mode(PROJECTION_MATRIX);
 	GFX_load_identity();
 
-	float half_width  = ( float )viewport_matrix[ 2 ] * 0.5f,
-		  half_height = ( float )viewport_matrix[ 3 ] * 0.5f;
+	float half_width  = (float)viewport_matrix[2] * 0.5f,
+    half_height = (float)viewport_matrix[3] * 0.5f;
 
 	GFX_load_identity();
-	
-	GFX_set_orthographic_2d( -half_width,
-							  half_width,
-							 -half_height,
-							  half_height );
 
-	GFX_set_matrix_mode( MODELVIEW_MATRIX );
+	GFX_set_orthographic_2d(-half_width,
+                             half_width,
+                            -half_height,
+                             half_height);
+
+	GFX_set_matrix_mode(MODELVIEW_MATRIX);
 	GFX_load_identity();
-	
-	
-	glDisable( GL_DEPTH_TEST );
-	glDepthMask( GL_FALSE );
-
-	glDisable( GL_CULL_FACE );
-
-	glEnable( GL_BLEND );
-
-	glBlendEquation( GL_FUNC_ADD );
-	glBlendFunc( GL_SRC_ALPHA, GL_ONE );
 
 
-	glActiveTexture( GL_TEXTURE1 );
-	
-	glBindTexture( GL_TEXTURE_2D, colorbuffer_texture );
-	
+	glDisable(GL_DEPTH_TEST);
+	glDepthMask(GL_FALSE);
 
-	fullscreen->visible = 1;
+	glDisable(GL_CULL_FACE);
+
+	glEnable(GL_BLEND);
+
+	glBlendEquation(GL_FUNC_ADD);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+
+
+	glActiveTexture(GL_TEXTURE1);
+
+	glBindTexture(GL_TEXTURE_2D, colorbuffer_texture);
+
+
+	fullscreen->visible = true;
 	{
-		PROGRAM *program = OBJ_get_program( obj, "blur", 0 );
-	
-		GFX_scale( ( float )viewport_matrix[ 2 ],
-				   ( float )viewport_matrix[ 3 ],
-				   1.0f );
-	
-		GFX_rotate( 180.0f, 1.0f, 0.0f, 0.0f );
+		PROGRAM *program = obj->get_program("blur", false);
+
+		GFX_scale((float)viewport_matrix[2],
+                  (float)viewport_matrix[3],
+                  1.0f);
+
+		GFX_rotate(180.0f, 1.0f, 0.0f, 0.0f);
 
 
-		PROGRAM_draw( program );
+		program->draw();
 
 
-		vec2 radius = { blur_radius / ( float )colorbuffer_width,
-						0.0f };
+		vec2 radius = { blur_radius / (float)colorbuffer_width,
+            0.0f };
 
-		glUniform2fv( PROGRAM_get_uniform_location( program, ( char * )"BLUR_RADIUS" ), 
-					  1,
-					  ( float * )&radius );		
-		
-		OBJ_draw_mesh( obj,
-					   OBJ_get_mesh_index( obj, "fullscreen", 0 ) );
-					
+		glUniform2fv(program->get_uniform_location((char *)"BLUR_RADIUS"),
+                     1,
+                     (float *)&radius);
+
+		auto objmesh = obj->get_mesh("fullscreen", false);
+		objmesh->draw();
+
 
 		radius.x = 0.0f;
-		radius.y = blur_radius / ( float )colorbuffer_height;
-		
-		glUniform2fv( PROGRAM_get_uniform_location( program, ( char * )"BLUR_RADIUS" ), 
-					  1,
-					  ( float * )&radius );		
-	
-		
-		
-		OBJ_draw_mesh( obj,
-					   OBJ_get_mesh_index( obj, "fullscreen", 0 ) );
+		radius.y = blur_radius / (float)colorbuffer_height;
+
+		glUniform2fv(program->get_uniform_location((char *)"BLUR_RADIUS"),
+                     1,
+                     (float *)&radius);
+
+
+
+		objmesh->draw();
+    }
+	fullscreen->visible = false;
+
+
+	glDisable(GL_BLEND);
+
+	glEnable(GL_CULL_FACE);
+
+	glEnable(GL_DEPTH_TEST);
+	glDepthMask(GL_TRUE);
 }
-	fullscreen->visible = 0;
 
 
-	glDisable( GL_BLEND );
+void templateAppDraw(void) {
 
-	glEnable( GL_CULL_FACE );	
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
-	glEnable( GL_DEPTH_TEST );
-	glDepthMask( GL_TRUE );
-}
-
-
-void templateAppDraw( void ) {
-
-	glClearColor( 0.0f, 0.0f, 0.0f, 1.0f );
-
-	GFX_set_matrix_mode( PROJECTION_MATRIX );
+	GFX_set_matrix_mode(PROJECTION_MATRIX);
 	GFX_load_identity();
-	
+
 	GFX_set_perspective( 45.0f,
-						 ( float )viewport_matrix[ 2 ] / ( float )viewport_matrix[ 3 ],
-						 0.1f,
-						 100.0f,
-						 -90.0f );
+                        (float)viewport_matrix[2] / (float)viewport_matrix[3],
+                          0.1f,
+                        100.0f,
+                        -90.0f);
 	
 	first_pass();
 	
 	second_pass();
 	
-	//glClear( GL_COLOR_BUFFER_BIT );
+	//glClear(GL_COLOR_BUFFER_BIT);
 	
 	fullscreen_pass();	
 }
 
 
-void templateAppExit( void ) {
+void templateAppExit(void) {
 
-	glDeleteTextures( 1, &colorbuffer_texture );
+	glDeleteTextures(1, &colorbuffer_texture);
 
-	light = LIGHT_free( light );
+	light = LIGHT_free(light);
 
-	OBJ_free( obj );
+    delete obj;
 }

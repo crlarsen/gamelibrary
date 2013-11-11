@@ -24,14 +24,26 @@ as being the original software.
 3. This notice may not be removed or altered from any source distribution.
 
 */
+/*
+ * Source code modified by Chris Larsen to make the following data types into
+ * proper C++ classes:
+ * - OBJ
+ * - OBJMATERIAL
+ * - OBJMESH
+ * - OBJTRIANGLEINDEX
+ * - OBJTRIANGLELIST
+ * - OBJVERTEXDATA
+ * - PROGRAM
+ * - SHADER
+ */
 
 #include "templateApp.h"
 
-#define OBJ_FILE ( char * )"Scene.obj"
+#define OBJ_FILE (char *)"Scene.obj"
 
-#define VERTEX_SHADER ( char * )"vertex.glsl"
+#define VERTEX_SHADER (char *)"vertex.glsl"
 
-#define FRAGMENT_SHADER ( char * )"fragment.glsl"
+#define FRAGMENT_SHADER (char *)"fragment.glsl"
 
 OBJ *obj = NULL;
 
@@ -62,13 +74,13 @@ btConstraintSolver *solver = NULL;
  */
 btSoftRigidDynamicsWorld *dynamicsworld = NULL;
 
-void init_physic_world( void )
+void init_physic_world(void)
 {
     /* Initialize a new collision configuration. */
     collisionconfiguration = new btSoftBodyRigidBodyCollisionConfiguration();
 
     /* Initialize the collision dispatcher. */
-    dispatcher = new btCollisionDispatcher( collisionconfiguration );
+    dispatcher = new btCollisionDispatcher(collisionconfiguration);
 
     /* Determine which broad phase algorithm to use for the current
      * physical world.  The btDbvtBroadphase is the one that gives the best result
@@ -92,27 +104,27 @@ void init_physic_world( void )
     /* And finally, set up the world gravity direction vector using the
      * same value as the gravity on earth by assigning it on the -Z-axis.
      */
-    dynamicsworld->setGravity( btVector3( 0.0f, 0.0f, -9.8f ) );
+    dynamicsworld->setGravity(btVector3(0.0f, 0.0f, -9.8f));
 }
 
-void program_bind_attrib_location( void *ptr ) {
+void program_bind_attrib_location(void *ptr) {
 
-	PROGRAM *program = ( PROGRAM * )ptr;
+	PROGRAM *program = (PROGRAM *)ptr;
 
-	glBindAttribLocation( program->pid, 0, "POSITION" );
-	glBindAttribLocation( program->pid, 1, "NORMAL"   );
+	glBindAttribLocation(program->pid, 0, "POSITION");
+	glBindAttribLocation(program->pid, 1, "NORMAL" );
 }
 
-void add_rigid_body( OBJMESH *objmesh, float mass )
+void add_rigid_body(OBJMESH *objmesh, float mass)
 {
     /* Create a new Box collision shape for the current mesh. */
     /* Use half of the dimension XYZ to represent the extent of the box
      * relative to its pivot point, which is already centered in the middle of
      * its bounding box.
      */
-    btCollisionShape *btcollisionshape = new btBoxShape( btVector3(objmesh->dimension.x * 0.5f,
-                                                                   objmesh->dimension.y * 0.5f,
-                                                                   objmesh->dimension.z * 0.5f ) );
+    btCollisionShape *btcollisionshape = new btBoxShape(btVector3(objmesh->dimension.x * 0.5f,
+                                                                  objmesh->dimension.y * 0.5f,
+                                                                  objmesh->dimension.z * 0.5f));
 
     /* Declare a btTransform variable to be able to contain the transformation
      * matrix of the object in a form that Bullet will understand.
@@ -129,39 +141,39 @@ void add_rigid_body( OBJMESH *objmesh, float mass )
          rotz = { 0.0f, 0.0f, 1.0f, objmesh->rotation.z };
 
     /* Set up the identity matrix to makesure the matrix is clean. */
-    mat4_identity( &mat );
+    mat4_identity(&mat);
 
-    mat4_translate( &mat, &mat, &objmesh->location );
+    mat4_translate(&mat, &mat, &objmesh->location);
 
-    mat4_rotate( &mat, &mat, &rotz );
+    mat4_rotate(&mat, &mat, &rotz);
 
-    mat4_rotate( &mat, &mat, &roty );
+    mat4_rotate(&mat, &mat, &roty);
 
-    mat4_rotate( &mat, &mat, &rotx );
+    mat4_rotate(&mat, &mat, &rotx);
 
     /* Assign the current transformation matrix that you create using the
      * standard "OpenGL way" and send it over to the Bullet transform variable.
      */
-    bttransform.setFromOpenGLMatrix( ( float * )&mat );
+    bttransform.setFromOpenGLMatrix((float *)&mat);
 
     /* Create a new motion state in order for Bullet to be able to
      * maintain and interpolate the object transformation.
      */
     btDefaultMotionState *btdefaultmotionstate = NULL;
 
-    btdefaultmotionstate = new btDefaultMotionState( bttransform );
+    btdefaultmotionstate = new btDefaultMotionState(bttransform);
 
     /* Create a Bullet vector to be able to hold the local inertia of
      * the object.
      */
-    btVector3 localinertia( 0.0f, 0.0f, 0.0f );
+    btVector3 localinertia(0.0f, 0.0f, 0.0f);
 
     /* If a mass greater than 0 is passed in as a parameter to the function,
      * use it to calculate the local inertia.  If a mass is equal to 0, it means
      * that the object is static and you do not need to execute this calculation.
      */
-    if( mass > 0.0f )
-        btcollisionshape->calculateLocalInertia( mass, localinertia );
+    if (mass > 0.0f)
+        btcollisionshape->calculateLocalInertia(mass, localinertia);
 
     /* Create a new rigid body and link the information that you have
      * calculated above.  Note that you are using the btRigidBody pointer already
@@ -181,33 +193,33 @@ void add_rigid_body( OBJMESH *objmesh, float mass )
      * direct access to the OBJMESH structure at any time inside any Bullet-driven
      * functions and callbacks.
      */
-    objmesh->btrigidbody->setUserPointer( objmesh );
+    objmesh->btrigidbody->setUserPointer(objmesh);
 
     /* Add the new rigid body to your physical world. */
-    dynamicsworld->addRigidBody( objmesh->btrigidbody );
+    dynamicsworld->addRigidBody(objmesh->btrigidbody);
 }
 
-void free_physic_world( void )
+void free_physic_world(void)
 {
     /* Loop while you have some collision objects. */
-    while( dynamicsworld->getNumCollisionObjects() ) {
+    while(dynamicsworld->getNumCollisionObjects()) {
         /* Get the first collision object in the list. */
         btCollisionObject *btcollisionobject = dynamicsworld->getCollisionObjectArray()[ 0 ];
 
         /* Try to upcast it to a rigid body. */
-        btRigidBody *btrigidbody = btRigidBody::upcast( btcollisionobject );
+        btRigidBody *btrigidbody = btRigidBody::upcast(btcollisionobject);
 
         /* If the upcast is successful, the pointer will be != NULL,
          * so you know that you are dealing with a valid btRigidBody.
          */
-        if( btrigidbody ) {
+        if (btrigidbody) {
             delete btrigidbody->getCollisionShape();
 
             delete btrigidbody->getMotionState();
 
-            dynamicsworld->removeRigidBody( btrigidbody );
+            dynamicsworld->removeRigidBody(btrigidbody);
 
-            dynamicsworld->removeCollisionObject( btcollisionobject );
+            dynamicsworld->removeCollisionObject(btcollisionobject);
 
             delete btrigidbody;
         }
@@ -224,34 +236,31 @@ void free_physic_world( void )
     delete dynamicsworld; dynamicsworld = NULL;
 }
 
-void templateAppInit( int width, int height ) {
+void templateAppInit(int width, int height) {
 
-	atexit( templateAppExit );
+	atexit(templateAppExit);
 
 	GFX_start();
 
     init_physic_world();
 
-	glViewport( 0.0f, 0.0f, width, height );
+	glViewport(0.0f, 0.0f, width, height);
 
-	GFX_set_matrix_mode( PROJECTION_MATRIX );
+	GFX_set_matrix_mode(PROJECTION_MATRIX);
 	GFX_load_identity();
-	GFX_set_perspective( 45.0f,
-						 ( float )width / ( float )height,
-						 0.1f,
-						 100.0f,
-						 -90.0f );
+	GFX_set_perspective(45.0f,
+                        (float)width / (float)height,
+                        0.1f,
+                        100.0f,
+                        -90.0f);
 
-	obj = OBJ_load( OBJ_FILE, 1 );
+	obj = new OBJ(OBJ_FILE, true);
 
-	unsigned int i = 0;
+	for (auto objmesh=obj->objmesh.begin();
+         objmesh!=obj->objmesh.end(); ++objmesh) {
 
-	while( i != obj->n_objmesh ) {
+		objmesh->build();
 
-		OBJ_build_mesh( obj, i );
-
-        /* Get the current mesh pointer. */
-        OBJMESH *objmesh = &obj->objmesh[i];
         /* Test the current mesh name to verify it is the Cube.  If yes,
          * give it a rotation of 35 degrees on the XYZ axis; and then call the
          * add_rigid_body function using the mesh pointer and passing in a mass
@@ -262,53 +271,46 @@ void templateAppInit( int width, int height ) {
             objmesh->rotation.y =
             objmesh->rotation.z = 35.0f;
             
-            add_rigid_body(objmesh, 1.0f);
+            add_rigid_body(&(*objmesh), 1.0f);
         } else {
             /* If it's not the Cube, it must be the plane.  Add it as a new
              * rigid body using the mass of 0 since you want it to be a static
              * object.
              */
-            add_rigid_body(objmesh, 0.0f);
+            add_rigid_body(&(*objmesh), 0.0f);
         }
 
-		OBJ_free_mesh_vertex_data( obj, i ); 
-
-		++i;
+		objmesh->free_vertex_data();
 	}
 	
-	program = PROGRAM_create( ( char * )"default",
-							  VERTEX_SHADER,
-							  FRAGMENT_SHADER,
-							  1,
-							  0,
-							  program_bind_attrib_location,
-							  NULL );
+	program = new PROGRAM((char *)"default",
+                          VERTEX_SHADER,
+                          FRAGMENT_SHADER,
+                          true,
+                          false,
+                          program_bind_attrib_location,
+                          NULL);
 
-	PROGRAM_draw( program );
+	program->draw();
 }
 
-
-void templateAppDraw( void ) {
-
-	glClearColor( 0.5f, 0.5f, 0.5f, 1.0f );
-	glClear( GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT );
+void templateAppDraw(void) {
+	glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
+	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
 
-	GFX_set_matrix_mode( MODELVIEW_MATRIX );
-	GFX_load_identity(); {
-	
+	GFX_set_matrix_mode(MODELVIEW_MATRIX);
+	GFX_load_identity();
+    {
 		vec3 e = { 10.4f, -9.8f, 5.5f },
 			 c = { -3.4f,  2.8f, 0.0f },
 			 u = {  0.0f,  0.0f, 1.0f };
 
-		GFX_look_at( &e, &c, &u );
+		GFX_look_at(&e, &c, &u);
 	}
 
-	unsigned int i = 0;
-
-	while( i != obj->n_objmesh ) {
-
-		OBJMESH *objmesh = &obj->objmesh[ i ];
+	for (auto objmesh=obj->objmesh.begin();
+         objmesh!=obj->objmesh.end(); ++objmesh) {
 
 		GFX_push_matrix();
 
@@ -316,16 +318,14 @@ void templateAppDraw( void ) {
         objmesh->btrigidbody->getWorldTransform().getOpenGLMatrix((float *)&mat);
         GFX_multiply_matrix(&mat);
 		
-		glUniformMatrix4fv( program->uniform_array[ 0 ].location,
-							1,
-							GL_FALSE,
-							( float * )GFX_get_modelview_projection_matrix() );
+		glUniformMatrix4fv(program->uniform_map["MODELVIEWPROJECTIONMATRIX"].location,
+                           1,
+                           GL_FALSE,
+                           (float *)GFX_get_modelview_projection_matrix());
 
-		OBJ_draw_mesh( obj, i );
+		objmesh->draw();
 
 		GFX_pop_matrix();
-		
-		++i;
 	}
 
     dynamicsworld->stepSimulation(1.0f / 60.0f);
@@ -333,64 +333,55 @@ void templateAppDraw( void ) {
     /* Retrieve the total amount of manifold points. */
     unsigned int n_manifolds = dynamicsworld->getDispatcher()->getNumManifolds();
 
-    i = 0;
-    while( i != n_manifolds ) {
-        btPersistentManifold *manifold = dynamicsworld->getDispatcher()->getManifoldByIndexInternal( i );
+    for (int i=0; i != n_manifolds; ++i) {
+        btPersistentManifold *manifold = dynamicsworld->getDispatcher()->getManifoldByIndexInternal(i);
 
         /* Retrieve the two mesh pointers for the first and second rigid bodies. */
-        OBJMESH *objmesh0 = ( OBJMESH * )( ( btRigidBody * )manifold->getBody0() )->getUserPointer();
+        OBJMESH *objmesh0 = (OBJMESH *)((btRigidBody *)manifold->getBody0())->getUserPointer();
 
-        OBJMESH *objmesh1 = ( OBJMESH * )( ( btRigidBody * )manifold->getBody1() )->getUserPointer();
+        OBJMESH *objmesh1 = (OBJMESH *)((btRigidBody *)manifold->getBody1())->getUserPointer();
 
         /* Initialize a counter and extract the number of contact point(s) the
          * current manifold contains.
          */
-        unsigned int j = 0,
-        n_contacts = manifold->getNumContacts();
+        unsigned int    n_contacts = manifold->getNumContacts();
 
-        while( j != n_contacts ) {
-            btManifoldPoint &contact = manifold->getContactPoint( j );
+        for (int j=0; j != n_contacts; ++j) {
+            btManifoldPoint &contact = manifold->getContactPoint(j);
 
-            console_print("Manifold : %d\n", i );
-            console_print("Contact  : %d\n", j );
+            console_print("Manifold : %d\n", i);
+            console_print("Contact  : %d\n", j);
 
-            console_print("Object #0: %s\n", objmesh0->name );
+            console_print("Object #0: %s\n", objmesh0->name);
             console_print("Point  #0: %.3f %.3f %.3f\n",
                           contact.getPositionWorldOnA().x(),
                           contact.getPositionWorldOnA().y(),
-                          contact.getPositionWorldOnA().z() );
+                          contact.getPositionWorldOnA().z());
 
-            console_print("Object #1: %s\n", objmesh1->name );
+            console_print("Object #1: %s\n", objmesh1->name);
             console_print("Point  #1: %.3f %.3f %.3f\n",
                           contact.getPositionWorldOnB().x(),
                           contact.getPositionWorldOnB().y(),
-                          contact.getPositionWorldOnB().z() );
+                          contact.getPositionWorldOnB().z());
 
-            console_print("Distance : %.3f\n", contact.getDistance() );
-            console_print("Lifetime : %d\n"  , contact.getLifeTime() );
+            console_print("Distance : %.3f\n", contact.getDistance());
+            console_print("Lifetime : %d\n"  , contact.getLifeTime());
 
             console_print("Normal   : %.3f %.3f %.3f\n",
                           contact.m_normalWorldOnB.x(),
                           contact.m_normalWorldOnB.y(),
-                          contact.m_normalWorldOnB.z() );
+                          contact.m_normalWorldOnB.z());
 
-            console_print( "%d\n\n", get_milli_time() );
-
-            ++j;
-}
-
-        ++i;
+            console_print("%d\n\n", get_milli_time());
+        }
     }
 }
 
-void templateAppExit( void ) {
+void templateAppExit(void) {
     free_physic_world();
 
-	SHADER_free( program->vertex_shader );
+    delete program;
+    program = NULL;
 
-	SHADER_free( program->fragment_shader );
-
-	PROGRAM_free( program );
-
-	OBJ_free( obj );
+	delete obj;
 }

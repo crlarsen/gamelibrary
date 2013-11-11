@@ -24,21 +24,33 @@ as being the original software.
 3. This notice may not be removed or altered from any source distribution.
 
 */
+/*
+ * Source code modified by Chris Larsen to make the following data types into
+ * proper C++ classes:
+ * - OBJ
+ * - OBJMATERIAL
+ * - OBJMESH
+ * - OBJTRIANGLEINDEX
+ * - OBJTRIANGLELIST
+ * - OBJVERTEXDATA
+ * - PROGRAM
+ * - SHADER
+ */
 
 #include "templateApp.h"
 
-#define OBJ_FILE ( char * )"piano.obj"
+#define OBJ_FILE (char *)"piano.obj"
 
-#define VERTEX_SHADER ( char * )"vertex.glsl"
+#define VERTEX_SHADER (char *)"vertex.glsl"
 
-#define FRAGMENT_SHADER ( char * )"fragment.glsl"
+#define FRAGMENT_SHADER (char *)"fragment.glsl"
 
 #define MAX_PIANO_KEY 13
 
 /* To handle the sounds for each piano key. */
-SOUNDBUFFER *soundbuffer[ MAX_PIANO_KEY ];
+SOUNDBUFFER *soundbuffer[MAX_PIANO_KEY];
 
-SOUND *soundsource[ MAX_PIANO_KEY ];
+SOUND *soundsource[MAX_PIANO_KEY];
 
 /* The sound buffer and the sound source for playing the "wrong" sound when
  * the player misses a key in the sequence.
@@ -57,7 +69,7 @@ OBJ *obj = NULL;
 
 PROGRAM *program = NULL;
 
-int viewport_matrix[ 4 ];
+int viewport_matrix[4];
 
 vec2 touche;
 /* Flag to determine if the player tries to pick something onscreen. */
@@ -80,7 +92,7 @@ unsigned int cur_level = 0,
              /* Array to contain the auto-generated piano key index for
               * the levels.
               */
-             level[ MAX_LEVEL ],
+             level[MAX_LEVEL],
              /* The current sound played by the user.  This value will
               * increment as the player tries to reproduce the current
               * sequence used in the level.
@@ -94,12 +106,12 @@ TEMPLATEAPP templateApp = { templateAppInit,
 							templateAppDraw,
 							templateAppToucheBegan };
 
-void program_bind_attrib_location( void *ptr ) {
+void program_bind_attrib_location(void *ptr) {
 
-	PROGRAM *program = ( PROGRAM * )ptr;
+	PROGRAM *program = (PROGRAM *)ptr;
 
-	glBindAttribLocation( program->pid, 0, "POSITION" );
-	glBindAttribLocation( program->pid, 2, "TEXCOORD0" );
+	glBindAttribLocation(program->pid, 0, "POSITION");
+	glBindAttribLocation(program->pid, 2, "TEXCOORD0");
 }
 
 /* The thread function callback.  Note that the void *ptr parameter is the
@@ -107,37 +119,34 @@ void program_bind_attrib_location( void *ptr ) {
  * THREAD_create function.  It is up to you to cast it back to its original
  * type before being able to the variable.
  */
-void decompress_stream( void *ptr ) {
+void decompress_stream(void *ptr) {
     /* Update the sound source queue for the ambient sound.  By calling this
      * function, the buffer chunks that have been process will be un-queued
      * and filled with fresh new data decompress directly from the OGG sound
      * buffer in memory.
      */
-    SOUND_update_queue( ambient );
+    SOUND_update_queue(ambient);
 }
 
-void next_level( void ) {
-
-	unsigned int i = 0;
+void next_level(void) {
     /* Increase the current level number. */
 	++cur_level;
+
     /* Randomly generate a piano keys index based on the current level
      * number.
      */
-	while( i != cur_level ) {
+	for (int i=0; i!=cur_level; ++i)
+		level[i] = rand() % MAX_PIANO_KEY;
 
-		level[ i ] = rand() % MAX_PIANO_KEY;
-		++i;
-	}
     /* Reset the current sound level so the player can see and hear the
      * sequence to reproduce for the current_level.
      */
 	cur_level_sound = 0;
 }
 
-void templateAppInit( int width, int height ) {
+void templateAppInit(int width, int height) {
 
-	atexit( templateAppExit );
+	atexit(templateAppExit);
 
 	GFX_start();
 	
@@ -146,35 +155,30 @@ void templateAppInit( int width, int height ) {
      */
     AUDIO_start();
 	
-	glViewport( 0.0f, 0.0f, width, height );
+	glViewport(0.0f, 0.0f, width, height);
 	
-	glGetIntegerv( GL_VIEWPORT, &viewport_matrix[ 0 ] );
+	glGetIntegerv(GL_VIEWPORT, &viewport_matrix[0]);
 
-	obj = OBJ_load( OBJ_FILE, 1 );
+	obj = new OBJ(OBJ_FILE, true);
 	
-	unsigned int i = 0;
+	for (auto objmesh=obj->objmesh.begin();
+         objmesh!=obj->objmesh.end(); ++objmesh) {
+		objmesh->optimize(128);
 
-	while( i != obj->n_objmesh ) {
-	
-		OBJ_optimize_mesh( obj, i, 128 );
-
-		OBJ_build_mesh( obj, i );
+		objmesh->build();
 		
-		OBJ_free_mesh_vertex_data( obj, i );
-
-		++i;
+		objmesh->free_vertex_data();
 	}
 
     /* Declare an empty memory pointer to store the sound buffers. */
     MEMORY *memory = NULL;
     /* Reset the counter. */
-    i = 0;
     /* Loop until the maximum number of piano keys is reached.  Basically,
      * all piano keys have an object name that corresponds to an OGG file.
      * In this example, the 00.ogg sound file will be associated to the
      * mesh name 00 and so on.
      */
-    while (i != MAX_PIANO_KEY) {
+    for (int i=0; i!=MAX_PIANO_KEY; ++i) {
         /* Generate a sound filename based on the current loop counter. */
         char soundfile[MAX_CHAR] = {""};
         sprintf(soundfile, "%02d.ogg", i);
@@ -194,7 +198,6 @@ void templateAppInit( int width, int height ) {
          * created to it.
          */
         soundsource[i] = SOUND_add(obj->objmesh[i].name, soundbuffer[i]);
-        ++i;
     }
 
     /* Next, load the sound to play if the user makes a mistake. */
@@ -240,78 +243,70 @@ void templateAppInit( int width, int height ) {
      * real-time decompression.
      */
 
-	i = 0;
-	while( i != obj->n_texture ) { 
+	for (int i=0; i!=obj->texture.size(); ++i)
+		OBJ_build_texture(obj,
+                          i,
+                          obj->texture_path,
+                          TEXTURE_MIPMAP | TEXTURE_16_BITS,
+                          TEXTURE_FILTER_2X,
+                          0.0f);
 
-		OBJ_build_texture( obj,
-						   i,
-						   obj->texture_path,
-						   TEXTURE_MIPMAP | TEXTURE_16_BITS,
-						   TEXTURE_FILTER_2X,
-						   0.0f );
-		++i;
-	}
+	for (auto objmaterial=obj->objmaterial.begin();
+         objmaterial!=obj->objmaterial.end(); ++objmaterial) {
+		objmaterial->build(NULL);
+    }
 
+	program = new PROGRAM((char *)"default",
+                          VERTEX_SHADER,
+                          FRAGMENT_SHADER,
+                          true,
+                          false,
+                          program_bind_attrib_location,
+                          NULL);
 
-	i = 0;
-	while( i != obj->n_objmaterial ) { 
-
-		OBJ_build_material( obj, i, NULL );
-		
-		++i;
-	}	
-	
-	program = PROGRAM_create( ( char * )"default",
-							  VERTEX_SHADER,
-							  FRAGMENT_SHADER,
-							  1,
-							  0,
-							  program_bind_attrib_location,
-							  NULL );
-
-	srandom( get_milli_time() );
+	srandom(get_milli_time());
 
 	next_level();
 
-	font_small = FONT_init( ( char * )"foo.ttf" );
+	font_small = FONT_init((char *)"foo.ttf");
 
-	FONT_load( font_small,
+	FONT_load(font_small,
               font_small->name,
               1,
               32.0f,
               512,
               512,
               32,
-              96 );
+              96);
 
-	font_big = FONT_init( ( char * )"foo.ttf" );
+	font_big = FONT_init((char *)"foo.ttf");
 
-	FONT_load( font_big,
+	FONT_load(font_big,
               font_big->name,
               1,
               64.0f,
               512,
               512,
               32,
-              96 );	
+              96);	
 }
 
 
-void templateAppDraw( void ) {
+void templateAppDraw(void) {
 
-	glClearColor( 0.5f, 0.5f, 0.5f, 1.0f );
-	glClear( GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT );
+	glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
+	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
-	GFX_set_matrix_mode( PROJECTION_MATRIX );
+	GFX_set_matrix_mode(PROJECTION_MATRIX);
 	GFX_load_identity();
 	
-	GFX_set_perspective( 50.0f,
-						 ( float )viewport_matrix[ 2 ] / ( float )viewport_matrix[ 3 ],
-						 1.0f,
-						 100.0f,
-						 -90.0f );
+	GFX_set_perspective(50.0f,
+                        (float)viewport_matrix[2] / (float)viewport_matrix[3],
+                        1.0f,
+                        100.0f,
+                        -90.0f);
 
-	GFX_set_matrix_mode( MODELVIEW_MATRIX );
+	GFX_set_matrix_mode(MODELVIEW_MATRIX);
 	GFX_load_identity();
 
 
@@ -319,30 +314,27 @@ void templateAppDraw( void ) {
 		 c = { 0.0f,  2.0f, 0.0f },
 		 u = { 0.0f,  0.0f, 1.0f };
 		 
-	GFX_look_at( &e, &c, &u );
+	GFX_look_at(&e, &c, &u);
 	
-	PROGRAM_draw( program );	
-
-	unsigned int i = 0;
+	program->draw();
 
     /* If the current preview sound is different than the current level,
      * it means that the whole generated sequence has not been played back
      * to the user yet.
      */
-    if( cur_level_sound != cur_level ) {
+    if (cur_level_sound != cur_level) {
         /* Static variable to remember the time. */
         static unsigned int start = get_milli_time();
         /* Wait one second between each sound preview, because playing all
          * of the sounds one after another without any pause between each
          * sound would be too hard for the player to remember.
          */
-        if( get_milli_time() - start > 1000 ) {
+        if (get_milli_time() - start > 1000) {
+            if (SOUND_get_state(soundsource[level[cur_level_sound]]) != AL_PLAYING) {
 
-            if( SOUND_get_state( soundsource[ level[ cur_level_sound ] ] ) != AL_PLAYING ) {
+                SOUND_set_volume(soundsource[level[cur_level_sound]], 1.0f);
 
-                SOUND_set_volume( soundsource[ level[ cur_level_sound ] ], 1.0f );
-
-                SOUND_play( soundsource[ level[ cur_level_sound ] ], 0 );
+                SOUND_play(soundsource[level[cur_level_sound]], 0);
 
                 ++cur_level_sound;
             }
@@ -360,13 +352,11 @@ void templateAppDraw( void ) {
          * passed to the shader, and because black + color = color, your
          * object will be drawn using this unique color.
          */
-        glUniform1i(PROGRAM_get_uniform_location(program, (char *)"DIFFUSE"),
-                    7);
+        glUniform1i(program->get_uniform_location((char *)"DIFFUSE"), 7);
         /* Loop for the maximum amount of piano key avoiding to draw the
          * curtain (which is the last object recorded in the OBJ file).
          */
-	unsigned int i = 0;
-        while (i != obj->n_objmesh) {
+        for (int i=0; i!=obj->objmesh.size(); ++i) {
             /* Get the current OBJMESH structure pointer, and adjust the
              * current modelview matrix to render the object onscreen.
              */
@@ -375,8 +365,7 @@ void templateAppDraw( void ) {
             GFX_translate(objmesh->location.x,
                           objmesh->location.y,
                           objmesh->location.z);
-            glUniformMatrix4fv(PROGRAM_get_uniform_location(program,
-                                                            (char *)"MODELVIEWPROJECTIONMATRIX"),
+            glUniformMatrix4fv(program->get_uniform_location((char *)"MODELVIEWPROJECTIONMATRIX"),
                                1,
                                GL_FALSE,
                                (float *)GFX_get_modelview_projection_matrix());
@@ -385,17 +374,14 @@ void templateAppDraw( void ) {
              */
             generate_color_from_index(i, &color);
             /* Send the color to the fragment shader. */
-            glUniform4fv(PROGRAM_get_uniform_location(program,
-                                                      (char *)"COLOR"),
+            glUniform4fv(program->get_uniform_location((char *)"COLOR"),
                          1,
                          (float *)&color);
             /* Draw the object using the unique color that you have generated
              * above.
              */
-            OBJ_draw_mesh(obj, i);
+            objmesh->draw();
             GFX_pop_matrix();
-
-            ++i;
         }
 
         /* Now that you've fully rendered the current scene so that each object
@@ -440,18 +426,18 @@ void templateAppDraw( void ) {
 //            SOUND_play(soundsource[sound_index], 0);
 //        }
         if (1<=ucolor.b && ucolor.b<=MAX_PIANO_KEY) {
-            sscanf( obj->objmesh[ ucolor.b ].name, "%d", &sound_index );
+            sscanf(obj->objmesh[ucolor.b].name, "%d", &sound_index);
 
-            if( level[ cur_player_sound ] != sound_index ) {
-                SOUND_set_volume( wrong, 1.0f );
+            if (level[cur_player_sound] != sound_index) {
+                SOUND_set_volume(wrong, 1.0f);
 
-                SOUND_play( wrong, 0 );
+                SOUND_play(wrong, 0);
 
                 game_over = 1;
             } else {
-                SOUND_set_volume( soundsource[ sound_index ], 1.0f );
+                SOUND_set_volume(soundsource[sound_index], 1.0f);
 
-                SOUND_play( soundsource[ sound_index ], 0 );
+                SOUND_play(soundsource[sound_index], 0);
 
                 ++cur_player_sound;
             }
@@ -467,30 +453,29 @@ void templateAppDraw( void ) {
 
     unsigned char source_playing = 0;
 
-	glUniform1i( PROGRAM_get_uniform_location( program, ( char * )"DIFFUSE" ), 1 );
+	glUniform1i(program->get_uniform_location((char *)"DIFFUSE"), 1);
 
-	while( i != obj->n_objmesh ) {
-
-		OBJMESH *objmesh = &obj->objmesh[ i ];
+	for (auto objmesh=obj->objmesh.begin();
+         objmesh!=obj->objmesh.end(); ++objmesh) {
 
 		GFX_push_matrix();
 
-		GFX_translate( objmesh->location.x,
-					   objmesh->location.y,
-					   objmesh->location.z );
+		GFX_translate(objmesh->location.x,
+                      objmesh->location.y,
+                      objmesh->location.z);
 
-		glUniformMatrix4fv( PROGRAM_get_uniform_location( program, ( char * )"MODELVIEWPROJECTIONMATRIX" ),
-							1,
-							GL_FALSE,
-							( float * )GFX_get_modelview_projection_matrix() );
+		glUniformMatrix4fv(program->get_uniform_location((char *)"MODELVIEWPROJECTIONMATRIX"),
+                           1,
+                           GL_FALSE,
+                           (float *)GFX_get_modelview_projection_matrix());
 
         /* Convert the current mesh name to an index that corresponds to
          * the sound source index of the piano key sound source array.
          */
-        sscanf( objmesh->name, "%d", &sound_index );
+        sscanf(objmesh->name, "%d", &sound_index);
         /* Check the sound source is currently playing. */
-        if( !strstr( objmesh->name, "curtain" ) &&
-           SOUND_get_state( soundsource[ sound_index ] ) == AL_PLAYING ) {
+        if (!strstr(objmesh->name, "curtain") &&
+           SOUND_get_state(soundsource[sound_index]) == AL_PLAYING) {
             source_playing = 1;
             /* Set full brightness as the color to use for the piano key
              * that is about to be drawn onscreen (since you fragment
@@ -512,15 +497,13 @@ void templateAppDraw( void ) {
             color.w = 1.0f;
         }
 
-        glUniform4fv( PROGRAM_get_uniform_location( program, ( char * )"COLOR" ),
+        glUniform4fv(program->get_uniform_location((char *)"COLOR"),
                      1,
-                     ( float * )&color );
+                     (float *)&color);
 
-		OBJ_draw_mesh( obj, i );
+		objmesh->draw();
 		
 		GFX_pop_matrix();
-		
-		++i;
 	}
 
     /* If the current player sound index is equal to the current level
@@ -528,33 +511,33 @@ void templateAppDraw( void ) {
      * all the piano keys in the right order.  Time to move on to the
      * next level!
      */
-	if( cur_player_sound == cur_level && !source_playing ) next_level();
+	if (cur_player_sound == cur_level && !source_playing) next_level();
 
-	GFX_set_matrix_mode( PROJECTION_MATRIX );
+	GFX_set_matrix_mode(PROJECTION_MATRIX);
 
 	GFX_load_identity();
 
-	float half_width  = ( float )viewport_matrix[ 2 ] * 0.5f,
-    half_height = ( float )viewport_matrix[ 3 ] * 0.5f;
+	float   half_width  = (float)viewport_matrix[2] * 0.5f,
+            half_height = (float)viewport_matrix[3] * 0.5f;
 
-	GFX_set_orthographic_2d( -half_width,
-                            half_width,
+	GFX_set_orthographic_2d(-half_width,
+                             half_width,
                             -half_height,
-                            half_height );
+                             half_height);
 
-	GFX_rotate( -90.0f, 0.0f, 0.0f, 1.0f );
+	GFX_rotate(-90.0f, 0.0f, 0.0f, 1.0f);
 
-	GFX_translate( -half_height, -half_width, 0.0f );
+	GFX_translate(-half_height, -half_width, 0.0f);
 
-	GFX_set_matrix_mode( MODELVIEW_MATRIX );
+	GFX_set_matrix_mode(MODELVIEW_MATRIX);
 
 	GFX_load_identity();
 
-	char str[ MAX_CHAR ] = {""};
+	char str[MAX_CHAR] = {""};
 
-	if( game_over ) {
+	if (game_over) {
 
-		strcpy( str, "GAME OVER" );
+		strcpy(str, "GAME OVER");
 
 		/* Yellow. */
 		color.x = 1.0f;
@@ -562,17 +545,17 @@ void templateAppDraw( void ) {
 		color.z = 0.0f;
 		color.w = 1.0f;
 
-		FONT_print( font_big,
-                   viewport_matrix[ 3 ] * 0.5f -
-                   FONT_length( font_big, str ) * 0.5f,
-                   viewport_matrix[ 2 ] -
+		FONT_print(font_big,
+                   viewport_matrix[3] * 0.5f -
+                   FONT_length(font_big, str) * 0.5f,
+                   viewport_matrix[2] -
                    font_big->font_size * 1.5f,
                    str,
-                   &color );
+                   &color);
 }
 
 
-	sprintf( str, "Level:%d", cur_level );
+	sprintf(str, "Level:%d", cur_level);
 
 	/* Green. */
 	color.x = 0.0f;
@@ -580,20 +563,20 @@ void templateAppDraw( void ) {
 	color.z = 0.0f;
 	color.w = 1.0f;
 	
-	FONT_print( font_small,
+	FONT_print(font_small,
                5.0f,
-               viewport_matrix[ 2 ] - font_small->font_size,
+               viewport_matrix[2] - font_small->font_size,
                str,
-               &color );
+               &color);
 }
 
 
-void templateAppToucheBegan( float x, float y, unsigned int tap_count )
+void templateAppToucheBegan(float x, float y, unsigned int tap_count)
 {
     /* If the game is not over, allow the player to pick a piano key. */
-    if( !game_over ) {
+    if (!game_over) {
         pick = 1;
-    } else if( game_over && tap_count >= 2 ) {
+    } else if (game_over && tap_count >= 2) {
         /* Otherwise, if the player double-taps the screen ...
          * reset the "game over" state and set the current level back to 0.
          */
@@ -608,23 +591,21 @@ void templateAppToucheBegan( float x, float y, unsigned int tap_count )
 }
 
 
-void templateAppExit( void ) {
-	FONT_free( font_small );
+void templateAppExit(void) {
+	FONT_free(font_small);
 
-	FONT_free( font_big );
+	FONT_free(font_big);
 
     /* Stop and free the decompression thread. */
     THREAD_free(thread);
 
     /* Loop while until the maximum number of piano keys is reached. */
-    unsigned int i = 0;
-    while (i != MAX_PIANO_KEY) {
+    for (int i=0; i!=MAX_PIANO_KEY; ++i) {
         /* Stop and free the sound sources for each piano key as well as
          * their associated buffer.
          */
         SOUND_free(soundsource[i]);
         SOUNDBUFFER_free(soundbuffer[i]);
-        ++i;
     }
 
     /* Same as above but for "wrong" sound. */
@@ -646,11 +627,8 @@ void templateAppExit( void ) {
     /* Stop OpenAL, and free the device and its associated context. */
     AUDIO_stop();
 
-	SHADER_free( program->vertex_shader );
+    delete program;
+    program = NULL;
 
-	SHADER_free( program->fragment_shader );
-
-	PROGRAM_free( program );
-
-	OBJ_free( obj );
+    delete obj;
 }

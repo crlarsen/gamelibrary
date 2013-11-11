@@ -20,6 +20,18 @@ as being the original software.
 3. This notice may not be removed or altered from any source distribution.
 
 */
+/*
+ * Source code modified by Chris Larsen to make the following data types into
+ * proper C++ classes:
+ * - OBJ
+ * - OBJMATERIAL
+ * - OBJMESH
+ * - OBJTRIANGLEINDEX
+ * - OBJTRIANGLELIST
+ * - OBJVERTEXDATA
+ * - PROGRAM
+ * - SHADER
+ */
 
 #include "gfx.h"
 
@@ -1059,11 +1071,11 @@ void MD5_update_bound_mesh( MD5 *md5 )
 	// Get the mesh min and max.
 	md5->min.x =
 	md5->min.y =
-	md5->min.z = 99999.999f;
+	md5->min.z = FLT_MAX;
 
 	md5->max.x =
 	md5->max.y =
-	md5->max.z = -99999.999f;
+	md5->max.z = -FLT_MAX;
 
 
 	while( i != md5->n_mesh )
@@ -1270,7 +1282,7 @@ void MD5_draw( MD5 *md5 )
 			
 			if( md5mesh->visible )
 			{
-				if( md5mesh->objmaterial ) OBJ_draw_material( md5mesh->objmaterial );
+				if( md5mesh->objmaterial ) md5mesh->objmaterial->draw();
 			
 				if( md5mesh->vao ) glBindVertexArrayOES( md5mesh->vao );
 			

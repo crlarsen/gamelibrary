@@ -24,18 +24,30 @@ as being the original software.
 3. This notice may not be removed or altered from any source distribution.
 
 */
+/*
+ * Source code modified by Chris Larsen to make the following data types into
+ * proper C++ classes:
+ * - OBJ
+ * - OBJMATERIAL
+ * - OBJMESH
+ * - OBJTRIANGLEINDEX
+ * - OBJTRIANGLELIST
+ * - OBJVERTEXDATA
+ * - PROGRAM
+ * - SHADER
+ */
 
 #include "templateApp.h"
 
-#define OBJ_FILE ( char * )"ram.obj"
+#define OBJ_FILE (char *)"ram.obj"
 
-#define VERTEX_SHADER ( char * )"vertex.glsl"
+#define VERTEX_SHADER (char *)"vertex.glsl"
 
-#define FRAGMENT_SHADER ( char * )"fragment.glsl"
+#define FRAGMENT_SHADER (char *)"fragment.glsl"
 
 OBJ *obj = NULL;
 
-unsigned char auto_rotate = 0;
+bool    auto_rotate = false;
 
 vec2 touche = { 0.0f, 0.0f }; 
 
@@ -48,210 +60,165 @@ TEMPLATEAPP templateApp = { templateAppInit,
 							templateAppToucheMoved };
 
 
-void program_bind_attrib_location( void *ptr ) {
+void program_bind_attrib_location(void *ptr) {
 
-	PROGRAM *program = ( PROGRAM * )ptr;
+	PROGRAM *program = (PROGRAM *)ptr;
 
-	glBindAttribLocation( program->pid, 0, "POSITION"  );
-	glBindAttribLocation( program->pid, 2, "TEXCOORD0" );
+	glBindAttribLocation(program->pid, 0, "POSITION");
+	glBindAttribLocation(program->pid, 2, "TEXCOORD0");
 }
 
 
-void material_draw_callback( void *ptr )
+void material_draw_callback(void *ptr)
 {
-	OBJMATERIAL *objmaterial = ( OBJMATERIAL * )ptr;
-	
+	OBJMATERIAL *objmaterial = (OBJMATERIAL *)ptr;
+
 	PROGRAM *program = objmaterial->program;
-	
-	unsigned int i = 0;
 
-	while( i != program->uniform_count ) {
+    for (auto it=program->uniform_map.begin(); it!=program->uniform_map.end(); ++it) {
+        auto    &name = it->first;
+        auto    &uniform = it->second;
 
-		if( !strcmp( program->uniform_array[ i ].name, "MODELVIEWMATRIX" ) ) {
-		
-			glUniformMatrix4fv( program->uniform_array[ i ].location,
-								1,
-								GL_FALSE,
-								( float * )GFX_get_modelview_matrix() ); }
-
-		else if( !strcmp( program->uniform_array[ i ].name, "PROJECTIONMATRIX" ) ) {
-		
-			glUniformMatrix4fv( program->uniform_array[ i ].location,
-								1,
-								GL_FALSE,
-								( float * )GFX_get_projection_matrix() ); }
-
-		else if( !strcmp( program->uniform_array[ i ].name, "DIFFUSE" ) &&
-				 !program->uniform_array[ i ].constant ) {
-		
-			program->uniform_array[ i ].constant = 1;
-			
-			glUniform1i( program->uniform_array[ i ].location, 1 ); }
-
-
-		else if( !strcmp( program->uniform_array[ i ].name, "DIFFUSE_COLOR" ) ) {
-
-			glUniform3fv( program->uniform_array[ i ].location,
-						  1,
-						  ( float * )&objmaterial->diffuse );
+		if (name == "MODELVIEWMATRIX") {
+			glUniformMatrix4fv(uniform.location,
+                               1,
+                               GL_FALSE,
+                               (float *)GFX_get_modelview_matrix());
+        } else if (name == "PROJECTIONMATRIX") {
+			glUniformMatrix4fv(uniform.location,
+                               1,
+                               GL_FALSE,
+                               (float *)GFX_get_projection_matrix());
+        } else if ((name == "DIFFUSE") && !uniform.constant) {
+			uniform.constant = true;
+			glUniform1i(uniform.location, 1);
+        } else if (name == "DIFFUSE_COLOR") {
+            glUniform3fv(uniform.location,
+                         1,
+                         (float *)&objmaterial->diffuse);
 		}
-
-		++i;
 	}
 }
 
 
-void templateAppInit( int width, int height ) {
+void templateAppInit(int width, int height) {
 
-	atexit( templateAppExit );
+	atexit(templateAppExit);
 
 	GFX_start();
 
-	glViewport( 0.0f, 0.0f, width, height );
+	glViewport(0.0f, 0.0f, width, height);
 
-	GFX_set_matrix_mode( PROJECTION_MATRIX );
+	GFX_set_matrix_mode(PROJECTION_MATRIX);
 	GFX_load_identity();
-	GFX_set_perspective( 45.0f,
-						 ( float )width / ( float )height,
-						 0.1f,
-						 100.0f,
-						 0.0f );
+	GFX_set_perspective(45.0f,
+                        (float)width / (float)height,
+                        0.1f,
+                        100.0f,
+                        0.0f);
 
-	obj = OBJ_load( OBJ_FILE, 1 );
+	obj = new OBJ(OBJ_FILE, true);
 
-	unsigned int i = 0;
-
-	while( i != obj->n_objmesh ) {
-
-        console_print( "%s: %d: GL_TRIANGLES\n",
-                      obj->objmesh[ i ].name,
-                      obj->objmesh[ i ].objtrianglelist[ 0 ].n_indice_array );
+	for (auto objmesh=obj->objmesh.begin();
+         objmesh!=obj->objmesh.end(); ++objmesh) {
+        console_print("%s: %d: GL_TRIANGLES\n",
+                      objmesh->name,
+                      objmesh->objtrianglelist[0].n_indice_array);
 
         /* Built-in method that implements the NvTriStrip library.
          * For more information, check the obj.cpp source code in
          * order to implement it inside your own apps.
          */
-        OBJ_optimize_mesh( obj, i, 128 );
+        objmesh->optimize(128);
 
-        console_print( "%s: %d: GL_TRIANGLE_STRIP\n",
-                      obj->objmesh[ i ].name,
-                      obj->objmesh[ i ].objtrianglelist[ 0 ].n_indice_array );
-
-
-		OBJ_build_mesh( obj, i );
-
-		OBJ_free_mesh_vertex_data( obj, i ); 
-
-		++i;
-	}	
+        console_print("%s: %d: GL_TRIANGLE_STRIP\n",
+                      objmesh->name,
+                      objmesh->objtrianglelist[0].n_indice_array);
 
 
-	i = 0;
-	while( i != obj->n_texture ) { 
+		objmesh->build();
 
-		OBJ_build_texture( obj,
-						   i,
-						   obj->texture_path,
-                           /* Automatically convert the texture to 16 bits. */
-						   TEXTURE_MIPMAP | TEXTURE_16_BITS,
-						   TEXTURE_FILTER_2X,
-						   0.0f );
-		++i;
-	}	
+		objmesh->free_vertex_data();
+	}
 
 
-	i = 0;
+	for (int i=0; i!=obj->texture.size(); ++i) {
+		OBJ_build_texture(obj,
+                          i,
+                          obj->texture_path,
+                          /* Automatically convert the texture to 16 bits. */
+                          TEXTURE_MIPMAP | TEXTURE_16_BITS,
+                          TEXTURE_FILTER_2X,
+                          0.0f);
+	}
 
-	while( i != obj->n_objmaterial ) {
-	
-		OBJ_build_material( obj,
-							i,
-							PROGRAM_create( ( char * )"default",
-											VERTEX_SHADER,
-											FRAGMENT_SHADER,
-											1,
-											1,
-											program_bind_attrib_location,
-											NULL ) );
-		
-		OBJ_set_draw_callback_material( obj, i, material_draw_callback );
-		
-		++i;
+
+	for (auto objmaterial=obj->objmaterial.begin();
+         objmaterial!=obj->objmaterial.end(); ++objmaterial) {
+        objmaterial->build(new PROGRAM((char *)"default",
+                                       VERTEX_SHADER,
+                                       FRAGMENT_SHADER,
+                                       true,
+                                       true,
+                                       program_bind_attrib_location,
+                                       NULL));
+
+		objmaterial->set_draw_callback(material_draw_callback);
 	}
 }
 
 
-void templateAppDraw( void ) {
+void templateAppDraw(void) {
 
-	glClearColor( 0.5f, 0.5f, 0.5f, 1.0f );
-	glClear( GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT );
+	glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
+	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
-
-	GFX_set_matrix_mode( MODELVIEW_MATRIX );
-	GFX_load_identity(); {
+	GFX_set_matrix_mode(MODELVIEW_MATRIX);
+	GFX_load_identity();
+    {
 	
 		vec3 e = { 0.0, -3.0f, 0.0f },
 			 c = { 0.0f, 0.0f, 0.0f },
 			 u = { 0.0f, 0.0f, 1.0f };
 
-		GFX_look_at( &e, &c, &u ); 
+		GFX_look_at(&e, &c, &u); 
 	}
 
-	unsigned int i = 0;
-
-	while( i != obj->n_objmesh ) {
-
+	for (auto objmesh=obj->objmesh.begin();
+         objmesh!=obj->objmesh.end(); ++objmesh) {
 		GFX_push_matrix();
 	
-		if( auto_rotate ) rot_angle.z += 2.0f;
+		if (auto_rotate) rot_angle.z += 2.0f;
 		
-		GFX_rotate( rot_angle.x, 1.0f, 0.0f, 0.0f );
-		GFX_rotate( rot_angle.z, 0.0f, 0.0f, 1.0f );
+		GFX_rotate(rot_angle.x, 1.0f, 0.0f, 0.0f);
+		GFX_rotate(rot_angle.z, 0.0f, 0.0f, 1.0f);
 	
-		OBJ_draw_mesh( obj, i );
+		objmesh->draw();
 
 		GFX_pop_matrix();
-		
-		++i;
 	}
 }
 
 
-void templateAppToucheBegan( float x, float y, unsigned int tap_count ) {
-
-	if( tap_count == 2 ) auto_rotate = !auto_rotate;
+void templateAppToucheBegan(float x, float y, unsigned int tap_count) {
+	if (tap_count == 2) auto_rotate = !auto_rotate;
 
 	touche.x = x;
 	touche.y = y;
 }
 
 
-void templateAppToucheMoved( float x, float y, unsigned int tap_count ) {
+void templateAppToucheMoved(float x, float y, unsigned int tap_count) {
+	auto_rotate = false;
 
-	auto_rotate = 0;
-
-	rot_angle.z += -( touche.x - x );
-	rot_angle.x += -( touche.y - y );
+	rot_angle.z += -(touche.x - x);
+	rot_angle.x += -(touche.y - y);
 
 	touche.x = x;
 	touche.y = y;
 }
 
 
-void templateAppExit( void ) {
-
-	unsigned i = 0;
-
-	while( i != obj->n_objmaterial ) { 
-
-		SHADER_free( obj->objmaterial[ i ].program->vertex_shader );
-
-		SHADER_free( obj->objmaterial[ i ].program->fragment_shader );
-
-		PROGRAM_free( obj->objmaterial[ i ].program );
-
-		++i;
-	}
-
-	OBJ_free( obj );
+void templateAppExit(void) {
+	delete obj;
 }

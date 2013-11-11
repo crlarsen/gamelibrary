@@ -23,6 +23,12 @@ as being the original software.
 /*
  * Source code modified by Chris Larsen to make the following data types into
  * proper C++ classes:
+ * - OBJ
+ * - OBJMATERIAL
+ * - OBJMESH
+ * - OBJTRIANGLEINDEX
+ * - OBJTRIANGLELIST
+ * - OBJVERTEXDATA
  * - PROGRAM
  * - SHADER
  */
@@ -117,7 +123,9 @@ as being the original software.
 #endif
 
 #include <vector>
+#include <map>
 #include <memory>
+#include <string>
 
 #include <pthread.h>
 #include <stdio.h>

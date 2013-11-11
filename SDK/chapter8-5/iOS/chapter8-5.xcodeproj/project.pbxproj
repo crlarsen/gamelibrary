@@ -22,6 +22,7 @@
 		8362E5281815958B00E3FC65 /* maze.obj in Resources */ = {isa = PBXBuildFile; fileRef = 8362E5231815958B00E3FC65 /* maze.obj */; };
 		8362E5291815958B00E3FC65 /* untitled.blend in Resources */ = {isa = PBXBuildFile; fileRef = 8362E5241815958B00E3FC65 /* untitled.blend */; };
 		838392C718158E3A0027B4F0 /* Default-568h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 838392C618158E3A0027B4F0 /* Default-568h@2x.png */; };
+		83B5316D1824459F00839101 /* foo.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 83B5316C1824459F00839101 /* foo.ttf */; };
 		E002BCF5135BEC0A00FCFC0B /* EAGLView.mm in Sources */ = {isa = PBXBuildFile; fileRef = E002BCF0135BEC0A00FCFC0B /* EAGLView.mm */; };
 		E002BCF6135BEC0A00FCFC0B /* templateAppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = E002BCF2135BEC0A00FCFC0B /* templateAppDelegate.mm */; };
 		E002BCF7135BEC0A00FCFC0B /* templateViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = E002BCF4135BEC0A00FCFC0B /* templateViewController.mm */; };
@@ -271,6 +272,7 @@
 		8362E5231815958B00E3FC65 /* maze.obj */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = maze.obj; path = ../maze.obj; sourceTree = "<group>"; };
 		8362E5241815958B00E3FC65 /* untitled.blend */ = {isa = PBXFileReference; lastKnownFileType = file; name = untitled.blend; path = ../untitled.blend; sourceTree = "<group>"; };
 		838392C618158E3A0027B4F0 /* Default-568h@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-568h@2x.png"; sourceTree = "<group>"; };
+		83B5316C1824459F00839101 /* foo.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = foo.ttf; path = ../foo.ttf; sourceTree = "<group>"; };
 		E002BCEF135BEC0A00FCFC0B /* EAGLView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EAGLView.h; sourceTree = "<group>"; };
 		E002BCF0135BEC0A00FCFC0B /* EAGLView.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = EAGLView.mm; sourceTree = "<group>"; };
 		E002BCF1135BEC0A00FCFC0B /* templateAppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = templateAppDelegate.h; sourceTree = "<group>"; };
@@ -842,6 +844,7 @@
 		29B97317FDCFA39411CA2CEA /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				83B5316C1824459F00839101 /* foo.ttf */,
 				8362E5201815958A00E3FC65 /* enemy.png */,
 				8362E5211815958B00E3FC65 /* maze.bullet */,
 				8362E5221815958B00E3FC65 /* maze.mtl */,
@@ -1500,6 +1503,7 @@
 				8362E51E1815929700E3FC65 /* point_frag.glsl in Resources */,
 				28AD733F0D9D9553002E5188 /* MainWindow.xib in Resources */,
 				8362E5261815958B00E3FC65 /* maze.bullet in Resources */,
+				83B5316D1824459F00839101 /* foo.ttf in Resources */,
 				E03906EE1380CCD400ECB6EC /* templateViewController.xib in Resources */,
 				830AF8BF18187BE70056C7BF /* maze.png in Resources */,
 				E04294CC13DEAAFF00C5A91B /* fragment.glsl in Resources */,

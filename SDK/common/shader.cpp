@@ -23,6 +23,12 @@ as being the original software.
 /*
  * Source code modified by Chris Larsen to make the following data types into
  * proper C++ classes:
+ * - OBJ
+ * - OBJMATERIAL
+ * - OBJMESH
+ * - OBJTRIANGLEINDEX
+ * - OBJTRIANGLELIST
+ * - OBJVERTEXDATA
  * - PROGRAM
  * - SHADER
  */
@@ -50,19 +56,19 @@ bool SHADER::compile(const char *code, bool debug)
 	GLint   loglen,
             status;
 	
-	if( this->sid ) return false;
+	if (this->sid) return false;
 	
-	this->sid = glCreateShader( this->type );
+	this->sid = glCreateShader(this->type);
 	
-    glShaderSource( this->sid, 1, &code, NULL );
+    glShaderSource(this->sid, 1, &code, NULL);
 	
-    glCompileShader( this->sid );
+    glCompileShader(this->sid);
     
 	if (debug) {
-		if( this->type == GL_VERTEX_SHADER ) strcpy( type, "GL_VERTEX_SHADER" );
-		else strcpy( type, "GL_FRAGMENT_SHADER" );
+		if (this->type == GL_VERTEX_SHADER) strcpy(type, "GL_VERTEX_SHADER");
+		else strcpy(type, "GL_FRAGMENT_SHADER");
 		
-		glGetShaderiv( this->sid, GL_INFO_LOG_LENGTH, &loglen );
+		glGetShaderiv(this->sid, GL_INFO_LOG_LENGTH, &loglen);
 		
 		if (loglen) {
 			GLchar  *log = (GLchar *) malloc(static_cast<size_t>(loglen));
@@ -78,7 +84,7 @@ bool SHADER::compile(const char *code, bool debug)
 				__android_log_print(ANDROID_LOG_ERROR, "", "[ %s:%s ]\n%s", this->name, type, log);
 			#endif
 			
-			free( log );
+			free(log);
 		}
 	}
     

@@ -23,1069 +23,1152 @@ as being the original software.
 /*
  * Source code modified by Chris Larsen to make the following data types into
  * proper C++ classes:
+ * - OBJ
+ * - OBJMATERIAL
+ * - OBJMESH
+ * - OBJTRIANGLEINDEX
+ * - OBJTRIANGLELIST
+ * - OBJVERTEXDATA
  * - PROGRAM
  * - SHADER
  */
 
 #include "gfx.h"
 
-void OBJMESH_add_vertex_data( OBJMESH		  *objmesh,
-							  OBJTRIANGLELIST *objtrianglelist,
-							  int			  vertex_index,
-							  int			  uv_index )
+OBJTRIANGLELIST::OBJTRIANGLELIST() :
+    useuvs(false),
+    n_indice_array(0),
+    indice_array(NULL),
+    objmaterial(NULL),
+    mode(0),
+    vbo(0)
+{
+}
+
+OBJTRIANGLELIST::OBJTRIANGLELIST(int mode, bool useuvs,
+                                 OBJMATERIAL *objmaterial) :
+    useuvs(useuvs),
+    n_indice_array(0),
+    indice_array(NULL),
+    objmaterial(objmaterial),
+    mode(mode),
+    vbo(0)
+{
+}
+
+OBJVERTEXDATA::OBJVERTEXDATA(const int vi, const int uvi) :
+    vertex_index(vi),
+    uv_index(uvi)
+{
+}
+
+OBJMESH::OBJMESH(OBJ *parent) : name(""), visible(false), group(""),
+                                current_material(NULL), radius(0.0f),
+                                distance(0.0f), vbo(0), stride(0),
+                                size(0), vao(0), btrigidbody(NULL),
+                                use_smooth_normals(false), parent(parent)
+{
+    memset(&location, 0, sizeof(vec3));
+    memset(&rotation, 0, sizeof(vec3));
+    memset(&scale, 0, sizeof(vec3));
+    memset(&min, 0, sizeof(vec3));
+    memset(&max, 0, sizeof(vec3));
+    memset(&dimension, 0, sizeof(vec3));
+    memset(offset, ~0, sizeof(offset));
+}
+
+OBJMESH::OBJMESH(char *name, bool visible, char *group, float scale_x,
+                 float scale_y, float scale_z, float distance,
+                 bool use_smooth_normals, OBJ *parent) :
+    visible(visible), current_material(NULL), radius(0.0f),
+    distance(distance), vbo(0), stride(0), size(0), vao(0),
+    btrigidbody(NULL), use_smooth_normals(use_smooth_normals),
+    parent(parent)
+{
+    assert(name==NULL || strlen(name) < sizeof(this->name));
+    if (name) {
+        strcpy(this->name, name);
+    } else {
+        memset(this->name, 0, sizeof(this->name));
+    }
+
+    assert(strlen(group) < sizeof(this->group));
+    if (group) {
+        strcpy(this->group, group);
+    } else {
+        memset(this->group, 0, sizeof(this->group));
+    }
+
+    scale.x = scale_x;
+    scale.y = scale_y;
+    scale.z = scale_z;
+
+    memset(&location, 0, sizeof(vec3));
+    memset(&rotation, 0, sizeof(vec3));
+    memset(&min, 0, sizeof(vec3));
+    memset(&max, 0, sizeof(vec3));
+    memset(&dimension, 0, sizeof(vec3));
+    memset(offset, ~0, sizeof(offset));
+}
+
+OBJMESH::~OBJMESH()
+{
+    objvertexdata.clear();
+    objtrianglelist.clear();
+}
+
+OBJMESH::OBJMESH(const OBJMESH &src)
+{
+    strcpy(name, src.name);
+    visible = src.visible;
+    strcpy(group, src.group);
+
+    objvertexdata = src.objvertexdata;
+
+    objtrianglelist = src.objtrianglelist;
+
+    current_material = src.current_material;
+    memcpy(&location, &src.location, sizeof(vec3));
+    memcpy(&rotation, &src.rotation, sizeof(vec3));
+    memcpy(&scale, &src.scale, sizeof(vec3));
+    memcpy(&min, &src.min, sizeof(vec3));
+    memcpy(&max, &src.max, sizeof(vec3));
+    memcpy(&dimension, &src.dimension, sizeof(vec3));
+
+    radius = src.radius;
+    distance = src.distance;
+    vbo = src.vbo;
+    stride = src.stride;
+    size = src.size;
+
+    memcpy(offset, src.offset, sizeof(offset));
+
+    vao = src.vao;
+    btrigidbody = src.btrigidbody;
+    use_smooth_normals = src.use_smooth_normals;
+    parent = src.parent;
+}
+
+OBJMESH &OBJMESH::operator=(const OBJMESH &rhs)
+{
+    if (this != &rhs) {
+        strcpy(name, rhs.name);
+        visible = rhs.visible;
+        strcpy(group, rhs.group);
+
+        objvertexdata = rhs.objvertexdata;
+
+        objtrianglelist = rhs.objtrianglelist;
+
+        current_material = rhs.current_material;
+        memcpy(&location, &rhs.location, sizeof(vec3));
+        memcpy(&rotation, &rhs.rotation, sizeof(vec3));
+        memcpy(&scale, &rhs.scale, sizeof(vec3));
+        memcpy(&min, &rhs.min, sizeof(vec3));
+        memcpy(&max, &rhs.max, sizeof(vec3));
+        memcpy(&dimension, &rhs.dimension, sizeof(vec3));
+
+        radius = rhs.radius;
+        distance = rhs.distance;
+        vbo = rhs.vbo;
+        stride = rhs.stride;
+        size = rhs.size;
+
+        memcpy(offset, rhs.offset, sizeof(offset));
+
+        vao = rhs.vao;
+        btrigidbody = rhs.btrigidbody;
+        use_smooth_normals = rhs.use_smooth_normals;
+        
+        parent = rhs.parent;
+    }
+    return *this;
+}
+
+OBJTRIANGLELIST::~OBJTRIANGLELIST()
+{
+    objtriangleindex.clear();
+
+    indice_array.clear();
+}
+
+OBJTRIANGLELIST::OBJTRIANGLELIST(const OBJTRIANGLELIST &src)
+{
+    objtriangleindex = src.objtriangleindex;
+
+    useuvs = src.useuvs;
+
+    n_indice_array = src.n_indice_array;
+
+    indice_array = src.indice_array;
+
+    objmaterial = src.objmaterial;
+
+    mode = src.mode;
+
+    vbo = src.vbo;
+}
+
+OBJTRIANGLELIST &OBJTRIANGLELIST::operator=(const OBJTRIANGLELIST &rhs)
+{
+    if (this != &rhs) {
+        objtriangleindex = rhs.objtriangleindex;
+
+        useuvs = rhs.useuvs;
+
+        n_indice_array = rhs.n_indice_array;
+
+        indice_array = rhs.indice_array;
+
+        objmaterial = rhs.objmaterial;
+        
+        mode = rhs.mode;
+        
+        vbo = rhs.vbo;
+    }
+    
+    return *this;
+}
+
+void OBJMESH::add_vertex_data(OBJTRIANGLELIST   *objtrianglelist,
+							  int               vertex_index,
+							  int               uv_index)
 {
 	unsigned short index = 0;
 	
-	while( index != objmesh->n_objvertexdata )
-	{
-		if( vertex_index == objmesh->objvertexdata[ index ].vertex_index )
-		{
-			if( uv_index == -1 ) goto add_index_to_triangle_list;
-			
-			else if( uv_index == objmesh->objvertexdata[ index ].uv_index ) goto add_index_to_triangle_list;
+	for ( ; index != this->objvertexdata.size(); ++index) {
+		if (vertex_index == this->objvertexdata[index].vertex_index) {
+			if (uv_index == -1)
+                goto add_index_to_triangle_list;
+			else if (uv_index == this->objvertexdata[index].uv_index)
+                goto add_index_to_triangle_list;
 		}
-		
-		++index;
 	}
 	
-	index = objmesh->n_objvertexdata;
+	index = this->objvertexdata.size();
 	
-	++objmesh->n_objvertexdata;
-	
-	objmesh->objvertexdata = ( OBJVERTEXDATA * ) realloc( objmesh->objvertexdata, 
-														  objmesh->n_objvertexdata *
-														  sizeof( OBJVERTEXDATA ) );
-	
-	objmesh->objvertexdata[ index ].vertex_index = vertex_index;
-	objmesh->objvertexdata[ index ].uv_index	   = uv_index;
+    this->objvertexdata.push_back(OBJVERTEXDATA(vertex_index, uv_index));
 
 
 add_index_to_triangle_list:
 	
 	++objtrianglelist->n_indice_array;
 	
-	objtrianglelist->indice_array = ( unsigned short * ) realloc( objtrianglelist->indice_array,
-																  objtrianglelist->n_indice_array *
-																  sizeof( unsigned short ) );
-
-	objtrianglelist->indice_array[ objtrianglelist->n_indice_array - 1 ] = index;	
+	objtrianglelist->indice_array.push_back(index);
 }
 
 
-int OBJ_get_texture_index( OBJ  *obj,
-						   char *filename )
+int OBJ::get_texture_index(char *filename)
 {
-	unsigned int i = 0;
-	
-	while( i != obj->n_texture )
-	{
-		if( !strcmp( filename, obj->texture[ i ]->name ) ) return i;
-	
-		++i;
+	for (int i=0; i!=this->texture.size(); ++i) {
+		if (!strcmp(filename, this->texture[i]->name)) return i;
 	}
 	
 	return -1;
 }
 
 
-void OBJ_add_texture( OBJ  *obj,
-					  char *filename )
+void OBJ::add_texture(char *filename)
 {
-	if( OBJ_get_texture_index( obj, filename ) != -1 ) return;
+	if (this->get_texture_index(filename) != -1) return;
 
-	++obj->n_texture;
-
-	obj->texture = ( TEXTURE ** ) realloc( obj->texture,
-										   obj->n_texture *
-										   sizeof( TEXTURE * ) );
-	
-	obj->texture[ obj->n_texture - 1 ] = TEXTURE_init( filename );
+	this->texture.push_back(TEXTURE_init(filename));
 }
 
 
-int OBJ_get_program_index( OBJ  *obj,
-						   char *filename )
+int OBJ::get_program_index(char *filename)
 {
-	unsigned int i = 0;
-	
-	while( i != obj->n_program )
-	{
-		if( !strcmp( filename, obj->program[ i ]->name ) ) return i;
-	
-		++i;
+	for (int i=0; i!=this->program.size(); ++i) {
+		if (!strcmp(filename, this->program[i]->name)) return i;
 	}
 	
 	return -1;
 }
 
 
-void OBJ_add_program( OBJ  *obj,
-					  char *filename )
+void OBJ::add_program(char *filename)
 {
-	if( OBJ_get_program_index( obj, filename ) != -1 ) return;
+	if (this->get_program_index(filename) != -1) return;
 
-	++obj->n_program;
-
-	obj->program = ( PROGRAM ** ) realloc( obj->program,
-										   obj->n_program *
-										   sizeof( PROGRAM * ) );
-	
-	obj->program[ obj->n_program - 1 ] = new PROGRAM(filename);
+    this->program.push_back(new PROGRAM(filename));
 }
 
 
-void OBJ_build_texture( OBJ			  *obj,
-						unsigned int  texture_index,
-						char		  *texture_path,
-						unsigned int  flags,
-						unsigned char filter,
-						float		  anisotropic_filter )
+void OBJ_build_texture(OBJ              *obj,
+                       unsigned int     texture_index,
+                       char             *texture_path,
+                       unsigned int     flags,
+                       unsigned char    filter,
+                       float            anisotropic_filter)
 {
-	TEXTURE *texture = obj->texture[ texture_index ];
+	TEXTURE *texture = obj->texture[texture_index];
 
 	MEMORY *m = NULL;
 	
-	char filename[ MAX_PATH ] = {""};
+	char filename[MAX_PATH] = {""};
 	
-	sprintf( filename, "%s%s", texture_path, texture->name  );
+	sprintf(filename, "%s%s", texture_path, texture->name);
 	
-	m = mopen( filename, 0 );
+	m = mopen(filename, 0);
 	
-	if( m )
-	{
-		TEXTURE_load( texture, m );
+	if (m) {
+		TEXTURE_load(texture, m);
 		
-		TEXTURE_generate_id( texture,
-							 flags,
-							 filter,
-							 anisotropic_filter );
-					 
-		TEXTURE_free_texel_array( texture );
+		TEXTURE_generate_id(texture,
+                            flags,
+                            filter,
+                            anisotropic_filter);
+
+		TEXTURE_free_texel_array(texture);
 		
-		mclose( m );
+		mclose(m);
 	}
 }
 
 
-void OBJ_build_program( OBJ							*obj,
-						unsigned int				program_index,
-						PROGRAMBINDATTRIBCALLBACK	*programbindattribcallback,
-						PROGRAMDRAWCALLBACK			*programdrawcallback,
-						unsigned char				debug_shader,
-						char						*program_path )
-{
-	PROGRAM *program = obj->program[ program_index ];
-	
-	char filename[ MAX_PATH ] = {""};
-	
-	sprintf( filename, "%s%s", program_path, program->name );
-
-	program->load_gfx(programbindattribcallback,
-					  programdrawcallback,
-					  filename,
-					  debug_shader,
-					  0);
-}
-
-
-void OBJ_build_material( OBJ		  *obj,
-						 unsigned int material_index,
-						 PROGRAM	  *program )
+void OBJMATERIAL::build(PROGRAM *program)
 {
 	int index;
 	
-	OBJMATERIAL *objmaterial = &obj->objmaterial[ material_index ];
+	char ext[MAX_CHAR] = {""};
 
-	char ext[ MAX_CHAR ] = {""};
+	if (this->map_ambient[0]) {
+		get_file_extension(this->map_ambient, ext, 1);
 
-
-	if( objmaterial->map_ambient[ 0 ] )
-	{
-		get_file_extension( objmaterial->map_ambient, ext, 1 );
-
-		if( !strcmp( ext, "GFX" ) )
-		{
-			index = OBJ_get_program_index( obj, objmaterial->map_ambient );
+		if (!strcmp(ext, "GFX")) {
+			index = this->parent->get_program_index(this->map_ambient);
 			
-			if( index != -1 ) objmaterial->program = obj->program[ index ];
-		}
-		else
-		{
-			index = OBJ_get_texture_index( obj, objmaterial->map_ambient );
+			if (index != -1) this->program = this->parent->program[index];
+		} else {
+			index = this->parent->get_texture_index(this->map_ambient);
 			
-			if( index != -1 ) objmaterial->texture_ambient = obj->texture[ index ];
+			if (index != -1) this->texture_ambient = this->parent->texture[index];
 		}
 	}
 
 
-	if( objmaterial->map_diffuse[ 0 ] )
-	{
-		get_file_extension( objmaterial->map_diffuse, ext, 1 );
+	if (this->map_diffuse[0]) {
+		get_file_extension(this->map_diffuse, ext, 1);
 
-		if( !strcmp( ext, "GFX" ) )
-		{
-			index = OBJ_get_program_index( obj, objmaterial->map_diffuse );
+		if (!strcmp(ext, "GFX")) {
+			index = this->parent->get_program_index(this->map_diffuse);
 			
-			if( index != -1 ) objmaterial->program = obj->program[ index ];
-		}
-		else
-		{
-			index = OBJ_get_texture_index( obj, objmaterial->map_diffuse );
+			if (index != -1) this->program = this->parent->program[index];
+		} else {
+			index = this->parent->get_texture_index(this->map_diffuse);
 			
-			if( index != -1 ) objmaterial->texture_diffuse = obj->texture[ index ];
+			if (index != -1) this->texture_diffuse = this->parent->texture[index];
 		}
 	}
 
 
-	if( objmaterial->map_specular[ 0 ] )
-	{
-		get_file_extension( objmaterial->map_specular, ext, 1 );
+	if (this->map_specular[0]) {
+		get_file_extension(this->map_specular, ext, 1);
 
-		if( !strcmp( ext, "GFX" ) )
-		{
-			index = OBJ_get_program_index( obj, objmaterial->map_specular );
+		if (!strcmp(ext, "GFX")) {
+			index = this->parent->get_program_index(this->map_specular);
 			
-			if( index != -1 ) objmaterial->program = obj->program[ index ];
-		}
-		else
-		{
-			index = OBJ_get_texture_index( obj, objmaterial->map_specular );
+			if (index != -1) this->program = this->parent->program[index];
+		} else {
+			index = this->parent->get_texture_index(this->map_specular);
 			
-			if( index != -1 ) objmaterial->texture_specular = obj->texture[ index ];
+			if (index != -1) this->texture_specular = this->parent->texture[index];
 		}
 	}
 
 
-	if( objmaterial->map_translucency[ 0 ] )
-	{
-		get_file_extension( objmaterial->map_translucency, ext, 1 );
+	if (this->map_translucency[0]) {
+		get_file_extension(this->map_translucency, ext, 1);
 
-		if( !strcmp( ext, "GFX" ) )
-		{
-			index = OBJ_get_program_index( obj, objmaterial->map_translucency );
+		if (!strcmp(ext, "GFX")) {
+			index = this->parent->get_program_index(this->map_translucency);
 			
-			if( index != -1 ) objmaterial->program = obj->program[ index ];
-		}
-		else
-		{
-			index = OBJ_get_texture_index( obj, objmaterial->map_translucency );
+			if (index != -1) this->program = this->parent->program[index];
+		} else {
+			index = this->parent->get_texture_index(this->map_translucency);
 			
-			if( index != -1 ) objmaterial->texture_translucency = obj->texture[ index ];
+			if (index != -1) this->texture_translucency = this->parent->texture[index];
 		}
 	}
 
 
-	if( objmaterial->map_disp[ 0 ] )
-	{
-		get_file_extension( objmaterial->map_disp, ext, 1 );
+	if (this->map_disp[0]) {
+		get_file_extension(this->map_disp, ext, 1);
 
-		if( !strcmp( ext, "GFX" ) )
-		{
-			index = OBJ_get_program_index( obj, objmaterial->map_disp );
+		if (!strcmp(ext, "GFX")) {
+			index = this->parent->get_program_index(this->map_disp);
 			
-			if( index != -1 ) objmaterial->program = obj->program[ index ];
-		}
-		else
-		{
-			index = OBJ_get_texture_index( obj, objmaterial->map_disp );
+			if (index != -1) this->program = this->parent->program[index];
+		} else {
+			index = this->parent->get_texture_index(this->map_disp);
 			
-			if( index != -1 ) objmaterial->texture_disp = obj->texture[ index ];
+			if (index != -1) this->texture_disp = this->parent->texture[index];
 		}
 	}
 
 
-	if( objmaterial->map_bump[ 0 ] )
-	{
-		get_file_extension( objmaterial->map_bump, ext, 1 );
+	if (this->map_bump[0]) {
+		get_file_extension(this->map_bump, ext, 1);
 
-		if( !strcmp( ext, "GFX" ) )
-		{
-			index = OBJ_get_program_index( obj, objmaterial->map_bump );
+		if (!strcmp(ext, "GFX")) {
+			index = this->parent->get_program_index(this->map_bump);
 			
-			if( index != -1 ) objmaterial->program = obj->program[ index ];
-		}
-		else
-		{
-			index = OBJ_get_texture_index( obj, objmaterial->map_bump );
+			if (index != -1) this->program = this->parent->program[index];
+		} else {
+			index = this->parent->get_texture_index(this->map_bump);
 			
-			if( index != -1 ) objmaterial->texture_bump = obj->texture[ index ];
+			if (index != -1) this->texture_bump = this->parent->texture[index];
 		}
 	}
 	
 
-	if( program ) objmaterial->program = program;
+	if (program) this->program = program;
 }
 
 
-void OBJ_set_draw_callback_material( OBJ *obj, unsigned int material_index, MATERIALDRAWCALLBACK *materialdrawcallback )
-{ obj->objmaterial[ material_index ].materialdrawcallback = materialdrawcallback; }
-
-
-void OBJ_update_bound_mesh( OBJ *obj, unsigned int mesh_index )
+void OBJMATERIAL::set_draw_callback(MATERIALDRAWCALLBACK *materialdrawcallback)
 {
-	unsigned int i, index;
-	
-	OBJMESH *objmesh = &obj->objmesh[ mesh_index ];
+    this->materialdrawcallback = materialdrawcallback;
+}
 
+
+void OBJMESH::update_bounds()
+{
+	unsigned int index;
+	
 	// Get the mesh min and max.
-	objmesh->min.x =
-	objmesh->min.y =
-	objmesh->min.z = 99999.999f;
+	this->min.x =
+	this->min.y =
+	this->min.z = FLT_MAX;
 
-	objmesh->max.x =
-	objmesh->max.y =
-	objmesh->max.z = -99999.999f;
+	this->max.x =
+	this->max.y =
+	this->max.z = -FLT_MAX;
 	
 	
-	i = 0;
-	while( i != objmesh->n_objvertexdata )
-	{
-		index = objmesh->objvertexdata[ i ].vertex_index;
+	for (int i=0; i!=this->objvertexdata.size(); ++i) {
+		index = this->objvertexdata[i].vertex_index;
 		
-		if( obj->indexed_vertex[ index ].x < objmesh->min.x ) objmesh->min.x = obj->indexed_vertex[ index ].x;
-		if( obj->indexed_vertex[ index ].y < objmesh->min.y ) objmesh->min.y = obj->indexed_vertex[ index ].y;
-		if( obj->indexed_vertex[ index ].z < objmesh->min.z ) objmesh->min.z = obj->indexed_vertex[ index ].z;
+		if (this->parent->indexed_vertex[index].x < this->min.x) this->min.x = this->parent->indexed_vertex[index].x;
+		if (this->parent->indexed_vertex[index].y < this->min.y) this->min.y = this->parent->indexed_vertex[index].y;
+		if (this->parent->indexed_vertex[index].z < this->min.z) this->min.z = this->parent->indexed_vertex[index].z;
 
-		if( obj->indexed_vertex[ index ].x > objmesh->max.x ) objmesh->max.x = obj->indexed_vertex[ index ].x;
-		if( obj->indexed_vertex[ index ].y > objmesh->max.y ) objmesh->max.y = obj->indexed_vertex[ index ].y;
-		if( obj->indexed_vertex[ index ].z > objmesh->max.z ) objmesh->max.z = obj->indexed_vertex[ index ].z;
-	
-		++i;
+		if (this->parent->indexed_vertex[index].x > this->max.x) this->max.x = this->parent->indexed_vertex[index].x;
+		if (this->parent->indexed_vertex[index].y > this->max.y) this->max.y = this->parent->indexed_vertex[index].y;
+		if (this->parent->indexed_vertex[index].z > this->max.z) this->max.z = this->parent->indexed_vertex[index].z;
 	}
 
 
 	// Mesh location
-	vec3_mid( &objmesh->location,
-			  &objmesh->min,
-			  &objmesh->max );
+	vec3_mid(&this->location,
+             &this->min,
+             &this->max);
 
 
 	// Mesh dimension
-	vec3_diff( &objmesh->dimension,
-			   &objmesh->max,
-			   &objmesh->min );
+	vec3_diff(&this->dimension,
+              &this->max,
+              &this->min);
 
 
 	// Bounding sphere radius
-	objmesh->radius = objmesh->dimension.x > objmesh->dimension.y ?
-					  objmesh->dimension.x:
-					  objmesh->dimension.y;
+	this->radius = this->dimension.x > this->dimension.y ?
+					  this->dimension.x:
+					  this->dimension.y;
 	
-	objmesh->radius = objmesh->radius > objmesh->dimension.z ?
-					  objmesh->radius * 0.5f:
-					  objmesh->dimension.z * 0.5f;
+	this->radius = this->radius > this->dimension.z ?
+					  this->radius * 0.5f:
+					  this->dimension.z * 0.5f;
 	
 	/*
-	objmesh->radius = vec3_dist( &objmesh->min,
-								 &objmesh->max ) * 0.5f;
+	objmesh->radius = vec3_dist(&objmesh->min,
+								&objmesh->max) * 0.5f;
 	*/
 }
 
 
-void OBJ_build_vbo_mesh( OBJ *obj, unsigned int mesh_index )
+void OBJMESH::build_vbo()
 {
 	// Build the VBO for the vertex data
-	unsigned int i,
-				 index,
+	unsigned int index,
 				 offset;
 	
-	OBJMESH *objmesh = &obj->objmesh[ mesh_index ];
-	
-	objmesh->stride  = sizeof( vec3 ); // Vertex
-	objmesh->stride += sizeof( vec3 ); // Normals
-	objmesh->stride += sizeof( vec3 ); // Face Normals
+	this->stride  = sizeof(vec3); // Vertex
+	this->stride += sizeof(vec3); // Normals
+	this->stride += sizeof(vec3); // Face Normals
 		
-	if( objmesh->objvertexdata[ 0 ].uv_index != -1 )
-	{
-		objmesh->stride += sizeof( vec3 ); // Tangent
-		objmesh->stride += sizeof( vec2 ); // Uv
+	if (this->objvertexdata[0].uv_index != -1) {
+		this->stride += sizeof(vec3); // Tangent
+		this->stride += sizeof(vec2); // Uv
 	}
 	
-	objmesh->size = objmesh->n_objvertexdata * objmesh->stride;
+	this->size = this->objvertexdata.size() * this->stride;
 	
-	unsigned char *vertex_array = ( unsigned char * ) malloc( objmesh->size ),
+	unsigned char *vertex_array = (unsigned char *) malloc(this->size),
 				  *vertex_start = vertex_array;
 
-	i = 0;
-	while( i != objmesh->n_objvertexdata )
-	{ 
-		index = objmesh->objvertexdata[ i ].vertex_index;
+	for (int i=0; i!=this->objvertexdata.size(); ++i) {
+		index = this->objvertexdata[i].vertex_index;
 		
-		memcpy( vertex_array,
-				&obj->indexed_vertex[ index ],
-				sizeof( vec3 ) );
+		memcpy(vertex_array,
+               &this->parent->indexed_vertex[index],
+               sizeof(vec3));
 
 		// Center the pivot
-		vec3_diff( ( vec3 * )vertex_array,
-				   ( vec3 * )vertex_array,
-				   &objmesh->location );
+		vec3_diff((vec3 *)vertex_array,
+                  (vec3 *)vertex_array,
+                  &this->location);
 
-		vertex_array += sizeof( vec3 );
-
-
-		memcpy( vertex_array,
-				&obj->indexed_normal[ index ],
-				sizeof( vec3 ) );
-		
-		vertex_array += sizeof( vec3 );
+		vertex_array += sizeof(vec3);
 
 
-		memcpy( vertex_array,
-				&obj->indexed_fnormal[ index ],
-				sizeof( vec3 ) );
-		
-		vertex_array += sizeof( vec3 );
+		memcpy(vertex_array,
+               &this->parent->indexed_normal[index],
+               sizeof(vec3));
 
-	
-		if( objmesh->objvertexdata[ 0 ].uv_index != -1 )
-		{
-			memcpy( vertex_array,
-					&obj->indexed_uv[ objmesh->objvertexdata[ i ].uv_index ],
-					sizeof( vec2 ) );
+		vertex_array += sizeof(vec3);
 
-			vertex_array += sizeof( vec2 );
-			
-			memcpy( vertex_array,
-					&obj->indexed_tangent[ index ],
-					sizeof( vec3 ) );
 
-			vertex_array += sizeof( vec3 );				
+		memcpy(vertex_array,
+               &this->parent->indexed_fnormal[index],
+               sizeof(vec3));
+
+		vertex_array += sizeof(vec3);
+
+
+		if (this->objvertexdata[0].uv_index != -1) {
+			memcpy(vertex_array,
+                   &this->parent->indexed_uv[this->objvertexdata[i].uv_index],
+                   sizeof(vec2));
+
+			vertex_array += sizeof(vec2);
+
+			memcpy(vertex_array,
+                   &this->parent->indexed_tangent[index],
+                   sizeof(vec3));
+            
+			vertex_array += sizeof(vec3);				
 		}
-					
-		++i;
 	}
 	
 	
-	glGenBuffers( 1, &objmesh->vbo );
+	glGenBuffers(1, &this->vbo);
 	
-	glBindBuffer( GL_ARRAY_BUFFER, objmesh->vbo );
+	glBindBuffer(GL_ARRAY_BUFFER, this->vbo);
 	
-	glBufferData( GL_ARRAY_BUFFER,
-				  objmesh->size,
-				  vertex_start,
-				  GL_STATIC_DRAW );	
-	
-	free( vertex_start );
-	
+	glBufferData(GL_ARRAY_BUFFER,
+                 this->size,
+                 vertex_start,
+                 GL_STATIC_DRAW);
 
-	objmesh->offset[ 0 ] = 0;
-			
-	offset = sizeof( vec3 );
+	free(vertex_start);
 
-	objmesh->offset[ 1 ] = offset;
-			
-	offset += sizeof( vec3 );
 
-	objmesh->offset[ 2 ] = offset;
-			
-	offset += sizeof( vec3 );
+	this->offset[AO_Position] = 0;
 
-	
-	if( objmesh->objvertexdata[ 0 ].uv_index != -1 )
-	{
-		objmesh->offset[ 3 ] = offset;
-		
-		offset += sizeof( vec2 );
+	offset = sizeof(vec3);
 
-		objmesh->offset[ 4 ] = offset;
+	this->offset[AO_Normal] = offset;
+
+	offset += sizeof(vec3);
+
+	this->offset[AO_FNormal] = offset;
+
+	offset += sizeof(vec3);
+
+
+	if (this->objvertexdata[0].uv_index != -1) {
+		this->offset[AO_TexCoord0] = offset;
+
+		offset += sizeof(vec2);
+        
+		this->offset[AO_Tangent0] = offset;
 	}
-		
+
 	
-	i = 0;
-	while( i != objmesh->n_objtrianglelist )
-	{
-		glGenBuffers( 1, &objmesh->objtrianglelist[ i ].vbo );
+	for (int i=0; i!=this->objtrianglelist.size(); ++i) {
+		glGenBuffers(1, &this->objtrianglelist[i].vbo);
 		
-		glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, objmesh->objtrianglelist[ i ].vbo );
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->objtrianglelist[i].vbo);
 		
-		glBufferData( GL_ELEMENT_ARRAY_BUFFER,
-					  objmesh->objtrianglelist[ i ].n_indice_array * sizeof( unsigned short ),
-					  objmesh->objtrianglelist[ i ].indice_array,
-					  GL_STATIC_DRAW );
-		++i;
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+                     this->objtrianglelist[i].n_indice_array * sizeof(unsigned short),
+                     &this->objtrianglelist[i].indice_array[0],
+                     GL_STATIC_DRAW);
 	}
 }
 
 
-void OBJ_set_attributes_mesh( OBJ *obj, unsigned int mesh_index )
+void OBJMESH::set_attributes()
 {
-	OBJMESH *objmesh = &obj->objmesh[ mesh_index ];
+	glBindBuffer(GL_ARRAY_BUFFER, this->vbo);
 
-	glBindBuffer( GL_ARRAY_BUFFER, objmesh->vbo );			
+	glEnableVertexAttribArray(VA_Position);
 
-	glEnableVertexAttribArray( 0 );
-	
-	glVertexAttribPointer( 0,
-						   3,
-						   GL_FLOAT,
-						   GL_FALSE,
-						   objmesh->stride,
-						   ( void * )NULL );
+	glVertexAttribPointer(VA_Position,
+                          3,
+                          GL_FLOAT,
+                          GL_FALSE,
+                          this->stride,
+                          (void *)NULL);
 
 
-	glEnableVertexAttribArray( 1 );
+	glEnableVertexAttribArray(VA_Normal);
 
-	glVertexAttribPointer( 1,
-						   3,
-						   GL_FLOAT,
-						   GL_FALSE, 
-						   objmesh->stride,
-						   BUFFER_OFFSET( objmesh->offset[ 1 ] ) );
-
-
-	glEnableVertexAttribArray( 4 );
-
-	glVertexAttribPointer( 4,
-						   3,
-						   GL_FLOAT,
-						   GL_FALSE, 
-						   objmesh->stride,
-						   BUFFER_OFFSET( objmesh->offset[ 2 ] ) );
+	glVertexAttribPointer(VA_Normal,
+                          3,
+                          GL_FLOAT,
+                          GL_FALSE,
+                          this->stride,
+                          BUFFER_OFFSET(this->offset[AO_Normal]));
 
 
-	if( objmesh->offset[ 3 ] != -1 )
-	{
-		glEnableVertexAttribArray( 2 );
+	glEnableVertexAttribArray(VA_FNormal);
 
-		glVertexAttribPointer( 2,
-							   2,
-							   GL_FLOAT,
-							   GL_FALSE,
-							   objmesh->stride,
-							   BUFFER_OFFSET( objmesh->offset[ 3 ] ) );
+	glVertexAttribPointer(VA_FNormal,
+                          3,
+                          GL_FLOAT,
+                          GL_FALSE,
+                          this->stride,
+                          BUFFER_OFFSET(this->offset[AO_FNormal]));
 
-		glEnableVertexAttribArray( 3 );
 
-		glVertexAttribPointer( 3,
-							   3,
-							   GL_FLOAT,
-							   GL_FALSE, 
-							   objmesh->stride,
-							   BUFFER_OFFSET( objmesh->offset[ 4 ] ) );
+	if (this->offset[AO_TexCoord0] != OFFSET_NO_TEXCOORD_NEEDED) {
+		glEnableVertexAttribArray(VA_TexCoord0);
+
+		glVertexAttribPointer(VA_TexCoord0,
+                              2,
+                              GL_FLOAT,
+                              GL_FALSE,
+                              this->stride,
+                              BUFFER_OFFSET(this->offset[AO_TexCoord0]));
+        
+		glEnableVertexAttribArray(VA_Tangent0);
+        
+		glVertexAttribPointer(VA_Tangent0,
+                              3,
+                              GL_FLOAT,
+                              GL_FALSE, 
+                              this->stride,
+                              BUFFER_OFFSET(this->offset[AO_Tangent0]));
 	}
 }
 
 
 
-void OBJ_build_mesh( OBJ *obj, unsigned int mesh_index )
+void OBJMESH::build()
 {
-	OBJMESH *objmesh = &obj->objmesh[ mesh_index ];
-
-
-	OBJ_update_bound_mesh( obj, mesh_index );
+	this->update_bounds();
 	
-	OBJ_build_vbo_mesh( obj, mesh_index );
+	this->build_vbo();
 	
 
-	glGenVertexArraysOES( 1, &objmesh->vao );
+	glGenVertexArraysOES(1, &this->vao);
 	
-	glBindVertexArrayOES( objmesh->vao );
-	
-	
-	OBJ_set_attributes_mesh( obj, mesh_index );
+	glBindVertexArrayOES(this->vao);
 	
 	
-	if( objmesh->n_objtrianglelist == 1 )
-	{ glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, objmesh->objtrianglelist[ 0 ].vbo ); }
+	this->set_attributes();
 	
 	
-	glBindVertexArrayOES( 0 );
+	if (this->objtrianglelist.size() == 1) {
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->objtrianglelist[0].vbo);
+    }
+	
+	
+	glBindVertexArrayOES(0);
 }
 
 
-void OBJ_build_mesh2( OBJ *obj, unsigned int mesh_index )
+void OBJMESH::build2()
 {
-	OBJ_update_bound_mesh( obj, mesh_index );
-	
-	OBJ_build_vbo_mesh( obj, mesh_index );
+	this->update_bounds();
+
+	this->build_vbo();
 }
 
 
-void OBJ_optimize_mesh( OBJ *obj, unsigned int mesh_index, unsigned int vertex_cache_size )
+void OBJMESH::optimize(unsigned int vertex_cache_size)
 {
-	OBJMESH *objmesh = &obj->objmesh[ mesh_index ];
-	
-	unsigned int i = 0,
-				 s = 0;
+	unsigned int s = 0;
 	
 	unsigned short n_group = 0;
 
-	if( vertex_cache_size ) SetCacheSize( vertex_cache_size );
+	if (vertex_cache_size) SetCacheSize(vertex_cache_size);
 	
-	while( i != objmesh->n_objtrianglelist )
-	{
+	for (int i=0; i!=this->objtrianglelist.size(); ++i) {
 		PrimitiveGroup *primitivegroup;
 	
-		if( GenerateStrips( objmesh->objtrianglelist[ i ].indice_array,
-							objmesh->objtrianglelist[ i ].n_indice_array,
-							&primitivegroup,
-							&n_group,
-							true ) )
-		{
-			if( primitivegroup[ 0 ].numIndices < objmesh->objtrianglelist[ i ].n_indice_array )
-			{
-				objmesh->objtrianglelist[ i ].mode = GL_TRIANGLE_STRIP;
-				objmesh->objtrianglelist[ i ].n_indice_array = primitivegroup[ 0 ].numIndices;
+		if (GenerateStrips(&this->objtrianglelist[i].indice_array[0],
+                           this->objtrianglelist[i].n_indice_array,
+                           &primitivegroup,
+                           &n_group,
+                           true)) {
+			if (primitivegroup[0].numIndices < this->objtrianglelist[i].n_indice_array) {
+				this->objtrianglelist[i].mode = GL_TRIANGLE_STRIP;
+				this->objtrianglelist[i].n_indice_array = primitivegroup[0].numIndices;
 			
-				s = primitivegroup[ 0 ].numIndices * sizeof( unsigned short );
+				s = primitivegroup[0].numIndices * sizeof(unsigned short);
 						
-				objmesh->objtrianglelist[ i ].indice_array = ( unsigned short * ) realloc( objmesh->objtrianglelist[ i ].indice_array,
-																						   s );
+                this->objtrianglelist[i].indice_array.resize(primitivegroup[0].numIndices);
 				
-				memcpy( &objmesh->objtrianglelist[ i ].indice_array[ 0 ],
-						&primitivegroup[ 0 ].indices[ 0 ],
-						s );
+				memcpy(&this->objtrianglelist[i].indice_array[0],
+                       &primitivegroup[0].indices[0],
+                       s);
 			}
 			
 			delete[] primitivegroup;
 		}
-
-		++i;
 	}
 }
 
 
-OBJMESH *OBJ_get_mesh( OBJ *obj, const char *name, unsigned char exact_name )
+OBJMESH *OBJ::get_mesh(const char *name, bool exact_name)
 {
-	unsigned int i = 0;
-	
-	while( i != obj->n_objmesh )
-	{
-		if( exact_name )
-		{ if( !strcmp( obj->objmesh[ i ].name, name ) ) return &obj->objmesh[ i ]; }
-		
-		else
-		{ if( strstr( obj->objmesh[ i ].name, name ) ) return &obj->objmesh[ i ]; }
-	
-		++i;
+    if (exact_name) {
+        for (int i=0; i!=this->objmesh.size(); ++i) {
+            if (!strcmp(this->objmesh[i].name, name))
+                return &this->objmesh[i];
+        }
+    } else {
+        for (int i=0; i!=this->objmesh.size(); ++i) {
+            if (strstr(this->objmesh[i].name, name))
+                return &this->objmesh[i];
+        }
 	}
-	
+
 	return NULL;
 }
 
 
-int OBJ_get_mesh_index( OBJ *obj, const char *name, unsigned char exact_name )
+int OBJ::get_mesh_index(const char *name, bool exact_name)
 {
-	unsigned int i = 0;
-	
-	while( i != obj->n_objmesh )
-	{
-		if( exact_name )
-		{ if( !strcmp( obj->objmesh[ i ].name, name ) ) return i; }
-		
-		else
-		{ if( strstr( obj->objmesh[ i ].name, name ) ) return i; }
-	
-		++i;
+    if (exact_name) {
+        for (int i=0; i!=this->objmesh.size(); ++i) {
+            if (!strcmp(this->objmesh[i].name, name))
+                return i;
+        }
+    } else {
+        for (int i=0; i!=this->objmesh.size(); ++i) {
+            if (strstr(this->objmesh[i].name, name))
+                return i;
+        }
 	}
-	
+
 	return -1;
 }
 
 
-PROGRAM *OBJ_get_program( OBJ *obj, const char *name, unsigned char exact_name )
+PROGRAM *OBJ::get_program(const char *name, bool exact_name)
 {
-	unsigned int i = 0;
-	
-	while( i != obj->n_program )
-	{
-		if( exact_name )
-		{ if( !strcmp( obj->program[ i ]->name, name ) ) return obj->program[ i ]; }
-		
-		else
-		{ if( strstr( obj->program[ i ]->name, name ) ) return obj->program[ i ]; }
-	
-		++i;
+    if (exact_name) {
+        for (int i=0; i!=this->program.size(); ++i) {
+            if (!strcmp(this->program[i]->name, name))
+                return this->program[i];
+        }
+    } else {
+        for (int i=0; i!=this->program.size(); ++i) {
+            if (strstr(this->program[i]->name, name))
+                return this->program[i];
+        }
 	}
-	
+
 	return NULL;
 }
 
 
-OBJMATERIAL *OBJ_get_material( OBJ *obj, const char *name, unsigned char exact_name )
+OBJMATERIAL *OBJ::get_material(const char *name, bool exact_name)
 {
-	unsigned int i = 0;
-	
-	while( i != obj->n_objmaterial )
-	{
-		if( exact_name )
-		{ if( !strcmp( obj->objmaterial[ i ].name, name ) ) return &obj->objmaterial[ i ]; }
-		
-		else
-		{ if( strstr( obj->objmaterial[ i ].name, name ) ) return &obj->objmaterial[ i ]; }
-	
-		++i;
+    if (exact_name) {
+        for (int i=0; i!=this->objmaterial.size(); ++i) {
+            if (!strcmp(this->objmaterial[i].name, name))
+                return &this->objmaterial[i];
+        }
+    } else {
+        for (int i=0; i!=this->objmaterial.size(); ++i) {
+            if (strstr(this->objmaterial[i].name, name))
+                return &this->objmaterial[i];
+        }
 	}
-	
+
 	return NULL;
 }
 
 
-TEXTURE *OBJ_get_texture( OBJ *obj, const char *name, unsigned char exact_name )
+TEXTURE *OBJ::get_texture(const char *name, bool exact_name)
 {
-	unsigned int i = 0;
-	
-	while( i != obj->n_texture )
-	{
-		if( exact_name )
-		{ if( !strcmp( obj->texture[ i ]->name, name ) ) return obj->texture[ i ]; }
-		
-		else
-		{ if( strstr(obj->texture[ i ]->name, name ) ) return obj->texture[ i ]; }
-	
-		++i;
+    if (exact_name) {
+        for (int i=0; i!=this->texture.size(); ++i) {
+            if (!strcmp(this->texture[i]->name, name))
+                return this->texture[i];
+        }
+    } else {
+        for (int i=0; i!=this->texture.size(); ++i) {
+            if (strstr(this->texture[i]->name, name))
+                return this->texture[i];
+        }
 	}
-	
+
 	return NULL;
 }
 
 
-void OBJ_draw_material( OBJMATERIAL *objmaterial )
+OBJMATERIAL::OBJMATERIAL(char *name, OBJ *parent) : parent(parent),
+    illumination_model(0), dissolve(0), specular_exponent(0),
+    optical_density(0), map_ambient(""), map_diffuse(""), map_specular(""),
+    map_translucency(""), map_disp(""), map_bump(""), texture_ambient(NULL),
+    texture_diffuse(NULL), texture_specular(NULL),
+    texture_translucency(NULL), texture_disp(NULL), texture_bump(NULL),
+    program(NULL), materialdrawcallback(NULL)
 {
-	if( objmaterial )
-	{
-		if( objmaterial->program ) objmaterial->program->draw();
+    assert(name==NULL || (strlen(name)<sizeof(this->name)));
+    if (name == NULL) {
+        memset(this->name, 0, sizeof(this->name));
+    } else {
+        strcpy(this->name, name);
+    }
+
+    memset(&this->ambient, 0, sizeof(vec4));
+    memset(&this->diffuse, 0, sizeof(vec4));
+    memset(&this->specular, 0, sizeof(vec4));
+    memset(&this->transmission_filter, 0, sizeof(vec3));
+}
+
+OBJMATERIAL::~OBJMATERIAL()
+{
+    delete program;
+}
+
+OBJMATERIAL::OBJMATERIAL(const OBJMATERIAL &src)
+{
+    strcpy(name, src.name);
+    memcpy(&ambient, &src.ambient, sizeof(vec4));
+    memcpy(&diffuse, &src.diffuse, sizeof(vec4));
+    memcpy(&specular, &src.specular, sizeof(vec4));
+    memcpy(&transmission_filter, &src.transmission_filter, sizeof(vec3));
+    illumination_model = src.illumination_model;
+    dissolve = src.dissolve;
+    specular_exponent = src.specular_exponent;
+    optical_density = src.optical_density;
+    strcpy(map_ambient, src.map_ambient);
+    strcpy(map_diffuse, src.map_diffuse);
+    strcpy(map_specular, src.map_specular);
+    strcpy(map_translucency, src.map_translucency);
+    strcpy(map_disp, src.map_disp);
+    strcpy(map_bump, src.map_bump);
+    texture_ambient = src.texture_ambient;
+    texture_diffuse = src.texture_diffuse;
+    texture_specular= src.texture_specular;
+    texture_translucency = src.texture_translucency;
+    texture_disp = src.texture_disp;
+    texture_bump = src.texture_bump;
+    program = src.program;
+    materialdrawcallback = src.materialdrawcallback;
+    parent = src.parent;
+}
+
+OBJMATERIAL &OBJMATERIAL::operator=(const OBJMATERIAL &rhs)
+{
+    if (this != &rhs) {
+        strcpy(name, rhs.name);
+        memcpy(&ambient, &rhs.ambient, sizeof(vec4));
+        memcpy(&diffuse, &rhs.diffuse, sizeof(vec4));
+        memcpy(&specular, &rhs.specular, sizeof(vec4));
+        memcpy(&transmission_filter, &rhs.transmission_filter, sizeof(vec3));
+        illumination_model = rhs.illumination_model;
+        dissolve = rhs.dissolve;
+        specular_exponent = rhs.specular_exponent;
+        optical_density = rhs.optical_density;
+        strcpy(map_ambient, rhs.map_ambient);
+        strcpy(map_diffuse, rhs.map_diffuse);
+        strcpy(map_specular, rhs.map_specular);
+        strcpy(map_translucency, rhs.map_translucency);
+        strcpy(map_disp, rhs.map_disp);
+        strcpy(map_bump, rhs.map_bump);
+        texture_ambient = rhs.texture_ambient;
+        texture_diffuse = rhs.texture_diffuse;
+        texture_specular= rhs.texture_specular;
+        texture_translucency = rhs.texture_translucency;
+        texture_disp = rhs.texture_disp;
+        texture_bump = rhs.texture_bump;
+        program = rhs.program;
+        materialdrawcallback = rhs.materialdrawcallback;
+        parent = rhs.parent;
+    }
+    return *this;
+}
+
+void OBJMATERIAL::draw()
+{
+	if (this) {
+		if (this->program) this->program->draw();
 
 
-		if( objmaterial->texture_ambient )
-		{
-			glActiveTexture( GL_TEXTURE0 );
+		if (this->texture_ambient) {
+			glActiveTexture(GL_TEXTURE0);
 
-			TEXTURE_draw( objmaterial->texture_ambient );
+			TEXTURE_draw(this->texture_ambient);
 		}
 
 		
-		if( objmaterial->texture_diffuse )
-		{
-			glActiveTexture( GL_TEXTURE1 );
+		if (this->texture_diffuse) {
+			glActiveTexture(GL_TEXTURE1);
 
-			TEXTURE_draw( objmaterial->texture_diffuse );
+			TEXTURE_draw(this->texture_diffuse);
 		}
 
 		
-		if( objmaterial->texture_specular )
-		{
-			glActiveTexture( GL_TEXTURE2 );
+		if (this->texture_specular) {
+			glActiveTexture(GL_TEXTURE2);
 
-			TEXTURE_draw( objmaterial->texture_specular );
+			TEXTURE_draw(this->texture_specular);
 		}
 
 
-		if( objmaterial->texture_disp )
-		{
-			glActiveTexture( GL_TEXTURE3 );
+		if (this->texture_disp) {
+			glActiveTexture(GL_TEXTURE3);
 
-			TEXTURE_draw( objmaterial->texture_disp );
+			TEXTURE_draw(this->texture_disp);
 		}	
 		
 		
-		if( objmaterial->texture_bump )
-		{
-			glActiveTexture( GL_TEXTURE4 );
+		if (this->texture_bump) {
+			glActiveTexture(GL_TEXTURE4);
 
-			TEXTURE_draw( objmaterial->texture_bump );
+			TEXTURE_draw(this->texture_bump);
 		}
 
 
-		if( objmaterial->texture_translucency )
-		{
-			glActiveTexture( GL_TEXTURE5 );
+		if (this->texture_translucency) {
+			glActiveTexture(GL_TEXTURE5);
 
-			TEXTURE_draw( objmaterial->texture_translucency );
+			TEXTURE_draw(this->texture_translucency);
 		}
 		
 
-		if( objmaterial->materialdrawcallback ) objmaterial->materialdrawcallback( objmaterial );
+		if (this->materialdrawcallback) this->materialdrawcallback(this);
 	}
 }
 
 
-void OBJ_draw_mesh( OBJ *obj, unsigned int mesh_index )
+void OBJMESH::draw()
 {
-	OBJMESH *objmesh = &obj->objmesh[ mesh_index ];
-
-	if( objmesh->visible && objmesh->distance )
-	{
-		unsigned int i = 0;
-		
-		if( objmesh->vao ) glBindVertexArrayOES( objmesh->vao );
-
-		else OBJ_set_attributes_mesh( obj, mesh_index );
+	if (this->visible && this->distance) {
+		if (this->vao)
+            glBindVertexArrayOES(this->vao);
+		else
+            this->set_attributes();
 		
 		
-		while( i != objmesh->n_objtrianglelist )
-		{
-			objmesh->current_material = objmesh->objtrianglelist[ i ].objmaterial;
+		for (int i=0; i!=this->objtrianglelist.size(); ++i) {
+			this->current_material = this->objtrianglelist[i].objmaterial;
 		
-			if( objmesh->current_material ) OBJ_draw_material( objmesh->current_material );
+			if (this->current_material) this->current_material->draw();
 			
-			if( objmesh->vao )
-			{
-				if( objmesh->n_objtrianglelist != 1 )
-				{ glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, objmesh->objtrianglelist[ i ].vbo ); }
-			}
-			else
-			{ glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, objmesh->objtrianglelist[ i ].vbo ); }
+			if (this->vao) {
+				if (this->objtrianglelist.size() != 1)
+                    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->objtrianglelist[i].vbo);
+			} else {
+                glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->objtrianglelist[i].vbo);
+            }
   			
 			
-			glDrawElements( objmesh->objtrianglelist[ i ].mode,
-							objmesh->objtrianglelist[ i ].n_indice_array,
-							GL_UNSIGNED_SHORT,
-							( void * )NULL );
-			
-			++i;
+			glDrawElements(this->objtrianglelist[i].mode,
+                           this->objtrianglelist[i].n_indice_array,
+                           GL_UNSIGNED_SHORT,
+                           (void *)NULL);
 		}
 	}
 }
 
 
-void OBJ_draw_mesh2( OBJ *obj, OBJMESH *objmesh )
+void OBJMESH::draw2(OBJMESH *objmesh)
 {
-	unsigned int i = 0;
-	
-	while( i != obj->n_objmesh )
-	{
-		if( &obj->objmesh[ i ] == objmesh )
-		{
-			OBJ_draw_mesh( obj, i );
+	for (int i=0; i!=this->parent->objmesh.size(); ++i) {
+		if (&this->parent->objmesh[i] == objmesh) {
+			objmesh->draw();
 			return;
 		}
-		
-		++i;
 	}
 }
 
 
-void OBJ_draw_mesh3( OBJ *obj, OBJMESH *objmesh )
+void OBJMESH::draw3(OBJMESH *objmesh)
 {
-	unsigned int i = 0;
-	
-	while( i != obj->n_objmesh )
-	{
-		if( &obj->objmesh[ i ] == objmesh )
-		{
+	for (int i=0; i!=this->parent->objmesh.size(); ++i) {
+		if (&this->parent->objmesh[i] == objmesh) {
 			GFX_push_matrix();
-			
-			GFX_translate( objmesh->location.x,
-						   objmesh->location.y,
-						   objmesh->location.z );
 
-			GFX_rotate( objmesh->rotation.z, 0.0f, 0.0f, 1.0f );
-			GFX_rotate( objmesh->rotation.y, 0.0f, 1.0f, 0.0f );
-			GFX_rotate( objmesh->rotation.x, 1.0f, 0.0f, 0.0f );
-			
-			GFX_scale( objmesh->scale.x,
-					   objmesh->scale.y,
-					   objmesh->scale.z );
+			GFX_translate(objmesh->location.x,
+                          objmesh->location.y,
+                          objmesh->location.z);
 
-			OBJ_draw_mesh( obj, i );
+			GFX_rotate(objmesh->rotation.z, 0.0f, 0.0f, 1.0f);
+			GFX_rotate(objmesh->rotation.y, 0.0f, 1.0f, 0.0f);
+			GFX_rotate(objmesh->rotation.x, 1.0f, 0.0f, 0.0f);
+
+			GFX_scale(objmesh->scale.x,
+                      objmesh->scale.y,
+                      objmesh->scale.z);
+            
+			objmesh->draw();
 			
 			GFX_pop_matrix();
 			
 			return;
 		}
-		
-		++i;
 	}
 }
 
 
-void OBJ_free_mesh_vertex_data( OBJ *obj, unsigned int mesh_index )
+void OBJMESH::free_vertex_data()
 {
-	unsigned int i = 0;
+	this->objvertexdata.clear();
 	
-	OBJMESH *objmesh = &obj->objmesh[ mesh_index ];
-
-	if( objmesh->objvertexdata )
-	{
-		free( objmesh->objvertexdata );
-		objmesh->objvertexdata = NULL;
-	}
-	
-	objmesh->n_objvertexdata = 0;
-	
-	while( i != objmesh->n_objtrianglelist )
-	{
-		free( objmesh->objtrianglelist[ i ].objtriangleindex );
-		objmesh->objtrianglelist[ i ].objtriangleindex = NULL;
+	for (int i=0; i!=this->objtrianglelist.size(); ++i) {
+        this->objtrianglelist[i].objtriangleindex.clear();
 		
-		objmesh->objtrianglelist[ i ].n_objtriangleindex = 0;
-		
-		free( objmesh->objtrianglelist[ i ].indice_array );
-		objmesh->objtrianglelist[ i ].indice_array = NULL;
-		
-		++i;
+        this->objtrianglelist[i].indice_array.clear();
 	}
 }
 
 
-unsigned char OBJ_load_mtl( OBJ *obj, char *filename, unsigned char relative_path )
+bool OBJ::load_mtl(char *filename, bool relative_path)
 {
-	MEMORY *m = mopen( filename, relative_path );
+	MEMORY *m = mopen(filename, relative_path);
 
 	OBJMATERIAL *objmaterial = NULL;
 
-	if( !m ) return 0; 
+	if (!m) return false;
 
-	get_file_path( m->filename, obj->texture_path );
+	get_file_path(m->filename, this->texture_path);
 
-	get_file_path( m->filename, obj->program_path );
+	get_file_path(m->filename, this->program_path);
 
-	char *line = strtok( ( char * )m->buffer, "\n" ),
-		 str[ MAX_PATH ] = {""};
+	char *line = strtok((char *)m->buffer, "\n"),
+		 str[MAX_PATH] = {""};
 		 
 	vec3 v;
 
-	while( line )
-	{
-		if( !line[ 0 ] || line[ 0 ] == '#' ) goto next_mat_line;
-		
-		else if( sscanf( line, "newmtl %s", str ) == 1 )
-		{
-			++obj->n_objmaterial;
+	while (line) {
+		if (!line[0] || line[0] == '#') {
+            goto next_mat_line;
+		} else if (sscanf(line, "newmtl %s", str) == 1) {
+			this->objmaterial.push_back(OBJMATERIAL(str, this));
 			
-			obj->objmaterial = ( OBJMATERIAL * ) realloc( obj->objmaterial, 
-														  obj->n_objmaterial *
-														  sizeof( OBJMATERIAL ) );
-			
-			objmaterial = &obj->objmaterial[ obj->n_objmaterial - 1 ];
-			
-			memset( objmaterial, 0, sizeof( OBJMATERIAL ) );
-					
-			strcpy( objmaterial->name, str );
-		}
-
-		else if( sscanf( line, "Ka %f %f %f", &v.x, &v.y, &v.z ) == 3 )
-		{ memcpy( &objmaterial->ambient, &v, sizeof( vec3 ) ); }
-
-		else if( sscanf( line, "Kd %f %f %f", &v.x, &v.y, &v.z ) == 3 )
-		{ memcpy( &objmaterial->diffuse, &v, sizeof( vec3 ) ); }
-
-		else if( sscanf( line, "Ks %f %f %f", &v.x, &v.y, &v.z ) == 3 )
-		{ memcpy( &objmaterial->specular, &v, sizeof( vec3 ) ); }
-
-		else if( sscanf( line, "Tf %f %f %f", &v.x, &v.y, &v.z ) == 3 )
-		{ memcpy( &objmaterial->transmission_filter, &v, sizeof( vec3 ) ); }
-
-		else if( sscanf( line, "illum %f", &v.x ) == 1 )
-		{ objmaterial->illumination_model = ( int )v.x; }
-
-		else if( sscanf( line, "d %f", &v.x ) == 1 )
-		{
+			objmaterial = &this->objmaterial[this->objmaterial.size() - 1];
+		} else if (sscanf(line, "Ka %f %f %f", &v.x, &v.y, &v.z) == 3) {
+            memcpy(&objmaterial->ambient, &v, sizeof(vec3));
+        } else if (sscanf(line, "Kd %f %f %f", &v.x, &v.y, &v.z) == 3) {
+            memcpy(&objmaterial->diffuse, &v, sizeof(vec3));
+        } else if (sscanf(line, "Ks %f %f %f", &v.x, &v.y, &v.z) == 3) {
+            memcpy(&objmaterial->specular, &v, sizeof(vec3));
+        } else if (sscanf(line, "Tf %f %f %f", &v.x, &v.y, &v.z) == 3) {
+            memcpy(&objmaterial->transmission_filter, &v, sizeof(vec3));
+        } else if (sscanf(line, "illum %f", &v.x) == 1) {
+            objmaterial->illumination_model = (int)v.x;
+        } else if (sscanf(line, "d %f", &v.x) == 1) {
 			objmaterial->ambient.w  = v.x;
 			objmaterial->diffuse.w  = v.x;
 			objmaterial->specular.w = v.x;
 			objmaterial->dissolve   = v.x;
-		}
+		} else if (sscanf(line, "Ns %f", &v.x) == 1) {
+            objmaterial->specular_exponent = v.x;
+        } else if (sscanf(line, "Ni %f", &v.x) == 1) {
+            objmaterial->optical_density = v.x;
+        } else if (sscanf(line, "map_Ka %s", str) == 1) {
+			get_file_name(str, objmaterial->map_ambient);
+			
+			get_file_extension(objmaterial->map_ambient, str, 1);
+			
+			if (!strcmp(str, "GFX"))
+                this->add_program(objmaterial->map_ambient);
+			else
+                this->add_texture(objmaterial->map_ambient);
+		} else if (sscanf(line, "map_Kd %s", str) == 1) {
+			get_file_name(str, objmaterial->map_diffuse);
+			
+			get_file_extension(objmaterial->map_diffuse, str, 1);
+			
+			if (!strcmp(str, "GFX"))
+                this->add_program(objmaterial->map_diffuse);
+			else
+                this->add_texture(objmaterial->map_diffuse);
+		} else if (sscanf(line, "map_Ks %s", str) == 1) {
+			get_file_name(str, objmaterial->map_specular);
+			
+			get_file_extension(objmaterial->map_specular, str, 1);
+			
+			if (!strcmp(str, "GFX"))
+                this->add_program(objmaterial->map_specular);
+			else
+                this->add_texture(objmaterial->map_specular);
+		} else if (sscanf(line, "map_Tr %s", str) == 1) {
+			get_file_name(str, objmaterial->map_translucency);
+			
+			get_file_extension(objmaterial->map_translucency, str, 1);
+			
+			if (!strcmp(str, "GFX"))
+                this->add_program(objmaterial->map_translucency);
+			else
+                this->add_texture(objmaterial->map_translucency);
+		} else if (sscanf(line, "map_disp %s", str) == 1 ||
+                   sscanf(line, "map_Disp %s", str) == 1 ||
+                   sscanf(line, "disp %s"    , str) == 1) {
+			get_file_name(str, objmaterial->map_disp);
+			
+			get_file_extension(objmaterial->map_disp, str, 1);
+			
+			if (!strcmp(str, "GFX"))
+                this->add_program(objmaterial->map_disp);
+			else
+                this->add_texture(objmaterial->map_disp);
 
-		else if( sscanf( line, "Ns %f", &v.x ) == 1 )
-		{ objmaterial->specular_exponent = v.x; }
-
-		else if( sscanf( line, "Ni %f", &v.x ) == 1 )
-		{ objmaterial->optical_density = v.x; }
-
-		else if( sscanf( line, "map_Ka %s", str ) == 1 )
-		{
-			get_file_name( str, objmaterial->map_ambient );
+		} else if (sscanf(line, "map_bump %s", str) == 1 ||
+                   sscanf(line, "map_Bump %s", str) == 1 ||
+                   sscanf(line, "bump %s"	, str) == 1) {
+			get_file_name(str, objmaterial->map_bump);
 			
-			get_file_extension( objmaterial->map_ambient, str, 1 );
+			get_file_extension(objmaterial->map_bump, str, 1);
 			
-			if( !strcmp( str, "GFX" ) ) OBJ_add_program( obj, objmaterial->map_ambient );
-			
-			else OBJ_add_texture( obj, objmaterial->map_ambient );
-		}
-
-		else if( sscanf( line, "map_Kd %s", str ) == 1 )
-		{
-			get_file_name( str, objmaterial->map_diffuse );
-			
-			get_file_extension( objmaterial->map_diffuse, str, 1 );
-			
-			if( !strcmp( str, "GFX" ) ) OBJ_add_program( obj, objmaterial->map_diffuse );
-			
-			else OBJ_add_texture( obj, objmaterial->map_diffuse );
-
-		}
-
-		else if( sscanf( line, "map_Ks %s", str ) == 1 )
-		{
-			get_file_name( str, objmaterial->map_specular );
-			
-			get_file_extension( objmaterial->map_specular, str, 1 );
-			
-			if( !strcmp( str, "GFX" ) ) OBJ_add_program( obj, objmaterial->map_specular );
-			
-			else OBJ_add_texture( obj, objmaterial->map_specular );
-		}
-
-		else if( sscanf( line, "map_Tr %s", str ) == 1 )
-		{
-			get_file_name( str, objmaterial->map_translucency );
-			
-			get_file_extension( objmaterial->map_translucency, str, 1 );
-			
-			if( !strcmp( str, "GFX" ) ) OBJ_add_program( obj, objmaterial->map_translucency );
-			
-			else OBJ_add_texture( obj, objmaterial->map_translucency );
-		}
-
-		else if( sscanf( line, "map_disp %s", str ) == 1 ||
-				 sscanf( line, "map_Disp %s", str ) == 1 ||
-				 sscanf( line, "disp %s"    , str ) == 1 )
-		{
-			get_file_name( str, objmaterial->map_disp );
-			
-			get_file_extension( objmaterial->map_disp, str, 1 );
-			
-			if( !strcmp( str, "GFX" ) ) OBJ_add_program( obj, objmaterial->map_disp );
-			
-			else OBJ_add_texture( obj, objmaterial->map_disp );
-
-		}
-
-		else if( sscanf( line, "map_bump %s", str ) == 1 ||
-				 sscanf( line, "map_Bump %s", str ) == 1 ||
-				 sscanf( line, "bump %s"	, str ) == 1 )
-		{
-			get_file_name( str, objmaterial->map_bump );
-			
-			get_file_extension( objmaterial->map_bump, str, 1 );
-			
-			if( !strcmp( str, "GFX" ) ) OBJ_add_program( obj, objmaterial->map_bump );
-			
-			else OBJ_add_texture( obj, objmaterial->map_bump );
+			if (!strcmp(str, "GFX"))
+                this->add_program(objmaterial->map_bump);
+			else
+                this->add_texture(objmaterial->map_bump);
 		}
 
 		next_mat_line:
 		
-			line = strtok( NULL, "\n" );
+			line = strtok(NULL, "\n");
 	}
 
-	mclose( m );
+	mclose(m);
 
-	return 1;
+	return true;
 }
 
 
 
-OBJ *OBJ_load( char *filename, unsigned char relative_path )
+OBJ::OBJ(char *filename, bool relative_path)
 {
-	OBJ *obj = NULL;
-	
-	MEMORY *o = mopen( filename, relative_path );
-	
-	if( !o ) return obj;
+    memset(this->texture_path, 0, sizeof(this->texture_path));
+    memset(this->program_path, 0, sizeof(this->program_path));
 
-	else
-	{
-		char name  [ MAX_CHAR ] = {""},	
-			 group [ MAX_CHAR ] = {""},
-			 usemtl[ MAX_CHAR ] = {""},
-			 str   [ MAX_PATH ] = {""},
+    if (filename == NULL) return;
+
+	MEMORY *o = mopen(filename, relative_path);
+	
+	if (!o) {
+        return;
+	} else {
+		char name  [MAX_CHAR] = {""},	
+			 group [MAX_CHAR] = {""},
+			 usemtl[MAX_CHAR] = {""},
+			 str   [MAX_PATH] = {""},
 			 last  = 0,
-			 *line = strtok( ( char * )o->buffer, "\n" );
+			 *line = strtok((char *)o->buffer, "\n");
 		
-		unsigned char use_smooth_normals;
+		bool    use_smooth_normals;
 		
 		OBJMESH *objmesh = NULL;
 		
@@ -1093,492 +1176,340 @@ OBJ *OBJ_load( char *filename, unsigned char relative_path )
 		
 		vec3 v;
 
-		obj = ( OBJ * ) calloc( 1, sizeof( OBJ ) );
-
-		while( line )
-		{	
-			if( !line[ 0 ] || line[ 0 ] == '#' ) goto next_obj_line;
-			
-			else if( line[ 0 ] == 'f' && line[ 1 ] == ' ' )
-			{
-				unsigned char useuvs;
+		while (line) {
+			if (!line[0] || line[0] == '#') {
+                goto next_obj_line;
+			} else if (line[0] == 'f' && line[1] == ' ') {
+				bool    useuvs;
 						
-				int vertex_index[ 3 ] = { 0, 0, 0 },
-					normal_index[ 3 ] = { 0, 0, 0 },
-					uv_index	[ 3 ] = { 0, 0, 0 },
+				int vertex_index[3] = { 0, 0, 0 },
+					normal_index[3] = { 0, 0, 0 },
+					uv_index	[3] = { 0, 0, 0 },
 					triangle_index;
 					
-				if( sscanf( line, "f %d %d %d", &vertex_index[ 0 ],
-												&vertex_index[ 1 ],
-												&vertex_index[ 2 ] ) == 3 )
-												{ useuvs = 0; }
-				
-				else if( sscanf( line, "f %d//%d %d//%d %d//%d", &vertex_index[ 0 ],
-																 &normal_index[ 0 ],
-																 &vertex_index[ 1 ],
-																 &normal_index[ 1 ],
-																 &vertex_index[ 2 ],
-																 &normal_index[ 2 ] ) == 6 )
-																 { useuvs = 0; }
-				
-				else if( sscanf( line, "f %d/%d %d/%d %d/%d", &vertex_index[ 0 ],
-															  &uv_index    [ 0 ],
-															  &vertex_index[ 1 ],
-															  &uv_index    [ 1 ],
-															  &vertex_index[ 2 ],
-															  &uv_index    [ 2 ] ) == 6 )
-															  { useuvs = 1; }
-				
-				else
-				{
-					sscanf( line, "f %d/%d/%d %d/%d/%d %d/%d/%d", &vertex_index[ 0 ],
-																  &uv_index    [ 0 ],
-																  &normal_index[ 0 ],
-																  &vertex_index[ 1 ],
-																  &uv_index    [ 1 ],
-																  &normal_index[ 1 ],
-																  &vertex_index[ 2 ],
-																  &uv_index    [ 2 ],
-																  &normal_index[ 2 ] );
-					useuvs = 1;
+				if (sscanf(line, "f %d %d %d", &vertex_index[0],
+                                               &vertex_index[1],
+                                               &vertex_index[2]) == 3) {
+                    useuvs = false;
+                } else if (sscanf(line, "f %d//%d %d//%d %d//%d", &vertex_index[0],
+																  &normal_index[0],
+																  &vertex_index[1],
+																  &normal_index[1],
+																  &vertex_index[2],
+																  &normal_index[2]) == 6) {
+                    useuvs = false;
+                } else if (sscanf(line, "f %d/%d %d/%d %d/%d", &vertex_index[0],
+															   &uv_index    [0],
+															   &vertex_index[1],
+															   &uv_index    [1],
+															   &vertex_index[2],
+															   &uv_index    [2]) == 6) {
+                    useuvs = true;
+                } else {
+					sscanf(line, "f %d/%d/%d %d/%d/%d %d/%d/%d", &vertex_index[0],
+                                                                 &uv_index    [0],
+																 &normal_index[0],
+																 &vertex_index[1],
+																 &uv_index    [1],
+																 &normal_index[1],
+																 &vertex_index[2],
+																 &uv_index    [2],
+																 &normal_index[2]);
+					useuvs = true;
 				}
 				
 				
-				if( last != 'f' )
-				{
-					++obj->n_objmesh;
-								
-					obj->objmesh = ( OBJMESH * ) realloc( obj->objmesh,
-														  obj->n_objmesh *
-														  sizeof( OBJMESH ) );
+				if (last != 'f') {
+					this->objmesh.push_back(OBJMESH(name[0] ? name : usemtl,
+                                                   true,
+                                                   group,
+                                                   1.0f, 1.0f, 1.0f,
+                                                   1.0f,
+                                                   use_smooth_normals,
+                                                   this));
 
-					objmesh = &obj->objmesh[ obj->n_objmesh - 1 ];
+					objmesh = &this->objmesh[this->objmesh.size() - 1];
 	
-					memset( objmesh, 0, sizeof( OBJMESH ) );
+					objmesh->objtrianglelist.push_back(OBJTRIANGLELIST(GL_TRIANGLES,
+                                                                       useuvs,
+                                                                       usemtl[0] ? this->get_material(usemtl, true) : NULL));
 
-					objmesh->scale.x  =
-					objmesh->scale.y  =
-					objmesh->scale.z  =
-					objmesh->distance = 1.0f;
-					objmesh->visible  = 1;
-
-					if( name[ 0 ] ) strcpy( objmesh->name, name );
+					objtrianglelist = &objmesh->objtrianglelist[objmesh->objtrianglelist.size() - 1];
 					
-					else if( usemtl[ 0 ] ) strcpy( objmesh->name, usemtl );
-					
-					if( group[ 0 ] ) strcpy( objmesh->group, group );
-					
-					objmesh->use_smooth_normals = use_smooth_normals;
-					
-					++objmesh->n_objtrianglelist;
-
-					objmesh->objtrianglelist = ( OBJTRIANGLELIST * ) realloc( objmesh->objtrianglelist, 
-																			  objmesh->n_objtrianglelist *
-																			  sizeof( OBJTRIANGLELIST ) );
-
-					objtrianglelist = &objmesh->objtrianglelist[ objmesh->n_objtrianglelist - 1 ];
-					
-					memset( objtrianglelist,
-							0,
-							sizeof( OBJTRIANGLELIST ) );
-					
-					objtrianglelist->mode = GL_TRIANGLES;
-					
-					if( useuvs ) objtrianglelist->useuvs = useuvs;
-					
-					
-					if( usemtl[ 0 ] ) objtrianglelist->objmaterial = OBJ_get_material( obj, usemtl, 1 );
-					
-					name  [ 0 ] = 0;
-					usemtl[ 0 ] = 0;
+					name  [0] = 0;
+					usemtl[0] = 0;
 				}
 				
-				--vertex_index[ 0 ];
-				--vertex_index[ 1 ];
-				--vertex_index[ 2 ];
+				--vertex_index[0];
+				--vertex_index[1];
+				--vertex_index[2];
 
-				--uv_index[ 0 ];
-				--uv_index[ 1 ];
-				--uv_index[ 2 ];
+				--uv_index[0];
+				--uv_index[1];
+				--uv_index[2];
 				
 				
-				OBJMESH_add_vertex_data( objmesh,
-										 objtrianglelist,
-										 vertex_index[ 0 ], 
-										 uv_index    [ 0 ] );
+				objmesh->add_vertex_data(objtrianglelist,
+										 vertex_index[0],
+										 uv_index    [0]);
 
-				OBJMESH_add_vertex_data( objmesh,
-										 objtrianglelist,
-										 vertex_index[ 1 ], 
-										 uv_index    [ 1 ] );
+				objmesh->add_vertex_data(objtrianglelist,
+										 vertex_index[1],
+										 uv_index    [1]);
 
-				OBJMESH_add_vertex_data( objmesh,
-										 objtrianglelist,
-										 vertex_index[ 2 ], 
-										 uv_index    [ 2 ] );
+				objmesh->add_vertex_data(objtrianglelist,
+										 vertex_index[2],
+										 uv_index    [2]);
 										 
 				
-				triangle_index = objtrianglelist->n_objtriangleindex;
+				triangle_index = objtrianglelist->objtriangleindex.size();
 				
-				++objtrianglelist->n_objtriangleindex;
-				
-				objtrianglelist->objtriangleindex = ( OBJTRIANGLEINDEX * ) realloc( objtrianglelist->objtriangleindex, 
-																					objtrianglelist->n_objtriangleindex * sizeof( OBJTRIANGLEINDEX ) );
-				
-				objtrianglelist->objtriangleindex[ triangle_index ].vertex_index[ 0 ] = vertex_index[ 0 ];
-				objtrianglelist->objtriangleindex[ triangle_index ].vertex_index[ 1 ] = vertex_index[ 1 ];
-				objtrianglelist->objtriangleindex[ triangle_index ].vertex_index[ 2 ] = vertex_index[ 2 ];
-
-				objtrianglelist->objtriangleindex[ triangle_index ].uv_index[ 0 ] = uv_index[ 0 ];
-				objtrianglelist->objtriangleindex[ triangle_index ].uv_index[ 1 ] = uv_index[ 1 ];
-				objtrianglelist->objtriangleindex[ triangle_index ].uv_index[ 2 ] = uv_index[ 2 ];
-			}			
-			
-			else if( sscanf( line, "v %f %f %f", &v.x, &v.y, &v.z ) == 3 )
-			{
+                objtrianglelist->objtriangleindex.push_back(OBJTRIANGLEINDEX(vertex_index, uv_index));
+			} else if (sscanf(line, "v %f %f %f", &v.x, &v.y, &v.z) == 3) {
 				// Vertex
-				++obj->n_indexed_vertex;
-				
-				obj->indexed_vertex = ( vec3 * ) realloc( obj->indexed_vertex,
-														  obj->n_indexed_vertex * 
-														  sizeof( vec3 ) );
+				this->indexed_vertex.resize(this->indexed_vertex.size() + 1);
 
-				memcpy( &obj->indexed_vertex[ obj->n_indexed_vertex - 1 ],
-						&v,
-						sizeof( vec3 ) );
+				memcpy(&this->indexed_vertex[this->indexed_vertex.size() - 1],
+                       &v,
+                       sizeof(vec3));
 
-				
+
 				// Normal
-				obj->indexed_normal = ( vec3 * ) realloc( obj->indexed_normal,
-														  obj->n_indexed_vertex * 
-														  sizeof( vec3 ) );
+				this->indexed_normal.resize(this->indexed_normal.size() + 1);
 
-				obj->indexed_fnormal = ( vec3 * ) realloc( obj->indexed_fnormal,
-														   obj->n_indexed_vertex * 
-														   sizeof( vec3 ) );
-														  
-				memset( &obj->indexed_normal[ obj->n_indexed_vertex - 1 ],
-						0,
-						sizeof( vec3 ) );
-			
-				memset( &obj->indexed_fnormal[ obj->n_indexed_vertex - 1 ],
-						0,
-						sizeof( vec3 ) );			
-			
+				this->indexed_fnormal.resize(this->indexed_fnormal.size() + 1);
+
+				memset(&this->indexed_normal[this->indexed_normal.size() - 1],
+                       0,
+                       sizeof(vec3));
+
+				memset(&this->indexed_fnormal[this->indexed_fnormal.size() - 1],
+                       0,
+                       sizeof(vec3));
+
 				// Tangent
-				obj->indexed_tangent = ( vec3 * ) realloc( obj->indexed_tangent,
-														   obj->n_indexed_vertex * 
-														   sizeof( vec3 ) );
-
-				memset( &obj->indexed_tangent[ obj->n_indexed_vertex - 1 ],
-						0,
-						sizeof( vec3 ) );
-			}
-
-			// Drop the normals.
-			else if( sscanf( line, "vn %f %f %f", &v.x, &v.y, &v.z ) == 3 ) goto next_obj_line;
+				this->indexed_tangent.resize(this->indexed_tangent.size() + 1);
+                
+				memset(&this->indexed_tangent[this->indexed_tangent.size() - 1],
+                       0,
+                       sizeof(vec3));
+			} else if (sscanf(line, "vn %f %f %f", &v.x, &v.y, &v.z) == 3) {
+                // Drop the normals.
+                goto next_obj_line;
 			
-			else if( sscanf( line, "vt %f %f", &v.x, &v.y ) == 2 )
-			{
-				++obj->n_indexed_uv;
-				
-				obj->indexed_uv = ( vec2 * ) realloc( obj->indexed_uv,
-													  obj->n_indexed_uv * 
-													  sizeof( vec2 ) );
+			} else if (sscanf(line, "vt %f %f", &v.x, &v.y) == 2) {
+				this->indexed_uv.resize(this->indexed_uv.size() + 1);
 				v.y = 1.0f - v.y;
 				
-				memcpy( &obj->indexed_uv[ obj->n_indexed_uv - 1 ],
-						&v,
-						sizeof( vec2 ) );
-			}			
-
-			else if( line[ 0 ] == 'v' && line[ 1 ] == 'n' ) goto next_obj_line;
-			
-			else if( sscanf( line, "usemtl %s", str ) == 1 ) strcpy( usemtl, str );
-			
-			else if( sscanf( line, "o %s", str ) == 1 ) strcpy( name, str );
-
-			else if( sscanf( line, "g %s", str ) == 1 ) strcpy( group, str );
-			
-			else if( sscanf( line, "s %s", str ) == 1 )
-			{
-				use_smooth_normals = 1;
+				memcpy(&this->indexed_uv[this->indexed_uv.size() - 1],
+                       &v,
+                       sizeof(vec2));
+			} else if (line[0] == 'v' && line[1] == 'n') {
+                goto next_obj_line;
+            } else if (sscanf(line, "usemtl %s", str) == 1) {
+                strcpy(usemtl, str);
+            } else if (sscanf(line, "o %s", str) == 1) {
+                strcpy(name, str);
+            } else if (sscanf(line, "g %s", str) == 1) {
+                strcpy(group, str);
+			} else if (sscanf(line, "s %s", str) == 1) {
+				use_smooth_normals = true;
 				
-				if( !strcmp( str, "off" ) || !strcmp( str, "0" ) )
-				{ use_smooth_normals = 0; }
-			}
-			
-			else if( sscanf( line, "mtllib %s", str ) == 1 )
-			{
-				o->position = ( unsigned char * )line - o->buffer + strlen( line ) + 1;
+				if (!strcmp(str, "off") || !strcmp(str, "0")) {
+                    use_smooth_normals = false;
+                }
+			} else if (sscanf(line, "mtllib %s", str) == 1) {
+				o->position = (unsigned char *)line - o->buffer + strlen(line) + 1;
 				
-				OBJ_load_mtl( obj, str, relative_path );
+				this->load_mtl(str, relative_path);
 				
-				line = strtok( ( char * )&o->buffer[ o->position ], "\n" );
+				line = strtok((char *)&o->buffer[o->position], "\n");
 				continue;
 			}
 
 			next_obj_line:
 			
-				last = line[ 0 ];
-				line = strtok( NULL, "\n" );
+				last = line[0];
+				line = strtok(NULL, "\n");
 		}
 		
-		mclose( o );
+		mclose(o);
 	}
 
 	
 	// Build Normals and Tangent
 	{
-		unsigned int i, j, k,index;
+		unsigned int index;
 		
-		i = 0;
-		while( i != obj->n_objmesh )
-		{
-			OBJMESH *objmesh = &obj->objmesh[ i ];
+		for (int i=0; i!=this->objmesh.size(); ++i) {
+			OBJMESH *objmesh = &this->objmesh[i];
 		
 			// Accumulate Normals and Tangent
-			j = 0;
-			while( j != objmesh->n_objtrianglelist )
-			{
-				OBJTRIANGLELIST *objtrianglelist = &objmesh->objtrianglelist[ j ];
+			for (int j=0; j!= objmesh->objtrianglelist.size(); ++j) {
+				OBJTRIANGLELIST *objtrianglelist = &objmesh->objtrianglelist[j];
 
-				k = 0;
-				while( k != objtrianglelist->n_objtriangleindex )
-				{
+				for (int k=0; k != objtrianglelist->objtriangleindex.size(); ++k) {
 					vec3 v1,
-						 v2,
-						 normal;
+                         v2,
+                         normal;
 
 
-					vec3_diff( &v1,
-							   &obj->indexed_vertex[ objtrianglelist->objtriangleindex[ k ].vertex_index[ 0 ] ],
-							   &obj->indexed_vertex[ objtrianglelist->objtriangleindex[ k ].vertex_index[ 1 ] ] );
+					vec3_diff(&v1,
+                              &this->indexed_vertex[objtrianglelist->objtriangleindex[k].vertex_index[0]],
+                              &this->indexed_vertex[objtrianglelist->objtriangleindex[k].vertex_index[1]]);
 
-					vec3_diff( &v2,
-							   &obj->indexed_vertex[ objtrianglelist->objtriangleindex[ k ].vertex_index[ 0 ] ],
-							   &obj->indexed_vertex[ objtrianglelist->objtriangleindex[ k ].vertex_index[ 2 ] ] );
+					vec3_diff(&v2,
+                              &this->indexed_vertex[objtrianglelist->objtriangleindex[k].vertex_index[0]],
+                              &this->indexed_vertex[objtrianglelist->objtriangleindex[k].vertex_index[2]]);
 
 
-					vec3_cross( &normal, &v1, &v2 );
-						
-					vec3_normalize( &normal, &normal );
-					
-					
+					vec3_cross(&normal, &v1, &v2);
+
+					vec3_normalize(&normal, &normal);
+
+
 					// Face normals
-					memcpy( &obj->indexed_fnormal[ objtrianglelist->objtriangleindex[ k ].vertex_index[ 0 ] ],
-							&normal,
-							sizeof( vec3 ) );
+					memcpy(&this->indexed_fnormal[objtrianglelist->objtriangleindex[k].vertex_index[0]],
+                           &normal,
+                           sizeof(vec3));
 
-					memcpy( &obj->indexed_fnormal[ objtrianglelist->objtriangleindex[ k ].vertex_index[ 1 ] ],
-							&normal,
-							sizeof( vec3 ) );
+					memcpy(&this->indexed_fnormal[objtrianglelist->objtriangleindex[k].vertex_index[1]],
+                           &normal,
+                           sizeof(vec3));
 
-					memcpy( &obj->indexed_fnormal[ objtrianglelist->objtriangleindex[ k ].vertex_index[ 2 ] ],
-							&normal,
-							sizeof( vec3 ) );
-					
-					
+					memcpy(&this->indexed_fnormal[objtrianglelist->objtriangleindex[k].vertex_index[2]],
+                           &normal,
+                           sizeof(vec3));
+
+
 					// Smooth normals
-					vec3_add( &obj->indexed_normal[ objtrianglelist->objtriangleindex[ k ].vertex_index[ 0 ] ], 
-							  &obj->indexed_normal[ objtrianglelist->objtriangleindex[ k ].vertex_index[ 0 ] ],
-							  &normal );
+					vec3_add(&this->indexed_normal[objtrianglelist->objtriangleindex[k].vertex_index[0]],
+                             &this->indexed_normal[objtrianglelist->objtriangleindex[k].vertex_index[0]],
+                             &normal);
 
-					vec3_add( &obj->indexed_normal[ objtrianglelist->objtriangleindex[ k ].vertex_index[ 1 ] ], 
-							  &obj->indexed_normal[ objtrianglelist->objtriangleindex[ k ].vertex_index[ 1 ] ],
-							  &normal );
+					vec3_add(&this->indexed_normal[objtrianglelist->objtriangleindex[k].vertex_index[1]],
+                             &this->indexed_normal[objtrianglelist->objtriangleindex[k].vertex_index[1]],
+                             &normal);
 
-					vec3_add( &obj->indexed_normal[ objtrianglelist->objtriangleindex[ k ].vertex_index[ 2 ] ], 
-							  &obj->indexed_normal[ objtrianglelist->objtriangleindex[ k ].vertex_index[ 2 ] ],
-							  &normal );
+					vec3_add(&this->indexed_normal[objtrianglelist->objtriangleindex[k].vertex_index[2]],
+                             &this->indexed_normal[objtrianglelist->objtriangleindex[k].vertex_index[2]],
+                             &normal);
 
-				
-					if( objtrianglelist->useuvs )
-					{
+
+					if (objtrianglelist->useuvs) {
 						vec3 tangent;
-						
+
 						vec2 uv1, uv2;
-					
+
 						float c;
-						
-						vec2_diff( &uv1,
-								   &obj->indexed_uv[ objtrianglelist->objtriangleindex[ k ].uv_index[ 2 ] ],
-								   &obj->indexed_uv[ objtrianglelist->objtriangleindex[ k ].uv_index[ 0 ] ] );
 
-						vec2_diff( &uv2,
-								   &obj->indexed_uv[ objtrianglelist->objtriangleindex[ k ].uv_index[ 1 ] ],
-								   &obj->indexed_uv[ objtrianglelist->objtriangleindex[ k ].uv_index[ 0 ] ] );
-						
+						vec2_diff(&uv1,
+                                  &this->indexed_uv[objtrianglelist->objtriangleindex[k].uv_index[2]],
+                                  &this->indexed_uv[objtrianglelist->objtriangleindex[k].uv_index[0]]);
 
-						c = 1.0f / ( uv1.x * uv2.y - uv2.x * uv1.y );
-						
-						tangent.x = ( v1.x * uv2.y + v2.x * uv1.y ) * c;
-						tangent.y = ( v1.y * uv2.y + v2.y * uv1.y ) * c;
-						tangent.z = ( v1.z * uv2.y + v2.z * uv1.y ) * c;
+						vec2_diff(&uv2,
+                                  &this->indexed_uv[objtrianglelist->objtriangleindex[k].uv_index[1]],
+                                  &this->indexed_uv[objtrianglelist->objtriangleindex[k].uv_index[0]]);
 
 
-						vec3_add( &obj->indexed_tangent[ objtrianglelist->objtriangleindex[ k ].vertex_index[ 0 ] ], 
-								  &obj->indexed_tangent[ objtrianglelist->objtriangleindex[ k ].vertex_index[ 0 ] ],
-								  &tangent );
+						c = 1.0f / (uv1.x * uv2.y - uv2.x * uv1.y);
 
-						vec3_add( &obj->indexed_tangent[ objtrianglelist->objtriangleindex[ k ].vertex_index[ 1 ] ], 
-								  &obj->indexed_tangent[ objtrianglelist->objtriangleindex[ k ].vertex_index[ 1 ] ],
-								  &tangent );
-
-						vec3_add( &obj->indexed_tangent[ objtrianglelist->objtriangleindex[ k ].vertex_index[ 2 ] ], 
-								  &obj->indexed_tangent[ objtrianglelist->objtriangleindex[ k ].vertex_index[ 2 ] ],
-								  &tangent );			
+						tangent.x = (v1.x * uv2.y + v2.x * uv1.y) * c;
+						tangent.y = (v1.y * uv2.y + v2.y * uv1.y) * c;
+						tangent.z = (v1.z * uv2.y + v2.z * uv1.y) * c;
+                        
+                        
+						vec3_add(&this->indexed_tangent[objtrianglelist->objtriangleindex[k].vertex_index[0]], 
+                                 &this->indexed_tangent[objtrianglelist->objtriangleindex[k].vertex_index[0]],
+                                 &tangent);
+                        
+						vec3_add(&this->indexed_tangent[objtrianglelist->objtriangleindex[k].vertex_index[1]], 
+                                 &this->indexed_tangent[objtrianglelist->objtriangleindex[k].vertex_index[1]],
+                                 &tangent);
+                        
+						vec3_add(&this->indexed_tangent[objtrianglelist->objtriangleindex[k].vertex_index[2]], 
+                                 &this->indexed_tangent[objtrianglelist->objtriangleindex[k].vertex_index[2]],
+                                 &tangent);			
 					}
-				
-					++k;
 				}
-			
-				++j;
 			}
-		
-			++i;
 		}
 		
 
 		// Normalize Normals & Tangent
-		i = 0;
-		while( i != obj->n_objmesh )
-		{
-			j = 0;
-			while( j != obj->objmesh[ i ].n_objvertexdata )
-			{
-				index = obj->objmesh[ i ].objvertexdata[ j ].vertex_index;
-				
+		for (int i=0; i!=this->objmesh.size(); ++i) {
+			for (int j=0; j != this->objmesh[i].objvertexdata.size();  ++j) {
+				index = this->objmesh[i].objvertexdata[j].vertex_index;
+
 				// Average smooth normals.
-				vec3_normalize( &obj->indexed_normal[ index ],
-								&obj->indexed_normal[ index ] );
-				
-				if( obj->objmesh[ i ].objvertexdata[ j ].uv_index != -1 )
-				{
-					vec3_normalize( &obj->indexed_tangent[ index ],
-									&obj->indexed_tangent[ index ] );
+				vec3_normalize(&this->indexed_normal[index],
+                               &this->indexed_normal[index]);
+
+				if (this->objmesh[i].objvertexdata[j].uv_index != -1) {
+					vec3_normalize(&this->indexed_tangent[index],
+                                   &this->indexed_tangent[index]);
 				}
-			
-				++j;
 			}
-			
-			++i;
-		}	
-	}
-
-	return obj;
-}
-
-
-void OBJ_free_vertex_data( OBJ *obj )
-{
-	if( obj->indexed_vertex )
-	{
-		free( obj->indexed_vertex );
-		obj->indexed_vertex = NULL;
-	}
-
-	if( obj->indexed_normal )
-	{
-		free( obj->indexed_normal );
-		obj->indexed_normal = NULL;
-	}
-
-	if( obj->indexed_fnormal )
-	{
-		free( obj->indexed_fnormal );
-		obj->indexed_fnormal = NULL;
-	}
-
-	if( obj->indexed_tangent )
-	{
-		free( obj->indexed_tangent );
-		obj->indexed_tangent = NULL;
-	}
-
-	if( obj->indexed_uv )
-	{
-		free( obj->indexed_uv );
-		obj->indexed_uv = NULL; 
-	}
-	
-	obj->n_indexed_vertex = 
-	obj->n_indexed_uv	  = 0;	
-}
-
-
-OBJ *OBJ_free( OBJ *obj )
-{
-	unsigned int i,
-				 j;
-	
-	OBJ_free_vertex_data( obj );
-	
-	i = 0;
-	while( i != obj->n_objmesh )
-	{
-		if( obj->objmesh[ i ].vao ) glDeleteVertexArraysOES( 1, &obj->objmesh[ i ].vao );
-		
-		if( obj->objmesh[ i ].vbo ) glDeleteBuffers( 1, &obj->objmesh[ i ].vbo );
-	
-		OBJ_free_mesh_vertex_data( obj, i );
-		
-		if( obj->objmesh[ i ].objtrianglelist )
-		{
-			j = 0;
-			while( j != obj->objmesh[ i ].n_objtrianglelist )
-			{
-				glDeleteBuffers( 1, &obj->objmesh[ i ].objtrianglelist[ j ].vbo );
-				++j;
-			}
-		
-			free( obj->objmesh[ i ].objtrianglelist );
-			obj->objmesh[ i ].objtrianglelist = NULL;
 		}
+	}
+
+	return;
+}
+
+
+void OBJ::free_vertex_data()
+{
+    this->indexed_vertex.clear();
+
+    this->indexed_normal.clear();
+
+    this->indexed_fnormal.clear();
+
+    this->indexed_tangent.clear();
+
+    this->indexed_uv.clear();
+}
+
+
+OBJ::~OBJ()
+{
+	this->free_vertex_data();
+	
+	for (int i=0; i!=this->objmesh.size(); ++i) {
+		if (this->objmesh[i].vao)
+            glDeleteVertexArraysOES(1, &this->objmesh[i].vao);
 		
-		++i;
+		if (this->objmesh[i].vbo)
+            glDeleteBuffers(1, &this->objmesh[i].vbo);
+	
+		this->objmesh[i].free_vertex_data();
+		
+		if (this->objmesh[i].objtrianglelist.size()) {
+			for (int j=0; j != this->objmesh[i].objtrianglelist.size(); ++j) {
+				glDeleteBuffers(1, &this->objmesh[i].objtrianglelist[j].vbo);
+			}
+		
+			this->objmesh[i].objtrianglelist.clear();
+		}
 	}
 	
-	free( obj->objmesh );
-	obj->objmesh = NULL;
+	this->objmesh.clear();
+
 	
-	
-	free( obj->objmaterial );
-	obj->objmaterial = NULL;
+	this->objmaterial.clear();
 
 
-	i = 0;
-	while( i != obj->n_program )
-	{
-        delete obj->program[i];
-		obj->program[i] = NULL;
-		++i;
+	for (int i=0; i!=this->program.size(); ++i) {
+        delete this->program[i];
+		this->program[i] = NULL;
 	}
 	
-	if( obj->program )
-	{
-		free( obj->program );
-		obj->program = NULL;
-	}
+    this->program.clear();
 
 
-	i = 0;
-	while( i != obj->n_texture )
-	{
-		obj->texture[ i ] = TEXTURE_free( obj->texture[ i ] );
-		++i;
+	for (int i=0; i!=this->texture.size(); ++i) {
+		this->texture[i] = TEXTURE_free(this->texture[i]);
 	}
 	
-	if( obj->texture )
-	{
-		free( obj->texture );
-		obj->texture = NULL;
-	}
-	
-	obj->n_objmesh	   =
-	obj->n_objmaterial = 
-	obj->n_texture	   = 0;
-	
-	free( obj );
-	return NULL;
+    this->texture.clear();
 }

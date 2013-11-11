@@ -23,6 +23,12 @@ as being the original software.
 /*
  * Source code modified by Chris Larsen to make the following data types into
  * proper C++ classes:
+ * - OBJ
+ * - OBJMATERIAL
+ * - OBJMESH
+ * - OBJTRIANGLEINDEX
+ * - OBJTRIANGLELIST
+ * - OBJVERTEXDATA
  * - PROGRAM
  * - SHADER
  */
@@ -33,8 +39,6 @@ as being the original software.
 
 typedef struct
 {
-	char			name[ MAX_CHAR ];
-	
 	GLenum          type;
 	
 	GLint			location;
@@ -46,8 +50,6 @@ typedef struct
 
 typedef struct
 {
-	char			name[ MAX_CHAR ];
-	
 	GLenum          type;
 	
 	GLint			location;
@@ -69,17 +71,17 @@ struct PROGRAM {
 	
 	GLuint                      pid;
 	
-    std::vector<UNIFORM>        uniform_array;
+    std::map<std::string,UNIFORM>   uniform_map;
 
-    std::vector<VERTEX_ATTRIB>  vertex_attrib_array;
+    std::map<std::string,VERTEX_ATTRIB> vertex_attrib_map;
 
 	PROGRAMDRAWCALLBACK         *programdrawcallback;
 	
 	PROGRAMBINDATTRIBCALLBACK   *programbindattribcallback;
 private:
     void init(char *name);
-    unsigned char add_vertex_attrib(char *name, GLenum type);
-    unsigned char add_uniform(char *name, GLenum type);
+    void add_vertex_attrib(char *name, GLenum type);
+    void add_uniform(char *name, GLenum type);
 public:
     PROGRAM(char *name);
     PROGRAM(char *name, char *vertex_shader_filename,
@@ -97,6 +99,9 @@ public:
     void draw();
     void reset();
     bool load_gfx(PROGRAMBINDATTRIBCALLBACK	*programbindattribcallback, PROGRAMDRAWCALLBACK	*programdrawcallback, char *filename, bool debug_shader, bool relative_path);
+    void build(PROGRAMBINDATTRIBCALLBACK *programbindattribcallback,
+               PROGRAMDRAWCALLBACK *programdrawcallback,
+               bool debug_shader, char *program_path);
 };
 
 #endif

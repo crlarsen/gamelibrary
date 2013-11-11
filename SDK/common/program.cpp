@@ -23,6 +23,12 @@
 /*
  * Source code modified by Chris Larsen to make the following data types into
  * proper C++ classes:
+ * - OBJ
+ * - OBJMATERIAL
+ * - OBJMESH
+ * - OBJTRIANGLEINDEX
+ * - OBJTRIANGLELIST
+ * - OBJVERTEXDATA
  * - PROGRAM
  * - SHADER
  */
@@ -86,44 +92,27 @@ PROGRAM::~PROGRAM()
 
     if (fragment_shader) delete fragment_shader;
 
-    this->uniform_array.resize(0);
+    this->uniform_map.clear();
 
-    this->vertex_attrib_array.resize(0);
+    this->vertex_attrib_map.clear();
 
-    if (this->pid) this->delete_id();
+    this->delete_id();
 }
 
-unsigned char PROGRAM::add_uniform(char *name, GLenum type)
+void PROGRAM::add_uniform(char *name, GLenum type)
 {
-    unsigned char uniform_index = this->uniform_array.size();
-
-    this->uniform_array.resize(uniform_index+1);
-
-    strcpy(this->uniform_array[uniform_index].name, name);
-
-    this->uniform_array[uniform_index].type = type;
-
-    this->uniform_array[uniform_index].location = glGetUniformLocation(this->pid, name);
-
-    this->uniform_array[uniform_index].constant = false;
-
-    return uniform_index;
+    this->uniform_map[name].type     = type;
+    this->uniform_map[name].location =
+        glGetUniformLocation(this->pid, name);
+    this->uniform_map[name].constant = false;
 }
 
 
-unsigned char PROGRAM::add_vertex_attrib(char *name, GLenum type)
+void PROGRAM::add_vertex_attrib(char *name, GLenum type)
 {
-    unsigned char vertex_attrib_index = this->vertex_attrib_array.size();
-
-    this->vertex_attrib_array.resize(vertex_attrib_index+1);
-
-    strcpy(this->vertex_attrib_array[vertex_attrib_index].name, name);
-
-    this->vertex_attrib_array[vertex_attrib_index].type = type;
-
-    this->vertex_attrib_array[vertex_attrib_index].location = glGetAttribLocation(this->pid, name);
-
-    return vertex_attrib_index;
+    this->vertex_attrib_map[name].type     = type;
+    this->vertex_attrib_map[name].location =
+        glGetAttribLocation(this->pid, name);
 }
 
 
@@ -135,9 +124,9 @@ bool PROGRAM::link(bool debug)
     name[MAX_CHAR];
 
 	int status,
-    len,
-    total,
-    size;
+        len,
+        total,
+        size;
 
 	if (this->pid) return false;
 
@@ -256,25 +245,21 @@ void PROGRAM::set_bind_attrib_location_callback(PROGRAMBINDATTRIBCALLBACK *progr
 
 GLint PROGRAM::get_vertex_attrib_location(char *name)
 {
-    for (auto attrib=vertex_attrib_array.begin();
-         attrib != vertex_attrib_array.end(); ++attrib) {
-		if (!strcmp(attrib->name, name))
-            return attrib->location;
-	}
+    auto it = vertex_attrib_map.find(name);
 
-    return static_cast<GLint>(-1);
+    return it==vertex_attrib_map.end() ?
+        static_cast<GLint>(-1) :
+        it->second.location;
 }
 
 
 GLint PROGRAM::get_uniform_location(char *name)
 {
-    for (auto uniform=uniform_array.begin();
-         uniform != uniform_array.end(); ++uniform) {
-		if (!strcmp(uniform->name, name))
-            return uniform->location;
-	}
+    auto it = uniform_map.find(name);
 
-    return static_cast<GLint>(-1);
+    return it==uniform_map.end() ?
+        static_cast<GLint>(-1) :
+        it->second.location;
 }
 
 
@@ -344,4 +329,21 @@ bool PROGRAM::load_gfx(PROGRAMBINDATTRIBCALLBACK    *programbindattribcallback,
 	}
 	
 	return false;
+}
+
+
+void PROGRAM::build(PROGRAMBINDATTRIBCALLBACK   *programbindattribcallback,
+                    PROGRAMDRAWCALLBACK         *programdrawcallback,
+                    bool                        debug_shader,
+                    char                        *program_path)
+{
+	char filename[ MAX_PATH ] = {""};
+
+	sprintf( filename, "%s%s", program_path, this->name );
+
+	this->load_gfx(programbindattribcallback,
+					  programdrawcallback,
+					  filename,
+					  debug_shader,
+					  0);
 }

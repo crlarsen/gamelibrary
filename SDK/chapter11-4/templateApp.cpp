@@ -24,277 +24,228 @@ as being the original software.
 3. This notice may not be removed or altered from any source distribution.
 
 */
+/*
+ * Source code modified by Chris Larsen to make the following data types into
+ * proper C++ classes:
+ * - OBJ
+ * - OBJMATERIAL
+ * - OBJMESH
+ * - OBJTRIANGLEINDEX
+ * - OBJTRIANGLELIST
+ * - OBJVERTEXDATA
+ * - PROGRAM
+ * - SHADER
+ */
 
 #include "templateApp.h"
 
-#define OBJ_FILE ( char * )"Scene.obj"
+#define OBJ_FILE (char *)"Scene.obj"
 
 OBJ *obj = NULL;
 
 TEMPLATEAPP templateApp = { templateAppInit,
 							templateAppDraw };
 
-OBJMESH *objmesh = NULL;
+std::vector<OBJMESH>::iterator objmesh;
 
-int viewport_matrix[ 4 ];
+int viewport_matrix[4];
 
 LIGHT *light = NULL;
 
 
-void program_bind_attrib_location( void *ptr ) {
+void program_bind_attrib_location(void *ptr) {
 
-	PROGRAM *program = ( PROGRAM * )ptr;
+	PROGRAM *program = (PROGRAM *)ptr;
 
-	glBindAttribLocation( program->pid, 0, "POSITION"  );
-	glBindAttribLocation( program->pid, 1, "NORMAL"    );
-	glBindAttribLocation( program->pid, 2, "TEXCOORD0" );
-	glBindAttribLocation( program->pid, 3, "TANGENT0"  );
+	glBindAttribLocation(program->pid, 0, "POSITION");
+	glBindAttribLocation(program->pid, 1, "NORMAL" );
+	glBindAttribLocation(program->pid, 2, "TEXCOORD0");
+	glBindAttribLocation(program->pid, 3, "TANGENT0");
 }
 
 
-void program_draw( void *ptr )
+void program_draw(void *ptr)
 {
-	unsigned int i = 0;
-	
-	PROGRAM *program = ( PROGRAM * )ptr;
-	
-	while( i != program->uniform_count )
-	{
-		if( program->uniform_array[ i ].constant ) 
-		{
-			++i;
+	PROGRAM *program = (PROGRAM *)ptr;
+
+    for (auto it=program->uniform_map.begin(); it!=program->uniform_map.end(); ++it) {
+        auto    &name = it->first;
+        auto    &uniform = it->second;
+
+		if (uniform.constant) {
 			continue;
-		}
-	
-		else if( !strcmp( program->uniform_array[ i ].name, "MODELVIEWPROJECTIONMATRIX" ) )
-		{
-			glUniformMatrix4fv( program->uniform_array[ i ].location,
-								1,
-								GL_FALSE,
-								( float * )GFX_get_modelview_projection_matrix() );			
-		}
-		
-		else if( !strcmp( program->uniform_array[ i ].name, "DIFFUSE" ) )
-		{
-			glUniform1i( program->uniform_array[ i ].location,
-						 1 );
-			
-			program->uniform_array[ i ].constant = 1;
-		}
+		} else if (name == "MODELVIEWPROJECTIONMATRIX") {
+			glUniformMatrix4fv(uniform.location,
+                               1,
+                               GL_FALSE,
+                               (float *)GFX_get_modelview_projection_matrix());
+		} else if (name == "DIFFUSE") {
+			glUniform1i(uniform.location, 1);
 
-		else if( !strcmp( program->uniform_array[ i ].name, "BUMP" ) )
-		{
-			glUniform1i( program->uniform_array[ i ].location,
-						 4 );
-						 
-			program->uniform_array[ i ].constant = 1;
-		}
+			uniform.constant = true;
+		} else if (name == "BUMP") {
+			glUniform1i(uniform.location, 4);
 
-		// Matrix Data
-		else if( !strcmp( program->uniform_array[ i ].name, "MODELVIEWMATRIX" ) )
-		{
-			glUniformMatrix4fv( program->uniform_array[ i ].location,
-								1,
-								GL_FALSE,
-								( float * )GFX_get_modelview_matrix() );			
-		}
+			uniform.constant = true;
+		} else if (name == "MODELVIEWMATRIX") {
+            // Matrix Data
+            glUniformMatrix4fv(uniform.location,
+                               1,
+                               GL_FALSE,
+                               (float *)GFX_get_modelview_matrix());
+        } else if (name == "PROJECTIONMATRIX") {
+            glUniformMatrix4fv(uniform.location,
+                               1,
+                               GL_FALSE,
+                               (float *)GFX_get_projection_matrix());
 
-		else if( !strcmp( program->uniform_array[ i ].name, "PROJECTIONMATRIX" ) )
-		{
-			glUniformMatrix4fv( program->uniform_array[ i ].location,
-								1,
-								GL_FALSE,
-								( float * )GFX_get_projection_matrix() );
-			
-			program->uniform_array[ i ].constant = 1;
-		}
+			uniform.constant = true;
+		} else if (name == "NORMALMATRIX") {
+			glUniformMatrix3fv(uniform.location,
+                               1,
+                               GL_FALSE,
+                               (float *)GFX_get_normal_matrix());
+        } else if (name == "MATERIAL.ambient") {
+            // Material Data
+            glUniform4fv(uniform.location,
+                         1,
+                         (float *)&objmesh->current_material->ambient);
+            /* In this scene, all the materials (in this case, there are
+             * only two) have the exact same properties, so simply tag the
+             * uniforms for the current material to be constant.  This will
+             * also allow you to get better performance at runtime, because
+             * the data will not be sent over and over for nothing.
+             */
+			uniform.constant = true;
+        } else if (name == "MATERIAL.diffuse") {
+			glUniform4fv(uniform.location,
+                         1,
+                         (float *)&objmesh->current_material->diffuse);
+        } else if (name == "MATERIAL.specular") {
+			glUniform4fv(uniform.location,
+                         1,
+                         (float *)&objmesh->current_material->specular);
+        } else if (name == "MATERIAL.shininess") {
+			glUniform1f(uniform.location,
+                        objmesh->current_material->specular_exponent * 0.128f);
 
-		else if( !strcmp( program->uniform_array[ i ].name, "NORMALMATRIX" ) )
-		{
-			glUniformMatrix3fv( program->uniform_array[ i ].location,
-								1,
-								GL_FALSE,
-								( float * )GFX_get_normal_matrix() );			
-		}
+			uniform.constant = true;
+		} else if (name == "LIGHT_FS.color") {
+            // Lamp Data
+			glUniform4fv(uniform.location,
+                         1,
+                         (float *)&light->color);
 
-
-		// Material Data
-		else if( !strcmp( program->uniform_array[ i ].name, "MATERIAL.ambient" ) )
-		{
-			glUniform4fv( program->uniform_array[ i ].location,
-						  1,
-						  ( float * )&objmesh->current_material->ambient );
-						 
-			program->uniform_array[ i ].constant = 1;
-		}		
-
-		else if( !strcmp( program->uniform_array[ i ].name, "MATERIAL.diffuse" ) )
-		{
-			glUniform4fv( program->uniform_array[ i ].location,
-						  1,
-						  ( float * )&objmesh->current_material->diffuse );
-		}		
-
-		else if( !strcmp( program->uniform_array[ i ].name, "MATERIAL.specular" ) )
-		{
-			glUniform4fv( program->uniform_array[ i ].location,
-						  1,
-						  ( float * )&objmesh->current_material->specular );	
-		}		
-
-		else if( !strcmp( program->uniform_array[ i ].name, "MATERIAL.shininess" ) )
-		{
-			glUniform1f( program->uniform_array[ i ].location,
-						 objmesh->current_material->specular_exponent * 0.128f );
-
-			program->uniform_array[ i ].constant = 1;
-		}
-		
-
-		// Lamp Data
-		else if( !strcmp( program->uniform_array[ i ].name, "LIGHT_FS.color" ) )
-		{
-			glUniform4fv( program->uniform_array[ i ].location,
-						  1,
-						  ( float * )&light->color );
-
-			program->uniform_array[ i ].constant = 1;						  
-		}
-
-		else if( !strcmp( program->uniform_array[ i ].name, "LIGHT_VS.position" ) )
-		{
+			uniform.constant = true;
+		} else if (name == "LIGHT_VS.position") {
 			vec4 position;
-		
-			LIGHT_get_position_in_eye_space( light,
-											 &gfx.modelview_matrix[ gfx.modelview_matrix_index - 1 ], 
-											 &position );
+
+			LIGHT_get_position_in_eye_space(light,
+                                            &gfx.modelview_matrix[gfx.modelview_matrix_index - 1],
+                                            &position);
 			
-			glUniform3fv( program->uniform_array[ i ].location,
-						  1,
-						  ( float * )&position );
-
-			program->uniform_array[ i ].constant = 1;
+			glUniform3fv(uniform.location,
+                         1,
+                         (float *)&position);
+            
+			uniform.constant = true;
 		}
-
-		++i;
-	}	
+	}
 }
 
 
-void templateAppInit( int width, int height ) {
-
-	atexit( templateAppExit );
+void templateAppInit(int width, int height)
+{
+	atexit(templateAppExit);
 
 	GFX_start();
 
-	glViewport( 0.0f, 0.0f, width, height );
-	
-	glGetIntegerv( GL_VIEWPORT, viewport_matrix );
+	glViewport(0.0f, 0.0f, width, height);
 
-	obj = OBJ_load( OBJ_FILE, 1 );
+	glGetIntegerv(GL_VIEWPORT, viewport_matrix);
 
-	unsigned int i = 0;
+	obj = new OBJ(OBJ_FILE, true);
 
-	while( i != obj->n_objmesh ) {
-		
-		OBJ_optimize_mesh( obj, i, 128 );
+    for (objmesh=obj->objmesh.begin();
+         objmesh != obj->objmesh.end(); ++objmesh) {
 
-		OBJ_build_mesh2( obj, i );
+        objmesh->optimize(128);
 
-		OBJ_free_mesh_vertex_data( obj, i ); 
+        objmesh->build2();
 
-		++i;
-	}
-	
+        objmesh->free_vertex_data();
+    }
 
-	i = 0;
-	while( i != obj->n_texture ) { 
+	for (int i=0; i!=obj->texture.size(); ++i)
+		OBJ_build_texture(obj,
+                          i,
+                          obj->texture_path,
+                          TEXTURE_MIPMAP | TEXTURE_16_BITS,
+                          TEXTURE_FILTER_2X,
+                          0.0f);
 
-		OBJ_build_texture( obj,
-						   i,
-						   obj->texture_path,
-						   TEXTURE_MIPMAP | TEXTURE_16_BITS,
-						   TEXTURE_FILTER_2X,
-						   0.0f );
-		++i;
-	}
+    for (auto program=obj->program.begin();
+         program != obj->program.end(); ++program) {
+		(*program)->build(program_bind_attrib_location,
+                          program_draw,
+                          true,
+                          obj->program_path);
+    }
 
+    for (auto objmaterial=obj->objmaterial.begin();
+         objmaterial != obj->objmaterial.end(); ++objmaterial) {
+        objmaterial->build(NULL);
+    }
 
-	i = 0;
-	while( i != obj->n_program ) { 
-		
-		OBJ_build_program( obj,
-						   i,
-						   program_bind_attrib_location,
-						   program_draw,
-						   1,
-						   obj->program_path );
-		++i;
-	}
-
-
-	i = 0;
-	while( i != obj->n_objmaterial ) { 
-
-		OBJ_build_material( obj, i, NULL );
-		++i;
-	}
-	
-	
 	vec4 color = { 1.0f, 1.0f, 1.0f, 1.0f };
 	
 	vec3 position = { 0.0f, 0.0f, 5.0f };	
 	
-	light = LIGHT_create_point( ( char * )"point", &color, &position );
-
-    OBJ_get_mesh( obj, "sphere", 0 )-> objtrianglelist[ 0 ].mode = GL_POINTS;
+	light = LIGHT_create_point((char *)"point", &color, &position);
+    
+    obj->get_mesh("sphere", false)->objtrianglelist[0].mode = GL_POINTS;
 }
 
 
-void templateAppDraw( void ) {
+void templateAppDraw(void)
+{
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
-	glClearColor( 0.0f, 0.0f, 0.0f, 1.0f );
-
-	GFX_set_matrix_mode( PROJECTION_MATRIX );
+	GFX_set_matrix_mode(PROJECTION_MATRIX);
 	GFX_load_identity();
-	
+
 	GFX_set_perspective( 45.0f,
-						 ( float )viewport_matrix[ 2 ] / ( float )viewport_matrix[ 3 ],
-						 0.1f,
-						 100.0f,
-						 -90.0f );
-	
-	glClear( GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT );
+                        (float)viewport_matrix[2] / (float)viewport_matrix[3],
+                          0.1f,
+                        100.0f,
+                        -90.0f);
 
-	GFX_set_matrix_mode( MODELVIEW_MATRIX );
+	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+
+	GFX_set_matrix_mode(MODELVIEW_MATRIX);
 	GFX_load_identity();
 
-	GFX_translate( 14.0f, -12.0f, 7.0f );
+	GFX_translate(14.0f, -12.0f, 7.0f);
 
-	GFX_rotate( 48.5f, 0.0f, 0.0f, 1.0f );
+	GFX_rotate(48.5f, 0.0f, 0.0f, 1.0f);
 
-	GFX_rotate( 72.0, 1.0f, 0.0f, 0.0f );
-	
-	mat4_invert( GFX_get_modelview_matrix() );
+	GFX_rotate(72.0, 1.0f, 0.0f, 0.0f);
 
+	mat4_invert(GFX_get_modelview_matrix());
 
-	unsigned int i = 0;
-
-	while( i != obj->n_objmesh ) {
-
-		objmesh = &obj->objmesh[ i ];
+    for (objmesh=obj->objmesh.begin();
+         objmesh != obj->objmesh.end(); ++objmesh) {
 
 		GFX_push_matrix();
 
-		GFX_translate( objmesh->location.x,
-					   objmesh->location.y,
-					   objmesh->location.z );
+		GFX_translate(objmesh->location.x,
+                      objmesh->location.y,
+                      objmesh->location.z);
 
         /* If the current object name is the sphere. */
-        if( strstr( objmesh->name, "sphere" ) )
-        {
+        if (strstr(objmesh->name, "sphere")) {
             /* Enable blending. */
-            glEnable( GL_BLEND );
+            glEnable(GL_BLEND);
 
             /* Turn off the depth mask.  This is very important when
              * drawing particles.  This will allow the particle to pass
@@ -303,43 +254,42 @@ void templateAppDraw( void ) {
              * of the geometry and render them from back to front to
              * insure proper additive alpha sorting.
              */
-            glDepthMask( GL_FALSE );
+            glDepthMask(GL_FALSE);
 
             /* Set additive blending. */
-            glBlendEquation( GL_FUNC_ADD );
-            glBlendFunc( GL_SRC_ALPHA, GL_ONE );
+            glBlendEquation(GL_FUNC_ADD);
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 
             /* Rotate all the points around the orjbect origin. */
             objmesh->rotation.x += 0.5f;
             objmesh->rotation.y += 0.5f;
             objmesh->rotation.z += 0.5f;
-            GFX_rotate( objmesh->rotation.z, 0.0f, 0.0f, 1.0f );
-            GFX_rotate( objmesh->rotation.y, 0.0f, 1.0f, 0.0f );
-            GFX_rotate( objmesh->rotation.x, 1.0f, 0.0f, 0.0f );
+            GFX_rotate(objmesh->rotation.z, 0.0f, 0.0f, 1.0f);
+            GFX_rotate(objmesh->rotation.y, 0.0f, 1.0f, 0.0f);
+            GFX_rotate(objmesh->rotation.x, 1.0f, 0.0f, 0.0f);
 
             /* Draw the mesh.  From here, the particles.gfx shader will be
              * called and it will handle the point sizes, attenuations,
              * and the points' texture coordinates.
              */
-            OBJ_draw_mesh( obj, i );
+            objmesh->draw();
 
             /* Disable blending and re-enable the depth mask writing. */
-            glDisable( GL_BLEND );
-            glDepthMask( GL_TRUE );
+            glDisable(GL_BLEND);
+            glDepthMask(GL_TRUE);
+        } else {
+            /* If the current object is not the sphere, draw it normally. */
+            objmesh->draw();
         }
-        /* If the current object is not the sphere, draw it normally. */
-        else OBJ_draw_mesh( obj, i );
-
+        
 		GFX_pop_matrix();
-		
-		++i;
 	}
 }
 
 
-void templateAppExit( void ) {
+void templateAppExit(void) {
 
-	light = LIGHT_free( light );
+	light = LIGHT_free(light);
 
-	OBJ_free( obj );
+    delete obj;
 }
