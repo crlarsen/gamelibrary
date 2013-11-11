@@ -17,6 +17,8 @@ authors for the various included works.
 History
 =======
 
+Nov 11, 2013 - Commit changes make OBJ data types into classes.
+
 Oct 24, 2013 - Tag "chapter2" release of for all Chapter 2 examples.
 
 Oct 24, 2013 - Tag "chapter2-1" release of first sample program w/objects.
