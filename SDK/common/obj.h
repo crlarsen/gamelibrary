@@ -31,6 +31,7 @@ as being the original software.
  * - OBJVERTEXDATA
  * - PROGRAM
  * - SHADER
+ * - TEXTURE
  */
 
 #ifndef OBJ_H
@@ -40,15 +41,46 @@ typedef void( MATERIALDRAWCALLBACK( void * ) );
 
 struct OBJ;
 
+// Definitions for texture maps:
 enum TextureMap {
-    TM_map_Ka   = 0,
-    TM_map_Kd   = 1,
-    TM_map_Ks   = 2,
-    TM_map_Disp = 3,
-    TM_map_Bump = 4,
-    TM_map_Tr   = 5,
-    TM_Unused   = 7
+    TM_map_Ka       = 0,
+    TM_map_Kd       = 1,
+    TM_map_Ks       = 2,
+    TM_map_Disp     = 3,
+    TM_map_Bump     = 4,
+    TM_map_Tr       = 5,
+    TM_Unused       = 7,
+
+    // In case the programmer prefers the other naming convention:
+    TM_Ambient      = TM_map_Ka,
+    TM_Diffuse      = TM_map_Kd,
+    TM_Specular     = TM_map_Ks,
+    TM_Displacement = TM_map_Disp,
+    TM_Bump         = TM_map_Bump,
+    TM_Transparency = TM_map_Tr,
     };
+
+#define TM_Ambient_String       ((char *)"AMBIENT")
+#define TM_Diffuse_String       ((char *)"DIFFUSE")
+#define TM_Specular_String      ((char *)"SPECULAR")
+#define TM_Displacement_String  ((char *)"DISPLACEMENT")
+#define TM_Bump_String          ((char *)"BUMP")
+#define TM_Transparency_String  ((char *)"TRANSPARENCY")
+
+// In case the programmer prefers the other naming convention:
+#define TM_map_Ka_String    TM_Ambient_String
+#define TM_map_Kd_String    TM_Diffuse_String
+#define TM_map_Ks_String    TM_Specular_String
+#define TM_map_Disp_String  TM_Displacement_String
+#define TM_map_Bump_String  TM_Bump_String
+#define TM_map_Tr_String    TM_Transparency_String
+
+// Definitions for material color information:
+#define MC_Dissolve     ((char *)"DISSOLVE")
+#define MC_Ambient      ((char *)"AMBIENT_COLOR")
+#define MC_Diffuse      ((char *)"DIFFUSE_COLOR")
+#define MC_Specular     ((char *)"SPECULAR_COLOR")
+#define MC_Shininess    ((char *)"SHININESS")
 
 struct OBJMATERIAL {
 	char					name[ MAX_CHAR ];				// newmtl
@@ -97,7 +129,7 @@ struct OBJMATERIAL {
 
 	MATERIALDRAWCALLBACK	*materialdrawcallback;
 
-    OBJ                     *parent;
+    const OBJ               *parent;
 
 public:
     OBJMATERIAL(char *name=NULL, OBJ *parent=NULL);
@@ -170,6 +202,7 @@ public:
     OBJVERTEXDATA(const int vi=0, const int uvi=0);
 };
 
+// Definitions for Vertex Attributes:
 enum VertexAttribute {  // Use with glBindAttribLocation()
     VA_Position  = 0,
     VA_Normal    = 1,
@@ -237,7 +270,7 @@ struct OBJMESH {
 	
 	bool                            use_smooth_normals;
 
-    OBJ                             *parent;
+    const OBJ                       *parent;
 
 public:
     OBJMESH(OBJ *parent=NULL);
@@ -288,22 +321,19 @@ struct OBJ {
 public:
     OBJ(char *filename=NULL, bool relative_path=true);
     ~OBJ();
-    OBJMESH *get_mesh(const char *name, bool exact_name);
-    int get_mesh_index(const char *name, bool exact_name);
-    TEXTURE *get_texture(const char *name, bool exact_name);
-    OBJMATERIAL *get_material(const char *name, bool exact_name);
-    PROGRAM *get_program(const char *name, bool exact_name);
-    bool load_mtl(char *filename, bool relative_path);
+    OBJMESH *get_mesh(const char *name, const bool exact_name);
+    int get_mesh_index(const char *name, const bool exact_name);
+    TEXTURE *get_texture(const char *name, const bool exact_name);
+    OBJMATERIAL *get_material(const char *name, const bool exact_name);
+    PROGRAM *get_program(const char *name, const bool exact_name);
+    bool load_mtl(char *filename, const bool relative_path);
     void free_vertex_data();
     friend OBJMATERIAL;
 private:
-    int get_texture_index(char *filename);
+    int get_texture_index(char *filename) const;
     void add_texture(char *filename);
-    int get_program_index(char *filename);
+    int get_program_index(char *filename) const;
     void add_program(char *filename);
 };
-
-
-void OBJ_build_texture( OBJ *obj, unsigned int texture_index, char *texture_path, unsigned int flags, unsigned char filter, float anisotropic_filter );
 
 #endif

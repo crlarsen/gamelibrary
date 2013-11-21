@@ -35,6 +35,7 @@ as being the original software.
  * - OBJVERTEXDATA
  * - PROGRAM
  * - SHADER
+ * - TEXTURE
  */
 
 #include "templateApp.h"
@@ -396,13 +397,13 @@ void load_level(void)
 
 	memcpy(&eye, &player->location, sizeof(vec3));
 
-	for (int i=0; i!=obj->texture.size(); ++i)
-		OBJ_build_texture(obj,
-                          i,
-                          obj->texture_path,
+    for (auto texture=obj->texture.begin();
+         texture!=obj->texture.end(); ++texture) {
+        (*texture)->build(obj->texture_path,
                           TEXTURE_MIPMAP | TEXTURE_16_BITS,
                           TEXTURE_FILTER_2X,
                           0.0f);
+    }
 
     for (auto program=obj->program.begin();
          program != obj->program.end(); ++program) {
@@ -420,25 +421,25 @@ void load_level(void)
 	font_small = FONT_init((char *)"foo.ttf");
 
 	FONT_load(font_small,
-              font_small->name,
-              1,
-              24.0f,
-              512,
-              512,
-              32,
-              96);
+		  font_small->name,
+		  1,
+		  24.0f,
+		  512,
+		  512,
+		  32,
+		  96);
 
 
 	font_big = FONT_init((char *)"foo.ttf");
 
 	FONT_load(font_big,
-              font_big->name,
-              1,
-              48.0f,
-              512,
-              512,
-              32,
-              96);
+		  font_big->name,
+		  1,
+		  48.0f,
+		  512,
+		  512,
+		  32,
+		  96);
 
     /* Declare a memory structure that you will use (and reuse) to load
      * each sound buffer.
@@ -808,10 +809,10 @@ void templateAppDraw(void) {
 		sprintf(level_str, "Level Clear!");
 
 		FONT_print(font_big,
-                   viewport_matrix[3] * 0.5f - FONT_length(font_big, level_str) * 0.5f + 4.0f,
-                   viewport_matrix[2] - font_big->font_size * 1.5f - 4.0f,
-                   level_str,
-                   &font_color);
+			   viewport_matrix[3] * 0.5f - FONT_length(font_big, level_str) * 0.5f + 4.0f,
+			   viewport_matrix[2] - font_big->font_size * 1.5f - 4.0f,
+			   level_str,
+			   &font_color);
 
 		/* Yellow. */
 		font_color.x = 1.0f;
@@ -833,16 +834,16 @@ void templateAppDraw(void) {
 	sprintf(time_str, "Game Time:%02.2f", game_time * 0.1f);
 
 	FONT_print(font_small,
-               viewport_matrix[3] - FONT_length(font_small, gem_str) - 6.0f,
-               (font_small->font_size * 0.5f),
-               gem_str,
-               &font_color);
+		   viewport_matrix[3] - FONT_length(font_small, gem_str) - 6.0f,
+		   (font_small->font_size * 0.5f),
+		   gem_str,
+		   &font_color);
 
 	FONT_print(font_small,
-               8.0f,
-               (font_small->font_size * 0.5f),
-               time_str,
-               &font_color);
+		   8.0f,
+		   (font_small->font_size * 0.5f),
+		   time_str,
+		   &font_color);
 
 	font_color.x = 1.0f;
 	font_color.y = 1.0f;

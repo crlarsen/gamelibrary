@@ -35,6 +35,7 @@ as being the original software.
  * - OBJVERTEXDATA
  * - PROGRAM
  * - SHADER
+ * - TEXTURE
  */
 
 #include "templateApp.h"
@@ -131,7 +132,7 @@ void add_rigid_body(OBJMESH *objmesh, ShapeType bound, float mass, bool dynamic_
         }
         /* If it's a sphere, initialize a new sphere shape, passing in as a
          * parameter the radius of the mesh (which is automatically pre-calculated
-         * when OBJ_mesh_build is called.
+         * when OBJMESH::build is called.
          */
         case SPHERE:
         {
@@ -398,14 +399,13 @@ void load_game(void)
 	}
 	
 
-	for (int i=0; i!=obj->texture.size(); ++i) {
-		OBJ_build_texture(obj,
-                          i,
-                          obj->texture_path,
+    for (auto texture=obj->texture.begin();
+         texture!=obj->texture.end(); ++texture) {
+        (*texture)->build(obj->texture_path,
                           TEXTURE_MIPMAP | TEXTURE_16_BITS,
                           TEXTURE_FILTER_2X,
                           0.0f);
-	}
+    }
 
 	program = new PROGRAM((char *)"default",
                           VERTEX_SHADER,

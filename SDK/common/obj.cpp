@@ -31,6 +31,7 @@ as being the original software.
  * - OBJVERTEXDATA
  * - PROGRAM
  * - SHADER
+ * - TEXTURE
  */
 
 #include "gfx.h"
@@ -258,10 +259,11 @@ add_index_to_triangle_list:
 }
 
 
-int OBJ::get_texture_index(char *filename)
+int OBJ::get_texture_index(char *filename) const
 {
 	for (int i=0; i!=this->texture.size(); ++i) {
-		if (!strcmp(filename, this->texture[i]->name)) return i;
+		if (!strcmp(filename, this->texture[i]->name))
+            return i;
 	}
 	
 	return -1;
@@ -270,16 +272,16 @@ int OBJ::get_texture_index(char *filename)
 
 void OBJ::add_texture(char *filename)
 {
-	if (this->get_texture_index(filename) != -1) return;
-
-	this->texture.push_back(TEXTURE_init(filename));
+	if (this->get_texture_index(filename) == -1)
+        this->texture.push_back(new TEXTURE(filename));
 }
 
 
-int OBJ::get_program_index(char *filename)
+int OBJ::get_program_index(char *filename) const
 {
 	for (int i=0; i!=this->program.size(); ++i) {
-		if (!strcmp(filename, this->program[i]->name)) return i;
+		if (!strcmp(filename, this->program[i]->name))
+            return i;
 	}
 	
 	return -1;
@@ -288,41 +290,8 @@ int OBJ::get_program_index(char *filename)
 
 void OBJ::add_program(char *filename)
 {
-	if (this->get_program_index(filename) != -1) return;
-
-    this->program.push_back(new PROGRAM(filename));
-}
-
-
-void OBJ_build_texture(OBJ              *obj,
-                       unsigned int     texture_index,
-                       char             *texture_path,
-                       unsigned int     flags,
-                       unsigned char    filter,
-                       float            anisotropic_filter)
-{
-	TEXTURE *texture = obj->texture[texture_index];
-
-	MEMORY *m = NULL;
-	
-	char filename[MAX_PATH] = {""};
-	
-	sprintf(filename, "%s%s", texture_path, texture->name);
-	
-	m = mopen(filename, 0);
-	
-	if (m) {
-		TEXTURE_load(texture, m);
-		
-		TEXTURE_generate_id(texture,
-                            flags,
-                            filter,
-                            anisotropic_filter);
-
-		TEXTURE_free_texel_array(texture);
-		
-		mclose(m);
-	}
+	if (this->get_program_index(filename) == -1)
+        this->program.push_back(new PROGRAM(filename));
 }
 
 
@@ -446,9 +415,10 @@ void OBJMESH::update_bounds()
 	this->max.z = -FLT_MAX;
 	
 	
-	for (int i=0; i!=this->objvertexdata.size(); ++i) {
-		index = this->objvertexdata[i].vertex_index;
-		
+    for (auto objvertexdata=this->objvertexdata.begin();
+         objvertexdata!=this->objvertexdata.end(); ++objvertexdata) {
+		index = objvertexdata->vertex_index;
+
 		if (this->parent->indexed_vertex[index].x < this->min.x) this->min.x = this->parent->indexed_vertex[index].x;
 		if (this->parent->indexed_vertex[index].y < this->min.y) this->min.y = this->parent->indexed_vertex[index].y;
 		if (this->parent->indexed_vertex[index].z < this->min.z) this->min.z = this->parent->indexed_vertex[index].z;
@@ -507,9 +477,10 @@ void OBJMESH::build_vbo()
 	unsigned char *vertex_array = (unsigned char *) malloc(this->size),
 				  *vertex_start = vertex_array;
 
-	for (int i=0; i!=this->objvertexdata.size(); ++i) {
-		index = this->objvertexdata[i].vertex_index;
-		
+    for (auto objvertexdata=this->objvertexdata.begin();
+         objvertexdata!=this->objvertexdata.end(); ++objvertexdata) {
+		index = objvertexdata->vertex_index;
+
 		memcpy(vertex_array,
                &this->parent->indexed_vertex[index],
                sizeof(vec3));
@@ -538,7 +509,7 @@ void OBJMESH::build_vbo()
 
 		if (this->objvertexdata[0].uv_index != -1) {
 			memcpy(vertex_array,
-                   &this->parent->indexed_uv[this->objvertexdata[i].uv_index],
+                   &this->parent->indexed_uv[objvertexdata->uv_index],
                    sizeof(vec2));
 
 			vertex_array += sizeof(vec2);
@@ -586,14 +557,15 @@ void OBJMESH::build_vbo()
 	}
 
 	
-	for (int i=0; i!=this->objtrianglelist.size(); ++i) {
-		glGenBuffers(1, &this->objtrianglelist[i].vbo);
+    for (auto objtrianglelist=this->objtrianglelist.begin();
+         objtrianglelist!=this->objtrianglelist.end(); ++objtrianglelist) {
+		glGenBuffers(1, &objtrianglelist->vbo);
 		
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->objtrianglelist[i].vbo);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, objtrianglelist->vbo);
 		
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER,
-                     this->objtrianglelist[i].n_indice_array * sizeof(unsigned short),
-                     &this->objtrianglelist[i].indice_array[0],
+                     objtrianglelist->n_indice_array * sizeof(unsigned short),
+                     &objtrianglelist->indice_array[0],
                      GL_STATIC_DRAW);
 	}
 }
@@ -696,23 +668,24 @@ void OBJMESH::optimize(unsigned int vertex_cache_size)
 
 	if (vertex_cache_size) SetCacheSize(vertex_cache_size);
 	
-	for (int i=0; i!=this->objtrianglelist.size(); ++i) {
+    for (auto objtrianglelist=this->objtrianglelist.begin();
+         objtrianglelist!=this->objtrianglelist.end(); ++objtrianglelist) {
 		PrimitiveGroup *primitivegroup;
 	
-		if (GenerateStrips(&this->objtrianglelist[i].indice_array[0],
-                           this->objtrianglelist[i].n_indice_array,
+		if (GenerateStrips(&objtrianglelist->indice_array[0],
+                           objtrianglelist->n_indice_array,
                            &primitivegroup,
                            &n_group,
                            true)) {
-			if (primitivegroup[0].numIndices < this->objtrianglelist[i].n_indice_array) {
-				this->objtrianglelist[i].mode = GL_TRIANGLE_STRIP;
-				this->objtrianglelist[i].n_indice_array = primitivegroup[0].numIndices;
+			if (primitivegroup[0].numIndices < objtrianglelist->n_indice_array) {
+				objtrianglelist->mode = GL_TRIANGLE_STRIP;
+				objtrianglelist->n_indice_array = primitivegroup[0].numIndices;
 			
 				s = primitivegroup[0].numIndices * sizeof(unsigned short);
 						
-                this->objtrianglelist[i].indice_array.resize(primitivegroup[0].numIndices);
+                objtrianglelist->indice_array.resize(primitivegroup[0].numIndices);
 				
-				memcpy(&this->objtrianglelist[i].indice_array[0],
+				memcpy(&objtrianglelist->indice_array[0],
                        &primitivegroup[0].indices[0],
                        s);
 			}
@@ -723,7 +696,7 @@ void OBJMESH::optimize(unsigned int vertex_cache_size)
 }
 
 
-OBJMESH *OBJ::get_mesh(const char *name, bool exact_name)
+OBJMESH *OBJ::get_mesh(const char *name, const bool exact_name)
 {
     if (exact_name) {
         for (int i=0; i!=this->objmesh.size(); ++i) {
@@ -741,7 +714,7 @@ OBJMESH *OBJ::get_mesh(const char *name, bool exact_name)
 }
 
 
-int OBJ::get_mesh_index(const char *name, bool exact_name)
+int OBJ::get_mesh_index(const char *name, const bool exact_name)
 {
     if (exact_name) {
         for (int i=0; i!=this->objmesh.size(); ++i) {
@@ -759,7 +732,7 @@ int OBJ::get_mesh_index(const char *name, bool exact_name)
 }
 
 
-PROGRAM *OBJ::get_program(const char *name, bool exact_name)
+PROGRAM *OBJ::get_program(const char *name, const bool exact_name)
 {
     if (exact_name) {
         for (int i=0; i!=this->program.size(); ++i) {
@@ -777,7 +750,7 @@ PROGRAM *OBJ::get_program(const char *name, bool exact_name)
 }
 
 
-OBJMATERIAL *OBJ::get_material(const char *name, bool exact_name)
+OBJMATERIAL *OBJ::get_material(const char *name, const bool exact_name)
 {
     if (exact_name) {
         for (int i=0; i!=this->objmaterial.size(); ++i) {
@@ -795,7 +768,7 @@ OBJMATERIAL *OBJ::get_material(const char *name, bool exact_name)
 }
 
 
-TEXTURE *OBJ::get_texture(const char *name, bool exact_name)
+TEXTURE *OBJ::get_texture(const char *name, const bool exact_name)
 {
     if (exact_name) {
         for (int i=0; i!=this->texture.size(); ++i) {
@@ -907,42 +880,42 @@ void OBJMATERIAL::draw()
 		if (this->texture_ambient) {
 			glActiveTexture(GL_TEXTURE0);
 
-			TEXTURE_draw(this->texture_ambient);
+			this->texture_ambient->draw();
 		}
 
 		
 		if (this->texture_diffuse) {
 			glActiveTexture(GL_TEXTURE1);
 
-			TEXTURE_draw(this->texture_diffuse);
+			this->texture_diffuse->draw();
 		}
 
 		
 		if (this->texture_specular) {
 			glActiveTexture(GL_TEXTURE2);
 
-			TEXTURE_draw(this->texture_specular);
+			this->texture_specular->draw();
 		}
 
 
 		if (this->texture_disp) {
 			glActiveTexture(GL_TEXTURE3);
 
-			TEXTURE_draw(this->texture_disp);
+			this->texture_disp->draw();
 		}	
 		
 		
 		if (this->texture_bump) {
 			glActiveTexture(GL_TEXTURE4);
 
-			TEXTURE_draw(this->texture_bump);
+			this->texture_bump->draw();
 		}
 
 
 		if (this->texture_translucency) {
 			glActiveTexture(GL_TEXTURE5);
 
-			TEXTURE_draw(this->texture_translucency);
+			this->texture_translucency->draw();
 		}
 		
 
@@ -960,21 +933,22 @@ void OBJMESH::draw()
             this->set_attributes();
 		
 		
-		for (int i=0; i!=this->objtrianglelist.size(); ++i) {
-			this->current_material = this->objtrianglelist[i].objmaterial;
+		for (auto objtrianglelist=this->objtrianglelist.begin();
+             objtrianglelist!=this->objtrianglelist.end(); ++objtrianglelist) {
+			this->current_material = objtrianglelist->objmaterial;
 		
 			if (this->current_material) this->current_material->draw();
 			
 			if (this->vao) {
 				if (this->objtrianglelist.size() != 1)
-                    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->objtrianglelist[i].vbo);
+                    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, objtrianglelist->vbo);
 			} else {
-                glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->objtrianglelist[i].vbo);
+                glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, objtrianglelist->vbo);
             }
   			
 			
-			glDrawElements(this->objtrianglelist[i].mode,
-                           this->objtrianglelist[i].n_indice_array,
+			glDrawElements(objtrianglelist->mode,
+                           objtrianglelist->n_indice_array,
                            GL_UNSIGNED_SHORT,
                            (void *)NULL);
 		}
@@ -1025,15 +999,16 @@ void OBJMESH::free_vertex_data()
 {
 	this->objvertexdata.clear();
 	
-	for (int i=0; i!=this->objtrianglelist.size(); ++i) {
-        this->objtrianglelist[i].objtriangleindex.clear();
+	for (auto objtrianglelist=this->objtrianglelist.begin();
+         objtrianglelist!=this->objtrianglelist.end(); ++objtrianglelist) {
+        objtrianglelist->objtriangleindex.clear();
 		
-        this->objtrianglelist[i].indice_array.clear();
+        objtrianglelist->indice_array.clear();
 	}
 }
 
 
-bool OBJ::load_mtl(char *filename, bool relative_path)
+bool OBJ::load_mtl(char *filename, const bool relative_path)
 {
 	MEMORY *m = mopen(filename, relative_path);
 
@@ -1338,120 +1313,119 @@ OBJ::OBJ(char *filename, bool relative_path)
 
 	
 	// Build Normals and Tangent
-	{
-		unsigned int index;
-		
-		for (int i=0; i!=this->objmesh.size(); ++i) {
-			OBJMESH *objmesh = &this->objmesh[i];
-		
-			// Accumulate Normals and Tangent
-			for (int j=0; j!= objmesh->objtrianglelist.size(); ++j) {
-				OBJTRIANGLELIST *objtrianglelist = &objmesh->objtrianglelist[j];
+    for (auto objmesh=this->objmesh.begin();
+         objmesh!=this->objmesh.end(); ++objmesh) {
 
-				for (int k=0; k != objtrianglelist->objtriangleindex.size(); ++k) {
-					vec3 v1,
-                         v2,
-                         normal;
+        // Accumulate Normals and Tangent
+        for (auto objtrianglelist=objmesh->objtrianglelist.begin();
+             objtrianglelist!=objmesh->objtrianglelist.end(); ++objtrianglelist) {
+
+            for (auto objtriangleindex=objtrianglelist->objtriangleindex.begin();
+                 objtriangleindex!=objtrianglelist->objtriangleindex.end(); ++objtriangleindex) {
+                vec3 v1,
+                v2,
+                normal;
 
 
-					vec3_diff(&v1,
-                              &this->indexed_vertex[objtrianglelist->objtriangleindex[k].vertex_index[0]],
-                              &this->indexed_vertex[objtrianglelist->objtriangleindex[k].vertex_index[1]]);
+                vec3_diff(&v1,
+                          &this->indexed_vertex[objtriangleindex->vertex_index[0]],
+                          &this->indexed_vertex[objtriangleindex->vertex_index[1]]);
 
-					vec3_diff(&v2,
-                              &this->indexed_vertex[objtrianglelist->objtriangleindex[k].vertex_index[0]],
-                              &this->indexed_vertex[objtrianglelist->objtriangleindex[k].vertex_index[2]]);
-
-
-					vec3_cross(&normal, &v1, &v2);
-
-					vec3_normalize(&normal, &normal);
+                vec3_diff(&v2,
+                          &this->indexed_vertex[objtriangleindex->vertex_index[0]],
+                          &this->indexed_vertex[objtriangleindex->vertex_index[2]]);
 
 
-					// Face normals
-					memcpy(&this->indexed_fnormal[objtrianglelist->objtriangleindex[k].vertex_index[0]],
-                           &normal,
-                           sizeof(vec3));
+                vec3_cross(&normal, &v1, &v2);
 
-					memcpy(&this->indexed_fnormal[objtrianglelist->objtriangleindex[k].vertex_index[1]],
-                           &normal,
-                           sizeof(vec3));
-
-					memcpy(&this->indexed_fnormal[objtrianglelist->objtriangleindex[k].vertex_index[2]],
-                           &normal,
-                           sizeof(vec3));
+                vec3_normalize(&normal, &normal);
 
 
-					// Smooth normals
-					vec3_add(&this->indexed_normal[objtrianglelist->objtriangleindex[k].vertex_index[0]],
-                             &this->indexed_normal[objtrianglelist->objtriangleindex[k].vertex_index[0]],
-                             &normal);
+                // Face normals
+                memcpy(&this->indexed_fnormal[objtriangleindex->vertex_index[0]],
+                       &normal,
+                       sizeof(vec3));
 
-					vec3_add(&this->indexed_normal[objtrianglelist->objtriangleindex[k].vertex_index[1]],
-                             &this->indexed_normal[objtrianglelist->objtriangleindex[k].vertex_index[1]],
-                             &normal);
+                memcpy(&this->indexed_fnormal[objtriangleindex->vertex_index[1]],
+                       &normal,
+                       sizeof(vec3));
 
-					vec3_add(&this->indexed_normal[objtrianglelist->objtriangleindex[k].vertex_index[2]],
-                             &this->indexed_normal[objtrianglelist->objtriangleindex[k].vertex_index[2]],
-                             &normal);
-
-
-					if (objtrianglelist->useuvs) {
-						vec3 tangent;
-
-						vec2 uv1, uv2;
-
-						float c;
-
-						vec2_diff(&uv1,
-                                  &this->indexed_uv[objtrianglelist->objtriangleindex[k].uv_index[2]],
-                                  &this->indexed_uv[objtrianglelist->objtriangleindex[k].uv_index[0]]);
-
-						vec2_diff(&uv2,
-                                  &this->indexed_uv[objtrianglelist->objtriangleindex[k].uv_index[1]],
-                                  &this->indexed_uv[objtrianglelist->objtriangleindex[k].uv_index[0]]);
+                memcpy(&this->indexed_fnormal[objtriangleindex->vertex_index[2]],
+                       &normal,
+                       sizeof(vec3));
 
 
-						c = 1.0f / (uv1.x * uv2.y - uv2.x * uv1.y);
+                // Smooth normals
+                vec3_add(&this->indexed_normal[objtriangleindex->vertex_index[0]],
+                         &this->indexed_normal[objtriangleindex->vertex_index[0]],
+                         &normal);
 
-						tangent.x = (v1.x * uv2.y + v2.x * uv1.y) * c;
-						tangent.y = (v1.y * uv2.y + v2.y * uv1.y) * c;
-						tangent.z = (v1.z * uv2.y + v2.z * uv1.y) * c;
-                        
-                        
-						vec3_add(&this->indexed_tangent[objtrianglelist->objtriangleindex[k].vertex_index[0]], 
-                                 &this->indexed_tangent[objtrianglelist->objtriangleindex[k].vertex_index[0]],
-                                 &tangent);
-                        
-						vec3_add(&this->indexed_tangent[objtrianglelist->objtriangleindex[k].vertex_index[1]], 
-                                 &this->indexed_tangent[objtrianglelist->objtriangleindex[k].vertex_index[1]],
-                                 &tangent);
-                        
-						vec3_add(&this->indexed_tangent[objtrianglelist->objtriangleindex[k].vertex_index[2]], 
-                                 &this->indexed_tangent[objtrianglelist->objtriangleindex[k].vertex_index[2]],
-                                 &tangent);			
-					}
-				}
-			}
-		}
-		
+                vec3_add(&this->indexed_normal[objtriangleindex->vertex_index[1]],
+                         &this->indexed_normal[objtriangleindex->vertex_index[1]],
+                         &normal);
 
-		// Normalize Normals & Tangent
-		for (int i=0; i!=this->objmesh.size(); ++i) {
-			for (int j=0; j != this->objmesh[i].objvertexdata.size();  ++j) {
-				index = this->objmesh[i].objvertexdata[j].vertex_index;
+                vec3_add(&this->indexed_normal[objtriangleindex->vertex_index[2]],
+                         &this->indexed_normal[objtriangleindex->vertex_index[2]],
+                         &normal);
 
-				// Average smooth normals.
-				vec3_normalize(&this->indexed_normal[index],
-                               &this->indexed_normal[index]);
 
-				if (this->objmesh[i].objvertexdata[j].uv_index != -1) {
-					vec3_normalize(&this->indexed_tangent[index],
-                                   &this->indexed_tangent[index]);
-				}
-			}
-		}
-	}
+                if (objtrianglelist->useuvs) {
+                    vec3 tangent;
+
+                    vec2 uv1, uv2;
+
+                    float c;
+
+                    vec2_diff(&uv1,
+                              &this->indexed_uv[objtriangleindex->uv_index[2]],
+                              &this->indexed_uv[objtriangleindex->uv_index[0]]);
+
+                    vec2_diff(&uv2,
+                              &this->indexed_uv[objtriangleindex->uv_index[1]],
+                              &this->indexed_uv[objtriangleindex->uv_index[0]]);
+
+
+                    c = 1.0f / (uv1.x * uv2.y - uv2.x * uv1.y);
+
+                    tangent.x = (v1.x * uv2.y + v2.x * uv1.y) * c;
+                    tangent.y = (v1.y * uv2.y + v2.y * uv1.y) * c;
+                    tangent.z = (v1.z * uv2.y + v2.z * uv1.y) * c;
+
+
+                    vec3_add(&this->indexed_tangent[objtriangleindex->vertex_index[0]],
+                             &this->indexed_tangent[objtriangleindex->vertex_index[0]],
+                             &tangent);
+
+                    vec3_add(&this->indexed_tangent[objtriangleindex->vertex_index[1]],
+                             &this->indexed_tangent[objtriangleindex->vertex_index[1]],
+                             &tangent);
+
+                    vec3_add(&this->indexed_tangent[objtriangleindex->vertex_index[2]],
+                             &this->indexed_tangent[objtriangleindex->vertex_index[2]],
+                             &tangent);
+                }
+            }
+        }
+    }
+
+
+    // Normalize Normals & Tangent
+    for (auto objmesh=this->objmesh.begin();
+         objmesh!=this->objmesh.end(); ++objmesh) {
+        for (auto objvertexdata=objmesh->objvertexdata.begin();
+             objvertexdata!=objmesh->objvertexdata.end();  ++objvertexdata) {
+            auto index = objvertexdata->vertex_index;
+            
+            // Average smooth normals.
+            vec3_normalize(&this->indexed_normal[index],
+                           &this->indexed_normal[index]);
+            
+            if (objvertexdata->uv_index != -1) {
+                vec3_normalize(&this->indexed_tangent[index],
+                               &this->indexed_tangent[index]);
+            }
+        }
+    }
 
 	return;
 }
@@ -1475,41 +1449,46 @@ OBJ::~OBJ()
 {
 	this->free_vertex_data();
 	
-	for (int i=0; i!=this->objmesh.size(); ++i) {
-		if (this->objmesh[i].vao)
-            glDeleteVertexArraysOES(1, &this->objmesh[i].vao);
+    for (auto objmesh=this->objmesh.begin();
+         objmesh!=this->objmesh.end(); ++objmesh) {
+		if (objmesh->vao)
+            glDeleteVertexArraysOES(1, &objmesh->vao);
 		
-		if (this->objmesh[i].vbo)
-            glDeleteBuffers(1, &this->objmesh[i].vbo);
+		if (objmesh->vbo)
+            glDeleteBuffers(1, &objmesh->vbo);
 	
-		this->objmesh[i].free_vertex_data();
+		objmesh->free_vertex_data();
 		
-		if (this->objmesh[i].objtrianglelist.size()) {
-			for (int j=0; j != this->objmesh[i].objtrianglelist.size(); ++j) {
-				glDeleteBuffers(1, &this->objmesh[i].objtrianglelist[j].vbo);
+		if (objmesh->objtrianglelist.size()) {
+			for (auto objtrianglelist=objmesh->objtrianglelist.begin();
+                 objtrianglelist!=objmesh->objtrianglelist.end(); ++objtrianglelist) {
+				glDeleteBuffers(1, &objtrianglelist->vbo);
 			}
 		
-			this->objmesh[i].objtrianglelist.clear();
+			objmesh->objtrianglelist.clear();
 		}
 	}
-	
+
 	this->objmesh.clear();
 
 	
 	this->objmaterial.clear();
 
 
-	for (int i=0; i!=this->program.size(); ++i) {
-        delete this->program[i];
-		this->program[i] = NULL;
+	for (auto program=this->program.begin();
+         program!=this->program.end(); ++program) {
+        delete *program;
+		*program = NULL;
 	}
 	
     this->program.clear();
 
 
-	for (int i=0; i!=this->texture.size(); ++i) {
-		this->texture[i] = TEXTURE_free(this->texture[i]);
+	for (auto texture=this->texture.begin();
+         texture!=this->texture.end(); ++texture) {
+        delete *texture;
+		*texture = NULL;
 	}
-	
+
     this->texture.clear();
 }

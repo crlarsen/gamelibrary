@@ -35,6 +35,7 @@ as being the original software.
  * - OBJVERTEXDATA
  * - PROGRAM
  * - SHADER
+ * - TEXTURE
  */
 
 #include "templateApp.h"
@@ -247,13 +248,13 @@ void templateAppInit(int width, int height) {
 	
 	memcpy(&eye, &player->location, sizeof(vec3));
 	
-	for (int i=0; i!=obj->texture.size(); ++i)
-		OBJ_build_texture(obj,
-                          i,
-                          obj->texture_path,
+    for (auto texture=obj->texture.begin();
+         texture!=obj->texture.end(); ++texture) {
+        (*texture)->build(obj->texture_path,
                           TEXTURE_MIPMAP | TEXTURE_16_BITS,
                           TEXTURE_FILTER_2X,
                           0.0f);
+    }
 
 	for (auto objmaterial=obj->objmaterial.begin();
          objmaterial!=obj->objmaterial.end(); ++objmaterial) {
@@ -263,8 +264,8 @@ void templateAppInit(int width, int height) {
 	program = new PROGRAM((char *)"default",
                           VERTEX_SHADER,
                           FRAGMENT_SHADER,
-                          1,
-                          0,
+                          true,
+                          false,
                           program_bind_attrib_location,
                           NULL);
 

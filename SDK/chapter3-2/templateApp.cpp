@@ -90,8 +90,8 @@ void program_draw_callback( void *ptr )
                                1,                                               // Number of matrices.
                                GL_FALSE,                                        // Don't transpose the matrix.
                                (float *)GFX_get_modelview_projection_matrix()); // The result of the current projection
-            // matrix multiplied by the model view
-            // matrix.
+                                                                                // matrix multiplied by the model view
+                                                                                // matrix.
         } /* End if */
     }
 }

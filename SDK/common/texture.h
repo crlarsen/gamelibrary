@@ -20,6 +20,19 @@ as being the original software.
 3. This notice may not be removed or altered from any source distribution.
 
 */
+/*
+ * Source code modified by Chris Larsen to make the following data types into
+ * proper C++ classes:
+ * - OBJ
+ * - OBJMATERIAL
+ * - OBJMESH
+ * - OBJTRIANGLEINDEX
+ * - OBJTRIANGLELIST
+ * - OBJVERTEXDATA
+ * - PROGRAM
+ * - SHADER
+ * - TEXTURE
+ */
 
 #ifndef TEXTURE_H
 #define TEXTURE_H
@@ -73,8 +86,7 @@ typedef struct
 } PVRHEADER;
 
 
-typedef struct
-{
+struct TEXTURE {
 	char			name[ MAX_CHAR ];
 	
 	unsigned int	tid;
@@ -100,30 +112,26 @@ typedef struct
 	unsigned int	n_mipmap;
 	
 	unsigned int	compression;
-		
-} TEXTURE;
+private:
+    void init(char *name);
 
-
-TEXTURE *TEXTURE_init( char *name );
-
-TEXTURE *TEXTURE_free( TEXTURE *texture );
-
-TEXTURE *TEXTURE_create( char *name, char *filename, unsigned char relative_path, unsigned int flags, unsigned char filter, float anisotropic_filter );
-
-void TEXTURE_load( TEXTURE *texture, MEMORY *memory );
-
-void TEXTURE_load_png( TEXTURE *texture, MEMORY *memory );
-
-void TEXTURE_load_pvr( TEXTURE *texture, MEMORY *memory );
-
-void TEXTURE_convert_16_bits( TEXTURE *texture, unsigned char use_5551 );
-
-void TEXTURE_generate_id( TEXTURE *texture, unsigned int flags, unsigned char filter, float anisotropic_filter );
-
-void TEXTURE_delete_id( TEXTURE *texture );
-
-void TEXTURE_free_texel_array( TEXTURE *texture );
-
-void TEXTURE_draw( TEXTURE *texture );
+public:
+    TEXTURE(char *name);
+    TEXTURE(char *name, char *filename, const bool relative_path,
+            unsigned int flags, unsigned char filter,
+            float anisotropic_filter);
+    ~TEXTURE();
+    void load(MEMORY *memory);
+    void load_png(MEMORY *memory);
+    void load_pvr(MEMORY *memory);
+    void convert_16_bits(unsigned int use_5551);
+    void generate_id(unsigned int flags, unsigned char filter,
+                     float anisotropic_filter);
+    void delete_id();
+    void free_texel_array();
+    void draw();
+    void build(char *texture_path, unsigned int  flags,
+               unsigned char filter, float anisotropic_filter);
+};
 
 #endif

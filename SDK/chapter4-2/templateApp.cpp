@@ -35,6 +35,7 @@ as being the original software.
  * - OBJVERTEXDATA
  * - PROGRAM
  * - SHADER
+ * - TEXTURE
  */
 
 #include "templateApp.h"
@@ -106,18 +107,17 @@ void templateAppInit(int width, int height)
 
         /* Free all the vertex data related arrays. At this point, they
          * have all been transferred to the video memory by the
-         * OBJ_build_mesh call.
+         * OBJMESH::build call.
          */
         objmesh->free_vertex_data();
     } /* Move to the next object. */
 
-    for (int i=0; i != obj->texture.size(); ++i) {
-        OBJ_build_texture(obj,  i,  /* By default the same as where the .mtl is located. */
-                          obj->texture_path,
+    for (auto texture=obj->texture.begin();
+         texture!=obj->texture.end(); ++texture) {
+        (*texture)->build(obj->texture_path,    // By default the same as where the .mtl is located.
                           TEXTURE_MIPMAP,
                           TEXTURE_FILTER_2X,
                           0.0f);
-        /* Next texture. */
     }
 
     /* Load the global vertex shader that you are going to use for all

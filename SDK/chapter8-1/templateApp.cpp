@@ -35,6 +35,7 @@ as being the original software.
  * - OBJVERTEXDATA
  * - PROGRAM
  * - SHADER
+ * - TEXTURE
  */
 
 #include "templateApp.h"
@@ -235,8 +236,8 @@ void templateAppInit(int width, int height) {
 
 		obj->objmesh[i].optimize(128);
 
-		/* OBJ_build_mesh2 is another version of the OBJ_build_mesh that
-         * do not use VAO (only pure glDraw calls), at the time of
+        /* OBJMESH::build2 is another version of the OBJMESH::build that
+         * does not use VAO (only pure glDraw calls), at the time of
          * writing this book mixing direct rendering using glDraw
          * commands (as you will do in this chapter) with VAO cause
          * issues on some Android drivers.
@@ -260,13 +261,13 @@ void templateAppInit(int width, int height) {
     /* Adjust the camera distance so it can frame the maze. */
     distance = maze->radius * 2.0f;
 
-	for (int i=0; i!=obj->texture.size(); ++i)
-		OBJ_build_texture(obj,
-                          i,
-                          obj->texture_path,
+    for (auto texture=obj->texture.begin();
+         texture!=obj->texture.end(); ++texture) {
+        (*texture)->build(obj->texture_path,
                           TEXTURE_MIPMAP | TEXTURE_16_BITS,
                           TEXTURE_FILTER_2X,
                           0.0f);
+    }
 
 
 	for (auto objmaterial=obj->objmaterial.begin();
@@ -277,8 +278,8 @@ void templateAppInit(int width, int height) {
 	program = new PROGRAM((char *)"default",
                           VERTEX_SHADER,
                           FRAGMENT_SHADER,
-                          1,
-                          0,
+                          true,
+                          false,
                           program_bind_attrib_location,
                           NULL);
 }
@@ -313,19 +314,19 @@ void templateAppDraw(void) {
 
 
 	eye.x = center.x +
-    distance *
-    cosf(rotx * DEG_TO_RAD) *
-    sinf(rotz * DEG_TO_RAD);
+            distance *
+            cosf(rotx * DEG_TO_RAD) *
+            sinf(rotz * DEG_TO_RAD);
 
 	eye.y = center.y -
-    distance *
-    cosf(rotx * DEG_TO_RAD) *
-    cosf(rotz * DEG_TO_RAD);
+            distance *
+            cosf(rotx * DEG_TO_RAD) *
+            cosf(rotz * DEG_TO_RAD);
 
 
 	eye.z = center.z +
-    distance *
-    sinf(rotx * DEG_TO_RAD);
+            distance *
+            sinf(rotx * DEG_TO_RAD);
 
 
 	rotx = rotx * 0.9f + next_rotx * 0.1f;

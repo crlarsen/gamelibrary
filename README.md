@@ -17,6 +17,8 @@ authors for the various included works.
 History
 =======
 
+Nov 21, 2013 - Commit changes to make TEXTURE a class; add TEXTURE tag.
+
 Nov 11, 2013 - Add OBJ tag.
 
 Nov 11, 2013 - Commit changes make OBJ data types into classes.

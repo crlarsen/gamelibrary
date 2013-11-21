@@ -35,6 +35,7 @@ as being the original software.
  * - OBJVERTEXDATA
  * - PROGRAM
  * - SHADER
+ * - TEXTURE
  */
 
 #include "templateApp.h"
@@ -83,7 +84,8 @@ void program_draw_callback(void *ptr)
     /* Convert the void * in the parameter to a valid PROGRAM pointer. */
     PROGRAM *curr_program = (PROGRAM *)ptr;
 
-    for (auto it=curr_program->uniform_map.begin(); it!=curr_program->uniform_map.end(); ++it) {
+    for (auto it=curr_program->uniform_map.begin();
+         it!=curr_program->uniform_map.end(); ++it) {
         auto    &name = it->first;
         auto    &uniform = it->second;
         if(name == "MODELVIEWMATRIX") {
@@ -261,20 +263,19 @@ void templateAppInit(int width, int height)
 
     glBindVertexArrayOES(0);
 
-    texture = TEXTURE_create(obj->objmaterial[0].map_diffuse,   // Texture name.
-                             obj->objmaterial[0].map_diffuse,   // Texture filename.
-                             true,                              // Use a relative path to find the file.
-                             TEXTURE_MIPMAP,                    // Generate mipmaps. First time this
-                                                                // term is mentioned, if you need more
-                                                                // information on mipmap please visit
-                                                                // http://en.wikipedia.org/wiki/Mipmap.
-                             TEXTURE_FILTER_2X,                 // Use a bilinear filter for the mipmaps.
-                             0.0f);                             // The anisotropic filtering factor
-                                                                // (another new term), if you are not
-                                                                // familiar with it, visit
-                                                                // http://en.wikipedia.org/wiki/Anisotropic_filtering.
-                                                                // For the current example, pass the value 0
-                                                                // to keep the texture isotropic.
+    texture = new TEXTURE(obj->objmaterial[0].map_diffuse,  // Texture name.
+                          obj->objmaterial[0].map_diffuse,  // Texture filename.
+                          true,                             // Use a relative path to find the file.
+                          TEXTURE_MIPMAP,                   // Generate mipmaps. First time this
+                                                            // information on mipmap please visit
+                                                            // http://en.wikipedia.org/wiki/Mipmap.
+                          TEXTURE_FILTER_2X,                // Use a bilinear filter for the mipmaps.
+                          0.0f);                            // The anisotropic filtering factor
+                                                            // (another new term), if you are not
+                                                            // familiar with it, visit
+                                                            // http://en.wikipedia.org/wiki/Anisotropic_filtering.
+                                                            // For the current example, pass the value 0
+                                                            // to keep the texture isotropic.
 }
 
 void templateAppDraw(void)
@@ -349,5 +350,5 @@ void templateAppExit(void)
     delete program;
     program = NULL;
     delete obj;
-    TEXTURE_free(texture);
+    delete texture;
 }

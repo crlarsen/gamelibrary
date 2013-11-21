@@ -20,77 +20,95 @@ as being the original software.
 3. This notice may not be removed or altered from any source distribution.
 
 */
+/*
+ * Source code modified by Chris Larsen to make the following data types into
+ * proper C++ classes:
+ * - OBJ
+ * - OBJMATERIAL
+ * - OBJMESH
+ * - OBJTRIANGLEINDEX
+ * - OBJTRIANGLELIST
+ * - OBJVERTEXDATA
+ * - PROGRAM
+ * - SHADER
+ * - TEXTURE
+ */
 
 #include "gfx.h"
 
 
-TEXTURE *TEXTURE_init( char *name )
+void TEXTURE::init(char *name)
 {
-	TEXTURE *texture = ( TEXTURE * ) calloc( 1, sizeof( TEXTURE ) );
-
-	texture->target = GL_TEXTURE_2D;
-
-	strcpy( texture->name, name );
-	
-	return texture;
+    assert(name==NULL || strlen(name)<sizeof(this->name));
+    if (name==NULL) {
+        memset(this->name, 0, sizeof(this->name));
+    } else {
+        strcpy(this->name, name);
+    }
 }
 
-
-TEXTURE *TEXTURE_free( TEXTURE *texture )
+TEXTURE::TEXTURE(char *name) : tid(0), width(0), height(0), byte(0),
+                               size(0), target(GL_TEXTURE_2D),
+                               internal_format(0), format(0),
+                               texel_type(0), texel_array(NULL),
+                               n_mipmap(0), compression(0)
 {
-	TEXTURE_free_texel_array( texture );
-	
-	TEXTURE_delete_id( texture );
-	
-	free( texture );
-	return NULL;
+    this->init(name);
 }
 
-
-TEXTURE *TEXTURE_create( char *name, char *filename, unsigned char relative_path, unsigned int flags, unsigned char filter, float anisotropic_filter )
+TEXTURE::TEXTURE(char *name, char *filename, const bool relative_path,
+                 unsigned int flags, unsigned char filter,
+                 float anisotropic_filter) :
+    tid(0), width(0), height(0), byte(0), size(0),
+    target(GL_TEXTURE_2D), internal_format(0), format(0), texel_type(0),
+    texel_array(NULL), n_mipmap(0), compression(0)
 {
-	TEXTURE *texture = TEXTURE_init( name );
+    this->init(name);
+
+	MEMORY *m = mopen(filename, relative_path);
 	
-	MEMORY *m = mopen( filename, relative_path );
-	
-	if( m )
-	{
-		TEXTURE_load( texture, m );
+	if (m) {
+		this->load(m);
 		
-		TEXTURE_generate_id( texture, flags, filter, anisotropic_filter );
+		this->generate_id(flags, filter, anisotropic_filter);
 		
-		TEXTURE_free_texel_array( texture );
+		this->free_texel_array();
 		
-		mclose( m );
+		mclose(m);
 	}
-	
-	return texture;
 }
 
-
-void TEXTURE_load( TEXTURE *texture, MEMORY *memory )
+TEXTURE::~TEXTURE()
 {
-	char ext[ MAX_CHAR ] = {""};
-	
-	get_file_name( memory->filename, texture->name );
-	
-	get_file_extension( memory->filename, ext, 1 );
-	
-	if( !strcmp( ext, "PNG" ) ) TEXTURE_load_png( texture, memory );
-	
-	else if( !strcmp( ext, "PVR" ) ) TEXTURE_load_pvr( texture, memory );
+	this->free_texel_array();
+
+	this->delete_id();
 }
 
-
-void png_memory_read( png_structp structp, png_bytep bytep, png_size_t size )
+void TEXTURE::load(MEMORY *memory)
 {
-	MEMORY *m = ( MEMORY * ) png_get_io_ptr( structp );
-
-	mread( m, bytep, size );
+	char ext[MAX_CHAR] = {""};
+	
+	get_file_name(memory->filename, this->name);
+	
+	get_file_extension(memory->filename, ext, 1);
+	
+	if (!strcmp(ext, "PNG"))
+        this->load_png(memory);
+	else if (!strcmp(ext, "PVR"))
+        this->load_pvr(memory);
 }
 
 
-void TEXTURE_load_png( TEXTURE *texture, MEMORY *memory )
+void png_memory_read(png_structp structp, png_bytep bytep, png_size_t size)
+{
+	MEMORY *m = (MEMORY *) png_get_io_ptr(structp);
+
+	mread(m, bytep, size);
+}
+
+
+void TEXTURE::load_png(MEMORY *memory)
 {
 	png_structp structp;
 
@@ -98,251 +116,211 @@ void TEXTURE_load_png( TEXTURE *texture, MEMORY *memory )
 
 	png_bytep *bytep = NULL;
 
-	unsigned int i = 0;
-	
 	int n,
 		png_bit_depth,
 		png_color_type;
 
-	structp = png_create_read_struct( PNG_LIBPNG_VER_STRING,
-									  NULL,
-									  NULL,
-									  NULL );
+	structp = png_create_read_struct(PNG_LIBPNG_VER_STRING,
+                                     NULL,
+                                     NULL,
+                                     NULL);
 
-	infop = png_create_info_struct( structp );
+	infop = png_create_info_struct(structp);
 
-	png_set_read_fn( structp, ( png_voidp * )memory, png_memory_read );
+	png_set_read_fn(structp, (png_voidp *)memory, png_memory_read);
 
-	png_read_info( structp, infop );
+	png_read_info(structp, infop);
 
-	png_bit_depth = png_get_bit_depth( structp, infop );
+	png_bit_depth = png_get_bit_depth(structp, infop);
 	
-	png_color_type = png_get_color_type( structp, infop );
+	png_color_type = png_get_color_type(structp, infop);
 
-	if( png_color_type == PNG_COLOR_TYPE_PALETTE )
-	{ png_set_expand( structp ); }
+	if (png_color_type == PNG_COLOR_TYPE_PALETTE)
+        png_set_expand(structp);
 
-	if( png_color_type == PNG_COLOR_TYPE_GRAY && png_bit_depth < 8 )
-	{ png_set_expand( structp ); }
+	if (png_color_type == PNG_COLOR_TYPE_GRAY && png_bit_depth < 8)
+        png_set_expand(structp);
 	
-	if( png_get_valid( structp, infop, PNG_INFO_tRNS ) )
-	{ png_set_expand( structp ); }
+	if (png_get_valid(structp, infop, PNG_INFO_tRNS))
+        png_set_expand(structp);
 	
-	if( png_bit_depth == 16 )
-	{ png_set_strip_16( structp ); }
+	if (png_bit_depth == 16)
+        png_set_strip_16(structp);
 	
-	if( png_color_type == PNG_COLOR_TYPE_GRAY || png_color_type == PNG_COLOR_TYPE_GRAY_ALPHA )
-	{ png_set_gray_to_rgb( structp ); }
+	if (png_color_type == PNG_COLOR_TYPE_GRAY ||
+       png_color_type == PNG_COLOR_TYPE_GRAY_ALPHA)
+        png_set_gray_to_rgb(structp);
 
-	png_read_update_info( structp, infop );
+	png_read_update_info(structp, infop);
 
-	png_get_IHDR( structp,
-				  infop,
-				  ( png_uint_32 * )( &texture->width  ),
-				  ( png_uint_32 * )( &texture->height ),
-				  &png_bit_depth,
-				  &png_color_type,
-				  NULL, NULL, NULL );
+	png_get_IHDR(structp,
+                 infop,
+                 (png_uint_32 *)(&this->width),
+                 (png_uint_32 *)(&this->height),
+                 &png_bit_depth,
+                 &png_color_type,
+                 NULL, NULL, NULL);
 
-	switch( png_color_type )
-	{
+	switch (png_color_type) {
 		case PNG_COLOR_TYPE_GRAY:
-		{
-			texture->byte			 = 1;
-			texture->internal_format = 
-			texture->format		     = GL_LUMINANCE;
+			this->byte			  = 1;
+			this->internal_format = 
+			this->format		  = GL_LUMINANCE;
 			
 			break;
-		}
 
 		case PNG_COLOR_TYPE_GRAY_ALPHA:
-		{
-			texture->byte			 = 2;
-			texture->internal_format = 
-			texture->format		     = GL_LUMINANCE_ALPHA;
+			this->byte			  = 2;
+			this->internal_format = 
+			this->format		  = GL_LUMINANCE_ALPHA;
 					
 			break;
-		}
 
 		case PNG_COLOR_TYPE_RGB:
-		{
-			texture->byte			 = 3;
-			texture->internal_format = 
-			texture->format		     = GL_RGB;
+			this->byte			  = 3;
+			this->internal_format = 
+			this->format		  = GL_RGB;
 			
 			break;
-		}
 
 		case PNG_COLOR_TYPE_RGB_ALPHA:
-		{
-			texture->byte			 = 4;
-			texture->internal_format = 
-			texture->format		     = GL_RGBA;
+			this->byte			  = 4;
+			this->internal_format = 
+			this->format		  = GL_RGBA;
 			
 			break;
-		}
 	}
 
-	texture->texel_type = GL_UNSIGNED_BYTE;
+	this->texel_type = GL_UNSIGNED_BYTE;
 	
-	texture->size = texture->width * texture->height * texture->byte;
+	this->size = this->width * this->height * this->byte;
 	
-	texture->texel_array = ( unsigned char * ) malloc( texture->size );
+	this->texel_array = (unsigned char *) malloc(this->size);
 
-	bytep = ( png_bytep * ) malloc( texture->height * sizeof( png_bytep ) );
+	bytep = (png_bytep *) malloc(this->height * sizeof(png_bytep));
 
 	
-	while( i != texture->height )
-	{
-		n = texture->height - ( i + 1 );
+	for (int i=0; i!=this->height; ++i) {
+		n = this->height - (i + 1);
 		
-		bytep[ n ] = texture->texel_array + ( n * texture->width * texture->byte );
-		
-		++i;
-	}	
+		bytep[n] = this->texel_array + (n * this->width * this->byte);
+	}
 
-	
-	png_read_image( structp, bytep );
 
-	png_read_end( structp, NULL );
+	png_read_image(structp, bytep);
 
-	png_destroy_read_struct( &structp,
-							 &infop,
-							 NULL );
+	png_read_end(structp, NULL);
 
-	free( bytep );
+	png_destroy_read_struct(&structp,
+                            &infop,
+                            NULL);
+
+	free(bytep);
 }
 
 
-void TEXTURE_load_pvr( TEXTURE *texture, MEMORY *memory )
+void TEXTURE::load_pvr(MEMORY *memory)
 {
-	const unsigned char pvrtc_identifier[ 4 ] = { 'P', 'V', 'R', '!' };
+	const char pvrtc_identifier[4] = { 'P', 'V', 'R', '!' };
 
-	PVRHEADER *pvrheader = ( PVRHEADER * )memory->buffer;
+	PVRHEADER *pvrheader = (PVRHEADER *)memory->buffer;
+    char   *tag = (char *)&pvrheader->tag;
 
-	if( ( ( pvrheader->tag >> 0  ) & 0xFF ) != pvrtc_identifier[ 0 ] ||
-		( ( pvrheader->tag >> 8  ) & 0xFF ) != pvrtc_identifier[ 1 ] ||
-		( ( pvrheader->tag >> 16 ) & 0xFF ) != pvrtc_identifier[ 2 ] ||
-		( ( pvrheader->tag >> 24 ) & 0xFF ) != pvrtc_identifier[ 3 ] )
-	{ return; }
+    if (strncmp(tag, pvrtc_identifier, sizeof(pvrtc_identifier)))
+        return;
 
 
-	if( ( pvrheader->flags & 0xFF ) == 24 || // PVRTC2
-		( pvrheader->flags & 0xFF ) == 25 )  // PVRTC4
-	{
-		texture->width    = pvrheader->width;
-		texture->height   = pvrheader->height;
-		texture->byte     = pvrheader->bpp;
-		texture->n_mipmap = pvrheader->n_mipmap + 1;
+	if ((pvrheader->flags & 0xFF) == 24 || // PVRTC2
+		(pvrheader->flags & 0xFF) == 25) { // PVRTC4
+		this->width    = pvrheader->width;
+		this->height   = pvrheader->height;
+		this->byte     = pvrheader->bpp;
+		this->n_mipmap = pvrheader->n_mipmap + 1;
 
-		if( pvrheader->bitalpha )
-		{
-			texture->compression = pvrheader->bpp == 4 ?
-								   GL_COMPRESSED_RGBA_PVRTC_4BPPV1_IMG:
-								   GL_COMPRESSED_RGBA_PVRTC_2BPPV1_IMG;
-		}
-		else
-		{
-			texture->compression = pvrheader->bpp == 4 ?
-								   GL_COMPRESSED_RGB_PVRTC_4BPPV1_IMG:
-								   GL_COMPRESSED_RGB_PVRTC_2BPPV1_IMG;
+		if (pvrheader->bitalpha) {
+			this->compression = pvrheader->bpp == 4 ?
+                                GL_COMPRESSED_RGBA_PVRTC_4BPPV1_IMG:
+                                GL_COMPRESSED_RGBA_PVRTC_2BPPV1_IMG;
+		} else {
+			this->compression = pvrheader->bpp == 4 ?
+                                GL_COMPRESSED_RGB_PVRTC_4BPPV1_IMG:
+                                GL_COMPRESSED_RGB_PVRTC_2BPPV1_IMG;
 		}
 
-		texture->texel_array = ( unsigned char * ) malloc( pvrheader->datasize );
+		this->texel_array = (unsigned char *) malloc(pvrheader->datasize);
 
-		memcpy( texture->texel_array,
-				&memory->buffer[ sizeof( PVRHEADER ) ],
-				pvrheader->datasize );
+		memcpy(this->texel_array,
+               &memory->buffer[sizeof(PVRHEADER)],
+               pvrheader->datasize);
 	}
 }
 
 
-void TEXTURE_convert_16_bits( TEXTURE *texture, unsigned char use_5551 )
+void TEXTURE::convert_16_bits(unsigned int use_5551)
 {
-	unsigned int i = 0,
-				 s = texture->width * texture->height,
+	unsigned int s = this->width * this->height,
 				*t = NULL;
 
 	unsigned short *texel_array = NULL;
 	
-	switch( texture->byte )
-	{
+	switch (this->byte) {
 		case 3:
 		{
-			unsigned int j = 0;
-			
 			unsigned char *tmp_array = NULL;
-			
-			texture->byte		= 4;
-			texture->size		= s * texture->byte;
-			texture->texel_type = GL_UNSIGNED_SHORT_5_6_5;
 
-			tmp_array = ( unsigned char * ) malloc( texture->size );
+			this->byte		 = 4;
+			this->size		 = s * this->byte;
+			this->texel_type = GL_UNSIGNED_SHORT_5_6_5;
 
-			while( i != texture->size )
-			{
-				tmp_array[ i     ] = texture->texel_array[ j     ];
-				tmp_array[ i + 1 ] = texture->texel_array[ j + 1 ];
-				tmp_array[ i + 2 ] = texture->texel_array[ j + 2 ];
-				tmp_array[ i + 3 ] = 255;
-				
-				i += texture->byte;
-				j += 3;				
+			tmp_array = (unsigned char *) malloc(this->size);
+
+			for (int i=0, j=0; i!=this->size; i+=this->byte, j+=3) {
+				tmp_array[i  ] = this->texel_array[j  ];
+				tmp_array[i+1] = this->texel_array[j+1];
+				tmp_array[i+2] = this->texel_array[j+2];
+				tmp_array[i+3] = 255;
 			}
 
-			free( texture->texel_array );
-			texture->texel_array = tmp_array;
+			free(this->texel_array);
+			this->texel_array = tmp_array;
 
-			texel_array = ( unsigned short * )texture->texel_array;
+			texel_array = (unsigned short *)this->texel_array;
 
-			t = ( unsigned int * )texture->texel_array;
+			t = (unsigned int *)this->texel_array;
 			
-			i = 0;
-			while( i != s )
-			{
-			   *texel_array++ = ( ( (   *t         & 0xff ) >> 3 ) << 11 ) | 
-								( ( ( ( *t >>  8 ) & 0xff ) >> 2 ) <<  5 ) |
-									( ( *t >> 16 ) & 0xff ) >> 3;
-				++t;
-				++i;					
+			for (int i=0; i!=s; ++i, ++t) {
+			   *texel_array++ = ((( *t        & 0xff) >> 3) << 11) |
+								((((*t >>  8) & 0xff) >> 2) <<  5) |
+                                  ((*t >> 16) & 0xff) >> 3;
 			}
-			
+
 			break;
 		}
 		
 		case 4:
 		{
-			texel_array = ( unsigned short * )texture->texel_array;
+			texel_array = (unsigned short *)this->texel_array;
 
-			t = ( unsigned int * )texture->texel_array;
+			t = (unsigned int *)this->texel_array;
 						
-			if( use_5551 )
-			{
-				texture->texel_type = GL_UNSIGNED_SHORT_5_5_5_1;
+			if (use_5551) {
+				this->texel_type = GL_UNSIGNED_SHORT_5_5_5_1;
 
-				while( i != s )
-				{
-					*texel_array++ = ( ( (   *t         & 0xff ) >> 3 ) << 11 ) |
-									 ( ( ( ( *t >>  8 ) & 0xff ) >> 3 ) <<  6 ) |
-									 ( ( ( ( *t >> 16 ) & 0xff ) >> 3 ) <<  1 ) |
-								         ( ( *t >> 24 ) & 0xff ) >> 7;
-					++t;
-					++i;
+				for (int i=0; i!=s; ++i, ++t) {
+					*texel_array++ = ((( *t        & 0xff) >> 3) << 11) |
+									 ((((*t >>  8) & 0xff) >> 3) <<  6) |
+									 ((((*t >> 16) & 0xff) >> 3) <<  1) |
+                                       ((*t >> 24) & 0xff) >> 7;
 				}
-			}
-			else
-			{
-				texture->texel_type = GL_UNSIGNED_SHORT_4_4_4_4;
+			} else {
+				this->texel_type = GL_UNSIGNED_SHORT_4_4_4_4;
 		
-				while( i != s )
-				{
-					*texel_array++ = ( ( (   *t         & 0xff ) >> 4 ) << 12 ) |
-									 ( ( ( ( *t >>  8 ) & 0xff ) >> 4 ) <<  8 ) |
-									 ( ( ( ( *t >> 16 ) & 0xff ) >> 4 ) <<  4 ) |
-										 ( ( *t >> 24 ) & 0xff ) >> 4;
-					++t;
-					++i;
-				}			
+				for (int i=0; i!=s; ++i, ++t) {
+					*texel_array++ = ((( *t        & 0xff) >> 4) << 12) |
+									 ((((*t >>  8) & 0xff) >> 4) <<  8) |
+									 ((((*t >> 16) & 0xff) >> 4) <<  4) |
+                                       ((*t >> 24) & 0xff) >> 4;
+				}
 			}
 		
 			break;
@@ -351,201 +329,195 @@ void TEXTURE_convert_16_bits( TEXTURE *texture, unsigned char use_5551 )
 }
 
 
-void TEXTURE_generate_id( TEXTURE *texture, unsigned int flags, unsigned char filter, float anisotropic_filter )
+void TEXTURE::generate_id(unsigned int flags,
+                          unsigned char filter,
+                          float anisotropic_filter)
 {
-	if( texture->tid ) TEXTURE_delete_id( texture );
+	if (this->tid)
+        this->delete_id();
 
-	glGenTextures( 1, &texture->tid );
+	glGenTextures(1, &this->tid);
 
-	glBindTexture( texture->target, texture->tid );
+	glBindTexture(this->target, this->tid);
 	
 	
-	if( !texture->compression )
-	{
-		switch( texture->byte )
-		{
-			case 1: glPixelStorei( GL_PACK_ALIGNMENT, 1 ); break;
-			case 2: glPixelStorei( GL_PACK_ALIGNMENT, 2 ); break;
+	if (!this->compression) {
+		switch (this->byte) {
+			case 1: glPixelStorei(GL_PACK_ALIGNMENT, 1); break;
+			case 2: glPixelStorei(GL_PACK_ALIGNMENT, 2); break;
 			case 3:
-			case 4: glPixelStorei( GL_PACK_ALIGNMENT, 4 ); break;
+			case 4: glPixelStorei(GL_PACK_ALIGNMENT, 4); break;
 		}
 
-		if( flags & TEXTURE_16_BITS ) TEXTURE_convert_16_bits( texture, flags & TEXTURE_16_BITS_5551 );
+		if (flags & TEXTURE_16_BITS)
+            this->convert_16_bits(flags & TEXTURE_16_BITS_5551);
 	}
 	
 
-	if( flags & TEXTURE_CLAMP )
-	{
-		glTexParameteri( texture->target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
-		glTexParameteri( texture->target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
-	}
-	else
-	{
-		glTexParameteri( texture->target, GL_TEXTURE_WRAP_S, GL_REPEAT );
-		glTexParameteri( texture->target, GL_TEXTURE_WRAP_T, GL_REPEAT );			
+	if (flags & TEXTURE_CLAMP) {
+		glTexParameteri(this->target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(this->target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	} else {
+		glTexParameteri(this->target, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(this->target, GL_TEXTURE_WRAP_T, GL_REPEAT);			
 	}
 	
 
-	if( anisotropic_filter )
-	{
+	if (anisotropic_filter) {
 		static float texture_max_anisotropy = 0.0f;
 		
-		if( !texture_max_anisotropy ) glGetFloatv( GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT,
-												   &texture_max_anisotropy );
+		if (!texture_max_anisotropy)
+            glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT,
+                        &texture_max_anisotropy);
 
-		anisotropic_filter = CLAMP( anisotropic_filter,
-									0.0f,
-									texture_max_anisotropy );
+		anisotropic_filter = CLAMP(anisotropic_filter,
+                                   0.0f,
+                                   texture_max_anisotropy);
 
-		glTexParameterf( texture->target,
-						 GL_TEXTURE_MAX_ANISOTROPY_EXT,
-						 anisotropic_filter );
+		glTexParameterf(this->target,
+                        GL_TEXTURE_MAX_ANISOTROPY_EXT,
+                        anisotropic_filter);
 	}
 	
 	
-	if( flags & TEXTURE_MIPMAP )
-	{
-		switch( filter )
-		{
+	if (flags & TEXTURE_MIPMAP) {
+		switch (filter) {
 			case TEXTURE_FILTER_1X:
-			{
-				glTexParameteri( texture->target, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR );
-				glTexParameteri( texture->target, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
+				glTexParameteri(this->target, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
+				glTexParameteri(this->target, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 								
 				break;
-			}
-							
+
 			case TEXTURE_FILTER_2X:
-			{
-				glTexParameteri( texture->target, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST );
-				glTexParameteri( texture->target, GL_TEXTURE_MAG_FILTER, GL_LINEAR );				
+				glTexParameteri(this->target, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
+				glTexParameteri(this->target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);				
 				
 				break;
-			}
-							
+
 			case TEXTURE_FILTER_3X:
-			{
-				glTexParameteri( texture->target, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
-				glTexParameteri( texture->target, GL_TEXTURE_MAG_FILTER, GL_LINEAR );				
+				glTexParameteri(this->target, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+				glTexParameteri(this->target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);				
 				
 				break;
-			}
-			
+
 			case TEXTURE_FILTER_0X:
 			default:
-			{
-				glTexParameteri( texture->target, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST );
-				glTexParameteri( texture->target, GL_TEXTURE_MAG_FILTER, GL_NEAREST );					
+				glTexParameteri(this->target, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
+				glTexParameteri(this->target, GL_TEXTURE_MAG_FILTER, GL_NEAREST);					
 
 				break;
-			}
 		}
-	}
-	else
-	{
-		switch( filter )
-		{
+	} else {
+		switch (filter) {
 			case TEXTURE_FILTER_0X:
-			{
-				glTexParameteri( texture->target, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
-				glTexParameteri( texture->target, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
+				glTexParameteri(this->target, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+				glTexParameteri(this->target, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 			
 				break;
-			}
-			
+
 			default:
-			{
-				glTexParameteri( texture->target, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-				glTexParameteri( texture->target, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+				glTexParameteri(this->target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+				glTexParameteri(this->target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 			
 				break;
-			}
 		}
 	}
 
 
-	if( texture->compression )
-	{
-		unsigned int i		= 0,
-					 width  = texture->width,
-					 height = texture->height,
-					 size	= 0,
-					 offset = 0,
-					 bsize  = texture->byte == 4 ? 16 : 32,
+	if (this->compression) {
+		unsigned int width  = this->width,
+					 height = this->height,
+					 bsize  = this->byte == 4 ? 16 : 32,
 					 bwidth,
 					 bheight;
 
-		while( i != texture->n_mipmap )
-		{
-			if( width  < 1 ){ width  = 1; }
-			if( height < 1 ){ height = 1; }
-				
-			bwidth = texture->byte == 4 ?
+		for (int i=0, offset=0, size=0; i!=this->n_mipmap; ++i, offset += size) {
+			if (width  < 1) width  = 1;
+			if (height < 1) height = 1;
+
+			bwidth = this->byte == 4 ?
 					 width >> 2:
 					 width >> 3;
 
 			bheight = height >> 2;	
 			
-			size = bwidth * bheight * ( ( bsize * texture->byte ) >> 3 );				
+			size = bwidth * bheight * ((bsize * this->byte) >> 3);
 
-			if( size < 32 ){ size = 32; }
+			if (size < 32) size = 32;
 			
-			glCompressedTexImage2D( texture->target,
-									i,											
-									texture->compression,
-									width,
-									height,
-									0,
-									size,
-									&texture->texel_array[ offset ] );
+			glCompressedTexImage2D(this->target,
+                                   i,
+                                   this->compression,
+                                   width,
+                                   height,
+                                   0,
+                                   size,
+                                   &this->texel_array[offset]);
 			width  >>= 1;
 			height >>= 1;
-			
-			offset += size;
-
-			++i;
 		}
-	}
-	else
-	{
-		glTexImage2D( texture->target,
-					  0,
-					  texture->internal_format,
-					  texture->width,
-					  texture->height,
-					  0,
-					  texture->format,
-					  texture->texel_type,
-					  texture->texel_array );
+	} else {
+		glTexImage2D(this->target,
+                     0,
+                     this->internal_format,
+                     this->width,
+                     this->height,
+                     0,
+                     this->format,
+                     this->texel_type,
+                     this->texel_array);
 	}
 
 
-	if( flags & TEXTURE_MIPMAP && !texture->n_mipmap ) glGenerateMipmap( texture->target );
+	if (flags & TEXTURE_MIPMAP && !this->n_mipmap) glGenerateMipmap(this->target);
 }
 
 
-void TEXTURE_delete_id( TEXTURE *texture )
+void TEXTURE::delete_id()
 {
-	if( texture->tid )
-	{
-		glDeleteTextures( 1, &texture->tid );
-		texture->tid = 0;
-	}
-}
-
-
-void TEXTURE_free_texel_array( TEXTURE *texture )
-{
-	if( texture->texel_array )
-	{
-		free( texture->texel_array );
-		texture->texel_array = NULL;
+	if (this->tid) {
+		glDeleteTextures(1, &this->tid);
+		this->tid = 0;
 	}
 }
 
 
-void TEXTURE_draw( TEXTURE *texture )
+void TEXTURE::free_texel_array()
 {
-	glBindTexture( texture->target, 
-				   texture->tid );
+	if (this->texel_array) {
+		free(this->texel_array);
+		this->texel_array = NULL;
+	}
+}
+
+
+void TEXTURE::draw()
+{
+	glBindTexture(this->target, this->tid);
+}
+
+void TEXTURE::build(char            *texture_path,
+                    unsigned int    flags,
+                    unsigned char   filter,
+                    float           anisotropic_filter)
+{
+	MEMORY *m = NULL;
+
+	char filename[MAX_PATH] = {""};
+
+	sprintf(filename, "%s%s", texture_path, this->name);
+
+	m = mopen(filename, 0);
+
+	if (m) {
+		this->load(m);
+
+		this->generate_id(flags,
+                          filter,
+                          anisotropic_filter);
+
+		this->free_texel_array();
+
+		mclose(m);
+	}
 }

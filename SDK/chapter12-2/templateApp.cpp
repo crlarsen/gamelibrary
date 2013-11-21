@@ -35,6 +35,7 @@ as being the original software.
  * - OBJVERTEXDATA
  * - PROGRAM
  * - SHADER
+ * - TEXTURE
  */
 
 
@@ -202,13 +203,13 @@ void templateAppInit(int width, int height)
     obj->load_mtl(MTL_FILE, true);
 
     /* Build the textures. */
-    for (int i=0; i!=obj->texture.size(); ++i)
-        OBJ_build_texture(obj,
-                          i,
-                          obj->texture_path,
+    for (auto texture=obj->texture.begin();
+         texture!=obj->texture.end(); ++texture) {
+        (*texture)->build(obj->texture_path,
                           TEXTURE_MIPMAP | TEXTURE_CLAMP | TEXTURE_16_BITS,
                           TEXTURE_FILTER_3X,
                           0.0f);
+    }
 
     /* Build the shader programs (in this case, there's only one). */
     for (auto program=obj->program.begin();

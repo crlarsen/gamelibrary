@@ -35,6 +35,7 @@ as being the original software.
  * - OBJVERTEXDATA
  * - PROGRAM
  * - SHADER
+ * - TEXTURE
  */
 
 #include "templateApp.h"
@@ -270,8 +271,8 @@ void load_game(void)
 
 		obj->objmesh[i].optimize(128);
 
-		/* OBJ_build_mesh2 is another version of the OBJ_build_mesh that
-         * do not use VAO (only pure glDraw calls), at the time of
+        /* OBJMESH::build2 is another version of the OBJMESH::build that
+         * does not use VAO (only pure glDraw calls), at the time of
          * writing this book mixing direct rendering using glDraw
          * commands (as you will do in this chapter) with VAO cause
          * issues on some Android drivers.
@@ -307,13 +308,13 @@ void load_game(void)
     /* Adjust the camera distance so it can frame the maze. */
     distance = maze->radius * 2.0f;
 
-	for (int i=0; i!=obj->texture.size(); ++i)
-		OBJ_build_texture(obj,
-                          i,
-                          obj->texture_path,
+    for (auto texture=obj->texture.begin();
+         texture!=obj->texture.end(); ++texture) {
+        (*texture)->build(obj->texture_path,
                           TEXTURE_MIPMAP | TEXTURE_16_BITS,
                           TEXTURE_FILTER_2X,
                           0.0f);
+    }
 
 	for (auto objmaterial=obj->objmaterial.begin();
          objmaterial!=obj->objmaterial.end(); ++objmaterial) {
@@ -323,8 +324,8 @@ void load_game(void)
 	program = new PROGRAM((char *)"default",
                           VERTEX_SHADER,
                           FRAGMENT_SHADER,
-                          1,
-                          0,
+                          true,
+                          false,
                           program_bind_attrib_location,
                           NULL);
 }
@@ -369,8 +370,8 @@ void draw_navigation_points(NAVIGATIONPATHDATA *navigationpathdata, vec3 *color)
         path_point = new PROGRAM((char *)"path_point",
                                  (char *)"point_vert.glsl",
                                  (char *)"point_frag.glsl",
-                                 1,
-                                 0,
+                                 true,
+                                 false,
                                  program_bind_attrib_location,
                                  NULL);
     }
@@ -505,18 +506,18 @@ void templateAppDraw(void) {
 	rotz = rotz * 0.9f + next_rotz * 0.1f;
 
 	eye.x = center.x +
-    distance *
-    cosf(rotx * DEG_TO_RAD) *
-    sinf(rotz * DEG_TO_RAD);
+            distance *
+            cosf(rotx * DEG_TO_RAD) *
+            sinf(rotz * DEG_TO_RAD);
 
 	eye.y = center.y -
-    distance *
-    cosf(rotx * DEG_TO_RAD) *
-    cosf(rotz * DEG_TO_RAD);
+            distance *
+            cosf(rotx * DEG_TO_RAD) *
+            cosf(rotz * DEG_TO_RAD);
 
 	eye.z = center.z +
-    distance *
-    sinf(rotx * DEG_TO_RAD);
+            distance *
+            sinf(rotx * DEG_TO_RAD);
 
 	rotx = rotx * 0.9f + next_rotx * 0.1f;
 	rotz = rotz * 0.9f + next_rotz * 0.1f;
@@ -834,14 +835,14 @@ void templateAppExit(void) {
         font = NULL;
     }
 
-	if (path_point) {
+    if (path_point) {
         delete path_point;
         path_point = NULL;
-	}
+    }
 
-	NAVIGATION_free(navigation);
+    NAVIGATION_free(navigation);
 
-	free_physic_world();
+    free_physic_world();
 
     delete program;
     program = NULL;
