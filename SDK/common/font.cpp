@@ -183,7 +183,12 @@ void FONT_print( FONT *font, float x, float y, char *text, vec4 *color )
                                                            GL_FALSE,
                                                            (float *)GFX_get_modelview_projection_matrix());
 
-	glUniform1i( font->program->get_uniform_location((char *)"DIFFUSE"), TM_map_Ka);
+    // In this situation it's not an error to use TM_Diffuse_String, and
+    // TM_Ambient together.  This is exactly what the original code does.
+    // At some point I should figure out why the author implemented the
+    // code this way.
+	glUniform1i(font->program->get_uniform_location(TM_Diffuse_String),
+                TM_Ambient);
 	
 	if( color ) glUniform4fv( font->program->get_uniform_location((char *)"COLOR"), 1, (float *)color);
 

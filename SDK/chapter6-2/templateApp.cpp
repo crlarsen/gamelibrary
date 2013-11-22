@@ -294,11 +294,10 @@ bool contact_added_callback(btManifoldPoint &btmanifoldpoint,
 }
 
 void program_bind_attrib_location(void *ptr) {
+    PROGRAM *program = (PROGRAM *)ptr;
 
-	PROGRAM *program = (PROGRAM *)ptr;
-
-	glBindAttribLocation(program->pid, 0, "POSITION");
-	glBindAttribLocation(program->pid, 1, "NORMAL");
+    glBindAttribLocation(program->pid, VA_Position, VA_Position_String);
+    glBindAttribLocation(program->pid, VA_Normal,   VA_Normal_String);
 }
 
 void templateAppInit(int width, int height) {

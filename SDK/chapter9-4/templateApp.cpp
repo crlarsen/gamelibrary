@@ -194,10 +194,10 @@ void free_physic_world(void)
 
 
 void program_bind_attrib_location(void *ptr) {
-	PROGRAM *program = (PROGRAM *)ptr;
+    PROGRAM *program = (PROGRAM *)ptr;
 
-	glBindAttribLocation(program->pid, 0, "POSITION");
-	glBindAttribLocation(program->pid, 2, "TEXCOORD0");
+    glBindAttribLocation(program->pid, VA_Position,  VA_Position_String);
+    glBindAttribLocation(program->pid, VA_TexCoord0, VA_TexCoord0_String);
 }
 
 
@@ -209,8 +209,8 @@ void program_draw(void *ptr)
         auto    &name = it->first;
         auto    &uniform = it->second;
 
-		if(!uniform.constant && (name == "DIFFUSE")) {
-			glUniform1i(uniform.location, 1);
+		if(!uniform.constant && (name == TM_Diffuse_String)) {
+			glUniform1i(uniform.location, TM_Diffuse);
 		
 			uniform.constant = true;
 		} else if(name == "MODELVIEWPROJECTIONMATRIX") {

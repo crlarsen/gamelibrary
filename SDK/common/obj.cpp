@@ -535,25 +535,25 @@ void OBJMESH::build_vbo()
 	free(vertex_start);
 
 
-	this->offset[AO_Position] = 0;
+	this->offset[VA_Position] = 0;
 
 	offset = sizeof(vec3);
 
-	this->offset[AO_Normal] = offset;
+	this->offset[VA_Normal] = offset;
 
 	offset += sizeof(vec3);
 
-	this->offset[AO_FNormal] = offset;
+	this->offset[VA_FNormal] = offset;
 
 	offset += sizeof(vec3);
 
 
 	if (this->objvertexdata[0].uv_index != -1) {
-		this->offset[AO_TexCoord0] = offset;
+		this->offset[VA_TexCoord0] = offset;
 
 		offset += sizeof(vec2);
         
-		this->offset[AO_Tangent0] = offset;
+		this->offset[VA_Tangent0] = offset;
 	}
 
 	
@@ -592,7 +592,7 @@ void OBJMESH::set_attributes()
                           GL_FLOAT,
                           GL_FALSE,
                           this->stride,
-                          BUFFER_OFFSET(this->offset[AO_Normal]));
+                          BUFFER_OFFSET(this->offset[VA_Normal]));
 
 
 	glEnableVertexAttribArray(VA_FNormal);
@@ -602,10 +602,10 @@ void OBJMESH::set_attributes()
                           GL_FLOAT,
                           GL_FALSE,
                           this->stride,
-                          BUFFER_OFFSET(this->offset[AO_FNormal]));
+                          BUFFER_OFFSET(this->offset[VA_FNormal]));
 
 
-	if (this->offset[AO_TexCoord0] != OFFSET_NO_TEXCOORD_NEEDED) {
+	if (this->offset[VA_TexCoord0] != OFFSET_NO_TEXCOORD_NEEDED) {
 		glEnableVertexAttribArray(VA_TexCoord0);
 
 		glVertexAttribPointer(VA_TexCoord0,
@@ -613,7 +613,7 @@ void OBJMESH::set_attributes()
                               GL_FLOAT,
                               GL_FALSE,
                               this->stride,
-                              BUFFER_OFFSET(this->offset[AO_TexCoord0]));
+                              BUFFER_OFFSET(this->offset[VA_TexCoord0]));
         
 		glEnableVertexAttribArray(VA_Tangent0);
         
@@ -622,7 +622,7 @@ void OBJMESH::set_attributes()
                               GL_FLOAT,
                               GL_FALSE, 
                               this->stride,
-                              BUFFER_OFFSET(this->offset[AO_Tangent0]));
+                              BUFFER_OFFSET(this->offset[VA_Tangent0]));
 	}
 }
 

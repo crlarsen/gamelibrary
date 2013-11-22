@@ -75,12 +75,12 @@ enum TextureMap {
 #define TM_map_Bump_String  TM_Bump_String
 #define TM_map_Tr_String    TM_Transparency_String
 
-// Definitions for material color information:
-#define MC_Dissolve     ((char *)"DISSOLVE")
-#define MC_Ambient      ((char *)"AMBIENT_COLOR")
-#define MC_Diffuse      ((char *)"DIFFUSE_COLOR")
-#define MC_Specular     ((char *)"SPECULAR_COLOR")
-#define MC_Shininess    ((char *)"SHININESS")
+// Definitions for material property information:
+#define MP_Dissolve     ((char *)"DISSOLVE")
+#define MP_Ambient      ((char *)"AMBIENT_COLOR")
+#define MP_Diffuse      ((char *)"DIFFUSE_COLOR")
+#define MP_Specular     ((char *)"SPECULAR_COLOR")
+#define MP_Shininess    ((char *)"SHININESS")
 
 struct OBJMATERIAL {
 	char					name[ MAX_CHAR ];				// newmtl
@@ -216,14 +216,6 @@ enum VertexAttribute {  // Use with glBindAttribLocation()
 #define VA_TexCoord0_String ((char *)"TEXCOORD0")
 #define VA_Tangent0_String  ((char *)"TANGENT0")
 #define VA_FNormal_String   ((char *)"FNORMAL")
-
-enum AttributeOffset {  // Use with OBJMESH->offset below
-    AO_Position = 0,
-    AO_Normal = 1,
-    AO_FNormal = 2,
-    AO_TexCoord0 = 3,
-    AO_Tangent0 = 4
-    };
 
 #define OFFSET_NO_TEXCOORD_NEEDED  (~0)
 

@@ -77,13 +77,12 @@ LIGHT *light = NULL;
 
 
 void program_bind_attrib_location(void *ptr) {
+    PROGRAM *program = (PROGRAM *)ptr;
 
-	PROGRAM *program = (PROGRAM *)ptr;
-
-	glBindAttribLocation(program->pid, 0, "POSITION");
-	glBindAttribLocation(program->pid, 1, "NORMAL" );
-	glBindAttribLocation(program->pid, 2, "TEXCOORD0");
-	glBindAttribLocation(program->pid, 3, "TANGENT0");
+    glBindAttribLocation(program->pid, VA_Position,  VA_Position_String);
+    glBindAttribLocation(program->pid, VA_Normal,    VA_Normal_String);
+    glBindAttribLocation(program->pid, VA_TexCoord0, VA_TexCoord0_String);
+    glBindAttribLocation(program->pid, VA_Tangent0,  VA_Tangent0_String);
 }
 
 
@@ -102,12 +101,12 @@ void program_draw(void *ptr)
                                1,
                                GL_FALSE,
                                (float *)GFX_get_modelview_projection_matrix());
-		} else if (name == "DIFFUSE") {
-			glUniform1i(uniform.location, 1);
+		} else if (name == TM_Diffuse_String) {
+			glUniform1i(uniform.location, TM_Diffuse);
 
 			uniform.constant = true;
-		} else if (name == "BUMP") {
-			glUniform1i(uniform.location, 4);
+		} else if (name == TM_Bump_String) {
+			glUniform1i(uniform.location, TM_Bump);
 
 			uniform.constant = true;
 		} else if (name == "MODELVIEWMATRIX") {

@@ -108,11 +108,10 @@ TEMPLATEAPP templateApp = { templateAppInit,
 							templateAppToucheBegan };
 
 void program_bind_attrib_location(void *ptr) {
+    PROGRAM *program = (PROGRAM *)ptr;
 
-	PROGRAM *program = (PROGRAM *)ptr;
-
-	glBindAttribLocation(program->pid, 0, "POSITION");
-	glBindAttribLocation(program->pid, 2, "TEXCOORD0");
+    glBindAttribLocation(program->pid, VA_Position,  VA_Position_String);
+    glBindAttribLocation(program->pid, VA_TexCoord0, VA_TexCoord0_String);
 }
 
 /* The thread function callback.  Note that the void *ptr parameter is the
@@ -353,7 +352,7 @@ void templateAppDraw(void) {
          * passed to the shader, and because black + color = color, your
          * object will be drawn using this unique color.
          */
-        glUniform1i(program->get_uniform_location((char *)"DIFFUSE"), 7);
+        glUniform1i(program->get_uniform_location(TM_Diffuse_String), TM_Unused);
         /* Loop for the maximum amount of piano key avoiding to draw the
          * curtain (which is the last object recorded in the OBJ file).
          */
@@ -454,7 +453,7 @@ void templateAppDraw(void) {
 
     unsigned char source_playing = 0;
 
-	glUniform1i(program->get_uniform_location((char *)"DIFFUSE"), 1);
+	glUniform1i(program->get_uniform_location(TM_Diffuse_String), TM_Diffuse);
 
 	for (auto objmesh=obj->objmesh.begin();
          objmesh!=obj->objmesh.end(); ++objmesh) {

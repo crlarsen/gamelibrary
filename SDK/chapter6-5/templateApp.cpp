@@ -294,11 +294,10 @@ bool contact_added_callback(btManifoldPoint &btmanifoldpoint,
 
 
 void program_bind_attrib_location(void *ptr) {
+    PROGRAM *program = (PROGRAM *)ptr;
 
-	PROGRAM *program = (PROGRAM *)ptr;
-
-	glBindAttribLocation(program->pid, 0, "POSITION");
-	glBindAttribLocation(program->pid, 2, "TEXCOORD0");
+    glBindAttribLocation(program->pid, VA_Position,  VA_Position_String);
+    glBindAttribLocation(program->pid, VA_TexCoord0, VA_TexCoord0_String);
 }
 
 void get_next_momo(void)
@@ -421,7 +420,7 @@ void load_game(void)
 
 	program->draw();
 	
-	glUniform1i(program->get_uniform_location((char *)"DIFFUSE"), 1);
+	glUniform1i(program->get_uniform_location(TM_Diffuse_String), TM_Diffuse);
 
     momo_index  = 0;
     momo_launch = false;

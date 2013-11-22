@@ -49,9 +49,9 @@ TEMPLATEAPP templateApp = {
 
 void program_bind_attrib_location(void *ptr) {
     PROGRAM *program = (PROGRAM *)ptr;
-    glBindAttribLocation(program->pid, 0, "POSITION");
-    glBindAttribLocation(program->pid, 1, "NORMAL");
-    glBindAttribLocation(program->pid, 2, "TEXCOORD0");
+    glBindAttribLocation(program->pid, VA_Position,  VA_Position_String);
+    glBindAttribLocation(program->pid, VA_Normal,  VA_Normal_String);
+    glBindAttribLocation(program->pid, VA_TexCoord0, VA_TexCoord0_String);
 }
 
 /* This time you will use the material draw callback instead of the
@@ -66,30 +66,30 @@ void material_draw_callback(void *ptr)
     for (auto it=program->uniform_map.begin(); it!=program->uniform_map.end(); ++it) {
         auto    &name = it->first;
         auto    &uniform = it->second;
-        if (name == "DIFFUSE") {
+        if (name == TM_Diffuse_String) {
             /* If a diffuse texture is specified inside the MTL file, it
              * will always be bound to the second texture channel
              * (GL_TEXTURE1).
              */
-            glUniform1i(uniform.location, 1);
+            glUniform1i(uniform.location, TM_Diffuse);
         } else if (name == "MODELVIEWPROJECTIONMATRIX") {
             /* Send over the current model view matrix multiplied by the
              * projection matrix.
              */
             glUniformMatrix4fv(uniform.location, 1, GL_FALSE,
                                (float *)GFX_get_modelview_projection_matrix());
-        } else if (name == "DISSOLVE") {
+        } else if (name == MP_Dissolve) {   // aka alpha
             glUniform1f(uniform.location, objmaterial->dissolve);
-        } else if (name == "AMBIENT_COLOR") {
+        } else if (name == MP_Ambient) {
             glUniform3fv(uniform.location, 1,
                          (float *)&objmaterial->ambient);
-        } else if (name == "DIFFUSE_COLOR") {
+        } else if (name == MP_Diffuse) {
             glUniform3fv(uniform.location, 1,
                          (float *)&objmaterial->diffuse);
-        } else if (name == "SPECULAR_COLOR") {
+        } else if (name == MP_Specular) {
             glUniform3fv(uniform.location, 1,
                          (float *)&objmaterial->specular);
-        } else if (name == "SHININESS") {
+        } else if (name == MP_Shininess) {
             glUniform1f(uniform.location,
                         objmaterial->specular_exponent * 0.128f);
         } else if (name == "MODELVIEWMATRIX") {
