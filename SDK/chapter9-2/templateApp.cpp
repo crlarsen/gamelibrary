@@ -35,6 +35,7 @@ as being the original software.
  * - OBJVERTEXDATA
  * - PROGRAM
  * - SHADER
+ * - TEXTURE
  */
 
 #include "templateApp.h"
@@ -99,7 +100,7 @@ void templateAppInit( int width, int height )
     /* Ask OpenAL to give you a valid ID for a new sound buffer. */
     alGenBuffers( 1, &soundbuffer );
     /* Load the raw sound file in memory. */
-    MEMORY *memory = mopen( ( char * )"test.raw", 1 );
+    MEMORY *memory = mopen((char *)"test.raw", true);
     /* Send over the content of the file to the audio memory. */
     alBufferData( soundbuffer,
                  AL_FORMAT_MONO16,  // Tell OpenAL that the sound file is

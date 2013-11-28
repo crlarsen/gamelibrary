@@ -47,7 +47,7 @@ void get_file_path( char *filepath, char *path );
 
 void get_file_name( char *filepath, char *name );
 
-void get_file_extension( char *filepath, char *ext, unsigned char uppercase );
+void get_file_extension( char *filepath, char *ext, const bool uppercase );
 
 void generate_color_from_index( unsigned int index, vec4 *color );
 
@@ -57,13 +57,19 @@ void build_frustum( vec4 frustum[ 6 ], mat4 *modelview_matrix, mat4 *projection_
 
 float sphere_distance_in_frustum( vec4 *frustum, vec3  *location, float radius );
 
-unsigned char point_in_frustum( vec4 *frustum, vec3 *location );
+bool point_in_frustum( vec4 *frustum, vec3 *location );
 
-unsigned char box_in_frustum( vec4 *frustum, vec3 *location, vec3 *dimension );
+bool box_in_frustum( vec4 *frustum, vec3 *location, vec3 *dimension );
 
-unsigned char sphere_intersect_frustum( vec4 *frustum, vec3 *location, float radius );
+enum InFrustum {
+    IF_Outside   = 0,
+    IF_Intersect = 1,
+    IF_Inside    = 2
+};
 
-unsigned char box_intersect_frustum( vec4 *frustum, vec3 *location, vec3 *dimension );
+InFrustum sphere_intersect_frustum( vec4 *frustum, vec3 *location, float radius );
+
+InFrustum box_intersect_frustum( vec4 *frustum, vec3 *location, vec3 *dimension );
 
 unsigned int get_next_pow2( unsigned int size );
 

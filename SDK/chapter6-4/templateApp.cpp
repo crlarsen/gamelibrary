@@ -35,6 +35,7 @@ as being the original software.
  * - OBJVERTEXDATA
  * - PROGRAM
  * - SHADER
+ * - TEXTURE
  */
 
 #include "templateApp.h"

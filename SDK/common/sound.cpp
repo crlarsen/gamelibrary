@@ -20,6 +20,19 @@ as being the original software.
 3. This notice may not be removed or altered from any source distribution.
 
 */
+/*
+ * Source code modified by Chris Larsen to make the following data types into
+ * proper C++ classes:
+ * - OBJ
+ * - OBJMATERIAL
+ * - OBJMESH
+ * - OBJTRIANGLEINDEX
+ * - OBJTRIANGLELIST
+ * - OBJVERTEXDATA
+ * - PROGRAM
+ * - SHADER
+ * - TEXTURE
+ */
 
 #include "gfx.h"
 
@@ -28,7 +41,7 @@ SOUNDBUFFER *SOUNDBUFFER_load( char *name, MEMORY *memory )
 {
 	char ext[ MAX_CHAR ] = {""};
 	
-	get_file_extension( memory->filename, ext, 1 );
+	get_file_extension( memory->filename, ext, true);
 	
 	if( !strcmp( ext, "OGG" ) )
 	{
@@ -100,7 +113,7 @@ SOUNDBUFFER *SOUNDBUFFER_load_stream( char *name, MEMORY *memory )
 {
 	char ext[ MAX_CHAR ] = {""};
 	
-	get_file_extension( memory->filename, ext, 1 );
+	get_file_extension( memory->filename, ext, true);
 	
 	if( !strcmp( ext, "OGG" ) )
 	{

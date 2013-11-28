@@ -31,6 +31,7 @@ as being the original software.
  * - OBJVERTEXDATA
  * - PROGRAM
  * - SHADER
+ * - TEXTURE
  */
 
 #include "gfx.h"
@@ -91,16 +92,16 @@ FONT *FONT_free( FONT *font )
 }
 
 
-unsigned char FONT_load( FONT			*font,
-						 char			*filename,
-						 unsigned char	relative_path,
-						 float			font_size,
-						 unsigned int	texture_width,
-						 unsigned int	texture_height,
-						 int			first_character,
-						 int			count_character )
+unsigned char FONT_load(FONT            *font,
+                        char            *filename,
+                        const bool      relative_path,
+                        float           font_size,
+                        unsigned int    texture_width,
+                        unsigned int    texture_height,
+                        int             first_character,
+                        int             count_character)
 {
-	MEMORY *m = mopen( filename, relative_path );
+	MEMORY *m = mopen(filename, relative_path);
 
 	if( m )
 	{

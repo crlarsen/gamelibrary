@@ -91,7 +91,7 @@ void TEXTURE::load(MEMORY *memory)
 	
 	get_file_name(memory->filename, this->name);
 	
-	get_file_extension(memory->filename, ext, 1);
+	get_file_extension(memory->filename, ext, true);
 	
 	if (!strcmp(ext, "PNG"))
         this->load_png(memory);
@@ -507,7 +507,7 @@ void TEXTURE::build(char            *texture_path,
 
 	sprintf(filename, "%s%s", texture_path, this->name);
 
-	m = mopen(filename, 0);
+	m = mopen(filename, false);
 
 	if (m) {
 		this->load(m);

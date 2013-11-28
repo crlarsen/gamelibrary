@@ -183,7 +183,7 @@ void templateAppInit(int width, int height) {
         char soundfile[MAX_CHAR] = {""};
         sprintf(soundfile, "%02d.ogg", i);
         /* Load the sound file into memory. */
-        memory = mopen(soundfile, 1);
+        memory = mopen(soundfile, true);
         /* Create a new sound buffer pointer and associate the content loaded
          * from disk to it.  Note that the OGG decompresiion is automatically
          * handled inside the SOUNDBUFFER_load function.
@@ -201,12 +201,12 @@ void templateAppInit(int width, int height) {
     }
 
     /* Next, load the sound to play if the user makes a mistake. */
-    memory = mopen((char *)"wrong.ogg", 1);
+    memory = mopen((char *)"wrong.ogg", true);
     wrongbuffer = SOUNDBUFFER_load((char *)"wrong", memory);
     mclose(memory);
     wrong = SOUND_add((char *)"wrong", wrongbuffer);
 
-    memory = mopen((char *)"lounge.ogg", 1);
+    memory = mopen((char *)"lounge.ogg", true);
     /* Create the sound buffer using the SOUNDBUFFER_load_stream API.  This
      * function will initialize multiple sound buffer IDs internally and
      * will fill them with uncompressed chunks of the OGG stream.  The
@@ -272,7 +272,7 @@ void templateAppInit(int width, int height) {
 
 	FONT_load(font_small,
               font_small->name,
-              1,
+              true,
               32.0f,
               512,
               512,
@@ -283,7 +283,7 @@ void templateAppInit(int width, int height) {
 
 	FONT_load(font_big,
               font_big->name,
-              1,
+              true,
               64.0f,
               512,
               512,

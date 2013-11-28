@@ -20,6 +20,19 @@ as being the original software.
 3. This notice may not be removed or altered from any source distribution.
 
 */
+/*
+ * Source code modified by Chris Larsen to make the following data types into
+ * proper C++ classes:
+ * - OBJ
+ * - OBJMATERIAL
+ * - OBJMESH
+ * - OBJTRIANGLEINDEX
+ * - OBJTRIANGLELIST
+ * - OBJVERTEXDATA
+ * - PROGRAM
+ * - SHADER
+ * - TEXTURE
+ */
 
 #ifndef MD5_H
 #define MD5_H
@@ -192,9 +205,9 @@ typedef struct
 } MD5;
 
 
-MD5 *MD5_load_mesh( char *filename, unsigned char relative_path );
+MD5 *MD5_load_mesh( char *filename, const bool relative_path );
 
-int MD5_load_action( MD5 *md5, char *name, char *filename, unsigned char relative_path );
+int MD5_load_action( MD5 *md5, char *name, char *filename, const bool relative_path );
 
 MD5 *MD5_free( MD5 *md5 );
 

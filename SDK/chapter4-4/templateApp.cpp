@@ -123,10 +123,10 @@ void templateAppInit(int width, int height)
     /* Load the global vertex shader that you are going to use for all
      * the material shader programs.
      */
-    MEMORY *vertex_shader = mopen((char *)"Uber.vs", 1);
+    MEMORY *vertex_shader = mopen((char *)"Uber.vs", true);
     for (auto objmaterial=obj->objmaterial.begin();
          objmaterial!=obj->objmaterial.end(); ++objmaterial) {
-        MEMORY *fragment_shader = mopen((char *)"Uber.fs", 1);
+        MEMORY *fragment_shader = mopen((char *)"Uber.fs", true);
 
         objmaterial->build(NULL);
         /* The material has no alpha, so it is considered a solid

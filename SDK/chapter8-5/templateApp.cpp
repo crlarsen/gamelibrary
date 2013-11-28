@@ -157,7 +157,7 @@ void load_physic_world(void)
 {
 	btBulletWorldImporter *btbulletworldimporter = new btBulletWorldImporter(dynamicsworld);
 
-	MEMORY *memory = mopen(PHYSIC_FILE, 1);
+	MEMORY *memory = mopen(PHYSIC_FILE, true);
 
 	btbulletworldimporter->loadFileFromMemory((char *)memory->buffer, memory->size);
 
@@ -772,7 +772,7 @@ void templateAppDraw(void) {
             font = FONT_init((char *)"foo.ttf");
             FONT_load(font,
                       font->name,
-                      1,
+                      true,
                       64.0f,
                       512,
                       512,

@@ -160,8 +160,8 @@ void templateAppInit(int width, int height)
      */
     for (auto objmaterial=obj->objmaterial.begin();
          objmaterial!=obj->objmaterial.end(); ++objmaterial) {
-        MEMORY *fragment_shader = mopen((char *)"Uber.fs", 1);
-        MEMORY *vertex_shader = mopen((char *)"Uber.vs", 1);
+        MEMORY *fragment_shader = mopen((char *)"Uber.fs", true);
+        MEMORY *vertex_shader = mopen((char *)"Uber.vs", true);
 
         objmaterial->build(NULL);
         /* The material has no alpha, so it is considered a solid

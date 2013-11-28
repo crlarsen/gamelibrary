@@ -122,7 +122,7 @@ void load_physic_world(void)
 {
 	btBulletWorldImporter *btbulletworldimporter = new btBulletWorldImporter(dynamicsworld);
 
-	MEMORY *memory = mopen(PHYSIC_FILE, 1);
+	MEMORY *memory = mopen(PHYSIC_FILE, true);
 
 	btbulletworldimporter->loadFileFromMemory((char *)memory->buffer, memory->size);
 

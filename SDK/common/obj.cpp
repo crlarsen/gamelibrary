@@ -118,17 +118,24 @@ OBJMESH::~OBJMESH()
     objtrianglelist.clear();
 }
 
-OBJMESH::OBJMESH(const OBJMESH &src)
+OBJMESH::OBJMESH(const OBJMESH &src) :
+    visible(src.visible),
+    objvertexdata(src.objvertexdata),
+    objtrianglelist(src.objtrianglelist),
+    current_material(src.current_material),
+    radius(src.radius),
+    distance(src.distance),
+    vbo(src.vbo),
+    stride(src.stride),
+    size(src.size),
+    vao(src.vao),
+    btrigidbody(src.btrigidbody),
+    use_smooth_normals(src.use_smooth_normals),
+    parent(src.parent)
 {
     strcpy(name, src.name);
-    visible = src.visible;
     strcpy(group, src.group);
 
-    objvertexdata = src.objvertexdata;
-
-    objtrianglelist = src.objtrianglelist;
-
-    current_material = src.current_material;
     memcpy(&location, &src.location, sizeof(vec3));
     memcpy(&rotation, &src.rotation, sizeof(vec3));
     memcpy(&scale, &src.scale, sizeof(vec3));
@@ -136,18 +143,7 @@ OBJMESH::OBJMESH(const OBJMESH &src)
     memcpy(&max, &src.max, sizeof(vec3));
     memcpy(&dimension, &src.dimension, sizeof(vec3));
 
-    radius = src.radius;
-    distance = src.distance;
-    vbo = src.vbo;
-    stride = src.stride;
-    size = src.size;
-
     memcpy(offset, src.offset, sizeof(offset));
-
-    vao = src.vao;
-    btrigidbody = src.btrigidbody;
-    use_smooth_normals = src.use_smooth_normals;
-    parent = src.parent;
 }
 
 OBJMESH &OBJMESH::operator=(const OBJMESH &rhs)
@@ -193,22 +189,15 @@ OBJTRIANGLELIST::~OBJTRIANGLELIST()
     indice_array.clear();
 }
 
-OBJTRIANGLELIST::OBJTRIANGLELIST(const OBJTRIANGLELIST &src)
-{
-    objtriangleindex = src.objtriangleindex;
-
-    useuvs = src.useuvs;
-
-    n_indice_array = src.n_indice_array;
-
-    indice_array = src.indice_array;
-
-    objmaterial = src.objmaterial;
-
-    mode = src.mode;
-
-    vbo = src.vbo;
-}
+OBJTRIANGLELIST::OBJTRIANGLELIST(const OBJTRIANGLELIST &src) :
+    objtriangleindex(src.objtriangleindex),
+    useuvs(src.useuvs),
+    n_indice_array(src.n_indice_array),
+    indice_array(src.indice_array),
+    objmaterial(src.objmaterial),
+    mode(src.mode),
+    vbo(src.vbo)
+{}
 
 OBJTRIANGLELIST &OBJTRIANGLELIST::operator=(const OBJTRIANGLELIST &rhs)
 {
@@ -302,7 +291,7 @@ void OBJMATERIAL::build(PROGRAM *program)
 	char ext[MAX_CHAR] = {""};
 
 	if (this->map_ambient[0]) {
-		get_file_extension(this->map_ambient, ext, 1);
+		get_file_extension(this->map_ambient, ext, true);
 
 		if (!strcmp(ext, "GFX")) {
 			index = this->parent->get_program_index(this->map_ambient);
@@ -317,7 +306,7 @@ void OBJMATERIAL::build(PROGRAM *program)
 
 
 	if (this->map_diffuse[0]) {
-		get_file_extension(this->map_diffuse, ext, 1);
+		get_file_extension(this->map_diffuse, ext, true);
 
 		if (!strcmp(ext, "GFX")) {
 			index = this->parent->get_program_index(this->map_diffuse);
@@ -332,7 +321,7 @@ void OBJMATERIAL::build(PROGRAM *program)
 
 
 	if (this->map_specular[0]) {
-		get_file_extension(this->map_specular, ext, 1);
+		get_file_extension(this->map_specular, ext, true);
 
 		if (!strcmp(ext, "GFX")) {
 			index = this->parent->get_program_index(this->map_specular);
@@ -347,7 +336,7 @@ void OBJMATERIAL::build(PROGRAM *program)
 
 
 	if (this->map_translucency[0]) {
-		get_file_extension(this->map_translucency, ext, 1);
+		get_file_extension(this->map_translucency, ext, true);
 
 		if (!strcmp(ext, "GFX")) {
 			index = this->parent->get_program_index(this->map_translucency);
@@ -362,7 +351,7 @@ void OBJMATERIAL::build(PROGRAM *program)
 
 
 	if (this->map_disp[0]) {
-		get_file_extension(this->map_disp, ext, 1);
+		get_file_extension(this->map_disp, ext, true);
 
 		if (!strcmp(ext, "GFX")) {
 			index = this->parent->get_program_index(this->map_disp);
@@ -377,7 +366,7 @@ void OBJMATERIAL::build(PROGRAM *program)
 
 
 	if (this->map_bump[0]) {
-		get_file_extension(this->map_bump, ext, 1);
+		get_file_extension(this->map_bump, ext, true);
 
 		if (!strcmp(ext, "GFX")) {
 			index = this->parent->get_program_index(this->map_bump);
@@ -443,13 +432,13 @@ void OBJMESH::update_bounds()
 
 	// Bounding sphere radius
 	this->radius = this->dimension.x > this->dimension.y ?
-					  this->dimension.x:
-					  this->dimension.y;
-	
+                   this->dimension.x:
+                   this->dimension.y;
+
 	this->radius = this->radius > this->dimension.z ?
-					  this->radius * 0.5f:
-					  this->dimension.z * 0.5f;
-	
+                   this->radius * 0.5f:
+                   this->dimension.z * 0.5f;
+
 	/*
 	objmesh->radius = vec3_dist(&objmesh->min,
 								&objmesh->max) * 0.5f;
@@ -812,32 +801,32 @@ OBJMATERIAL::~OBJMATERIAL()
     delete program;
 }
 
-OBJMATERIAL::OBJMATERIAL(const OBJMATERIAL &src)
+OBJMATERIAL::OBJMATERIAL(const OBJMATERIAL &src) :
+    illumination_model(src.illumination_model),
+    dissolve(src.dissolve),
+    specular_exponent(src.specular_exponent),
+    optical_density(src.optical_density),
+    texture_ambient(src.texture_ambient),
+    texture_diffuse(src.texture_diffuse),
+    texture_specular(src.texture_specular),
+    texture_translucency(src.texture_translucency),
+    texture_disp(src.texture_disp),
+    texture_bump(src.texture_bump),
+    program(src.program),
+    materialdrawcallback(src.materialdrawcallback),
+    parent(src.parent)
 {
     strcpy(name, src.name);
     memcpy(&ambient, &src.ambient, sizeof(vec4));
     memcpy(&diffuse, &src.diffuse, sizeof(vec4));
     memcpy(&specular, &src.specular, sizeof(vec4));
     memcpy(&transmission_filter, &src.transmission_filter, sizeof(vec3));
-    illumination_model = src.illumination_model;
-    dissolve = src.dissolve;
-    specular_exponent = src.specular_exponent;
-    optical_density = src.optical_density;
     strcpy(map_ambient, src.map_ambient);
     strcpy(map_diffuse, src.map_diffuse);
     strcpy(map_specular, src.map_specular);
     strcpy(map_translucency, src.map_translucency);
     strcpy(map_disp, src.map_disp);
     strcpy(map_bump, src.map_bump);
-    texture_ambient = src.texture_ambient;
-    texture_diffuse = src.texture_diffuse;
-    texture_specular= src.texture_specular;
-    texture_translucency = src.texture_translucency;
-    texture_disp = src.texture_disp;
-    texture_bump = src.texture_bump;
-    program = src.program;
-    materialdrawcallback = src.materialdrawcallback;
-    parent = src.parent;
 }
 
 OBJMATERIAL &OBJMATERIAL::operator=(const OBJMATERIAL &rhs)
@@ -1054,7 +1043,7 @@ bool OBJ::load_mtl(char *filename, const bool relative_path)
         } else if (sscanf(line, "map_Ka %s", str) == 1) {
 			get_file_name(str, objmaterial->map_ambient);
 			
-			get_file_extension(objmaterial->map_ambient, str, 1);
+			get_file_extension(objmaterial->map_ambient, str, true);
 			
 			if (!strcmp(str, "GFX"))
                 this->add_program(objmaterial->map_ambient);
@@ -1063,7 +1052,7 @@ bool OBJ::load_mtl(char *filename, const bool relative_path)
 		} else if (sscanf(line, "map_Kd %s", str) == 1) {
 			get_file_name(str, objmaterial->map_diffuse);
 			
-			get_file_extension(objmaterial->map_diffuse, str, 1);
+			get_file_extension(objmaterial->map_diffuse, str, true);
 			
 			if (!strcmp(str, "GFX"))
                 this->add_program(objmaterial->map_diffuse);
@@ -1072,7 +1061,7 @@ bool OBJ::load_mtl(char *filename, const bool relative_path)
 		} else if (sscanf(line, "map_Ks %s", str) == 1) {
 			get_file_name(str, objmaterial->map_specular);
 			
-			get_file_extension(objmaterial->map_specular, str, 1);
+			get_file_extension(objmaterial->map_specular, str, true);
 			
 			if (!strcmp(str, "GFX"))
                 this->add_program(objmaterial->map_specular);
@@ -1081,7 +1070,7 @@ bool OBJ::load_mtl(char *filename, const bool relative_path)
 		} else if (sscanf(line, "map_Tr %s", str) == 1) {
 			get_file_name(str, objmaterial->map_translucency);
 			
-			get_file_extension(objmaterial->map_translucency, str, 1);
+			get_file_extension(objmaterial->map_translucency, str, true);
 			
 			if (!strcmp(str, "GFX"))
                 this->add_program(objmaterial->map_translucency);
@@ -1092,7 +1081,7 @@ bool OBJ::load_mtl(char *filename, const bool relative_path)
                    sscanf(line, "disp %s"    , str) == 1) {
 			get_file_name(str, objmaterial->map_disp);
 			
-			get_file_extension(objmaterial->map_disp, str, 1);
+			get_file_extension(objmaterial->map_disp, str, true);
 			
 			if (!strcmp(str, "GFX"))
                 this->add_program(objmaterial->map_disp);
@@ -1104,7 +1093,7 @@ bool OBJ::load_mtl(char *filename, const bool relative_path)
                    sscanf(line, "bump %s"	, str) == 1) {
 			get_file_name(str, objmaterial->map_bump);
 			
-			get_file_extension(objmaterial->map_bump, str, 1);
+			get_file_extension(objmaterial->map_bump, str, true);
 			
 			if (!strcmp(str, "GFX"))
                 this->add_program(objmaterial->map_bump);
@@ -1124,7 +1113,7 @@ bool OBJ::load_mtl(char *filename, const bool relative_path)
 
 
 
-OBJ::OBJ(char *filename, bool relative_path)
+OBJ::OBJ(char *filename, const bool relative_path)
 {
     memset(this->texture_path, 0, sizeof(this->texture_path));
     memset(this->program_path, 0, sizeof(this->program_path));

@@ -81,26 +81,26 @@ void material_draw_callback(void *ptr)
         auto    &name = it->first;
         auto    &uniform = it->second;
 
-		if (name == "MODELVIEWMATRIX") {
-			glUniformMatrix4fv(uniform.location,
+        if (name == "MODELVIEWMATRIX") {
+            glUniformMatrix4fv(uniform.location,
                                1,
                                GL_FALSE,
                                (float *)GFX_get_modelview_matrix());
         } else if (name == "PROJECTIONMATRIX") {
-			glUniformMatrix4fv(uniform.location,
+            glUniformMatrix4fv(uniform.location,
                                1,
                                GL_FALSE,
                                (float *)GFX_get_projection_matrix());
         } else if ((name == TM_Diffuse_String) && !uniform.constant) {
-			uniform.constant = true;
+            uniform.constant = true;
 
-			glUniform1i(uniform.location, TM_Diffuse);
+            glUniform1i(uniform.location, TM_Diffuse);
         } else if (name == MP_Diffuse) {
-			glUniform3fv(uniform.location,
+            glUniform3fv(uniform.location,
                          1,
                          (float *)&objmaterial->diffuse);
         } else if ((name == TM_Bump_String) && !uniform.constant) {
-			uniform.constant = true;
+            uniform.constant = true;
 
             glUniform1i(uniform.location, TM_Bump);
         } else if (name == "LIGHTPOSITION") {
@@ -119,7 +119,7 @@ void material_draw_callback(void *ptr)
                                GL_FALSE,
                                (float *) GFX_get_normal_matrix());
         }
-	}
+    }
 }
 
 void templateAppInit(int width, int height) {

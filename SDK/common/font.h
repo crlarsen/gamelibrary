@@ -20,6 +20,19 @@ as being the original software.
 3. This notice may not be removed or altered from any source distribution.
 
 */
+/*
+ * Source code modified by Chris Larsen to make the following data types into
+ * proper C++ classes:
+ * - OBJ
+ * - OBJMATERIAL
+ * - OBJMESH
+ * - OBJTRIANGLEINDEX
+ * - OBJTRIANGLELIST
+ * - OBJVERTEXDATA
+ * - PROGRAM
+ * - SHADER
+ * - TEXTURE
+ */
 
 
 #ifndef FONT_H
@@ -53,7 +66,7 @@ FONT *FONT_init( char *name );
 
 FONT *FONT_free( FONT *font );
 
-unsigned char FONT_load( FONT *font, char *filename, unsigned char relative_path, float font_size, unsigned int texture_width, unsigned int texture_height, int first_character, int count_character );
+unsigned char FONT_load( FONT *font, char *filename, const bool relative_path, float font_size, unsigned int texture_width, unsigned int texture_height, int first_character, int count_character );
 
 void FONT_print( FONT *font, float x, float y, char *text, vec4 *color );
 

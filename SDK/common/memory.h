@@ -20,6 +20,19 @@ as being the original software.
 3. This notice may not be removed or altered from any source distribution.
 
 */
+/*
+ * Source code modified by Chris Larsen to make the following data types into
+ * proper C++ classes:
+ * - OBJ
+ * - OBJMATERIAL
+ * - OBJMESH
+ * - OBJTRIANGLEINDEX
+ * - OBJTRIANGLELIST
+ * - OBJVERTEXDATA
+ * - PROGRAM
+ * - SHADER
+ * - TEXTURE
+ */
 
 #ifndef MEMORY_H
 #define MEMORY_H
@@ -27,7 +40,7 @@ as being the original software.
 
 typedef struct
 {
-	char			filename[ MAX_PATH ];
+	char			filename[MAX_PATH];
 	
 	unsigned int	size;
 	
@@ -38,12 +51,12 @@ typedef struct
 } MEMORY;
 
 
-MEMORY *mopen( char *filename, unsigned char relative_path );
+MEMORY *mopen(const char *filename, const bool relative_path);
 
-MEMORY *mclose( MEMORY *memory );
+MEMORY *mclose(MEMORY *memory);
 
-unsigned int mread( MEMORY *memory, void *dst, unsigned int size );
+unsigned int mread(MEMORY *memory, void *dst, unsigned int size);
 
-void minsert( MEMORY *memory, char *str, unsigned int position );
+void minsert(MEMORY *memory, char *str, unsigned int position);
 
 #endif

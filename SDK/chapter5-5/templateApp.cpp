@@ -81,7 +81,7 @@ void material_draw_callback(void *ptr)
         auto    &name = it->first;
         auto    &uniform = it->second;
 
-		if (name == "MODELVIEWMATRIX") {
+        if (name == "MODELVIEWMATRIX") {
 			glUniformMatrix4fv(uniform.location,
                                1,
                                GL_FALSE,

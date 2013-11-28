@@ -20,101 +20,114 @@ as being the original software.
 3. This notice may not be removed or altered from any source distribution.
 
 */
+/*
+ * Source code modified by Chris Larsen to make the following data types into
+ * proper C++ classes:
+ * - OBJ
+ * - OBJMATERIAL
+ * - OBJMESH
+ * - OBJTRIANGLEINDEX
+ * - OBJTRIANGLELIST
+ * - OBJVERTEXDATA
+ * - PROGRAM
+ * - SHADER
+ * - TEXTURE
+ */
 
 #include "gfx.h"
 
-MEMORY *mopen( char *filename, unsigned char relative_path )
+MEMORY *mopen(const char *filename, const bool relative_path)
 {
 	#ifdef __IPHONE_4_0
 
 		FILE *f;
 		
-		char fname[ MAX_PATH ] = {""};
+		char fname[MAX_PATH] = {""};
 		
-		if( relative_path )
-		{
-			get_file_path( getenv( "FILESYSTEM" ), fname );
+		if (relative_path) {
+			get_file_path(getenv("FILESYSTEM"), fname);
 			
-			strcat( fname, filename );
-		}
-		else strcpy( fname, filename );
+			strcat(fname, filename);
+		} else {
+            strcpy(fname, filename);
+        }
 
-		f = fopen( fname, "rb" );
+		f = fopen(fname, "rb");
 		
-		if( !f ) return NULL;
-		
-		
-		MEMORY *memory = ( MEMORY * ) calloc( 1, sizeof( MEMORY ) );
-		
-		strcpy( memory->filename, fname );
+		if (!f) return NULL;
 		
 		
-		fseek( f, 0, SEEK_END );
-		memory->size = ftell( f );
-		fseek( f, 0, SEEK_SET );
+		MEMORY *memory = (MEMORY *) calloc(1, sizeof(MEMORY));
+		
+		strcpy(memory->filename, fname);
 		
 		
-		memory->buffer = ( unsigned char * ) calloc( 1, memory->size + 1 );
-		fread( memory->buffer, memory->size, 1, f );
-		memory->buffer[ memory->size ] = 0;
+		fseek(f, 0, SEEK_END);
+		memory->size = ftell(f);
+		fseek(f, 0, SEEK_SET);
 		
 		
-		fclose( f );
+		memory->buffer = (unsigned char *) calloc(1, memory->size + 1);
+		fread(memory->buffer, memory->size, 1, f);
+		memory->buffer[memory->size] = 0;
+		
+		
+		fclose(f);
 		
 		return memory;
 	
 	
 	#else
 	
-		char fpath[ MAX_PATH ] = {""},
-			 fname[ MAX_PATH ] = {""};
+		char fpath[MAX_PATH] = {""},
+			 fname[MAX_PATH] = {""};
 
 		unzFile		    uf;
 		unz_file_info   fi;
 		unz_file_pos    fp;
 
-		strcpy( fpath, getenv( "FILESYSTEM" ) );
+		strcpy(fpath, getenv("FILESYSTEM"));
 
-		uf = unzOpen( fpath );
+		uf = unzOpen(fpath);
 		
-		if( !uf ) return NULL;
+		if (!uf) return NULL;
 
-		if( relative_path ) sprintf( fname, "assets/%s", filename );
-		else strcpy( fname, filename );
+		if (relative_path)
+            sprintf(fname, "assets/%s", filename);
+		else
+            strcpy(fname, filename);
 		
-		unzGoToFirstFile( uf );
+		unzGoToFirstFile(uf);
 
-		MEMORY *memory = ( MEMORY * ) calloc( 1, sizeof( MEMORY ) );
+		MEMORY *memory = (MEMORY *) calloc(1, sizeof(MEMORY));
 
-		unzGetFilePos( uf, &fp );
+		unzGetFilePos(uf, &fp);
 		
-		if( unzLocateFile( uf, fname, 1 ) == UNZ_OK )
-		{
-			unzGetCurrentFileInfo(  uf,
-								   &fi,
-									memory->filename,
-									MAX_PATH,
-									NULL, 0,
-									NULL, 0 );
-		
-			if( unzOpenCurrentFilePassword( uf, NULL ) == UNZ_OK )
-			{
+		if (unzLocateFile(uf, fname, 1) == UNZ_OK) {
+			unzGetCurrentFileInfo(uf,
+                                  &fi,
+                                  memory->filename,
+                                  MAX_PATH,
+                                  NULL, 0,
+                                  NULL, 0);
+
+			if (unzOpenCurrentFilePassword(uf, NULL) == UNZ_OK) {
 				memory->position = 0;
 				memory->size	 = fi.uncompressed_size;
-				memory->buffer   = ( unsigned char * ) realloc( memory->buffer, fi.uncompressed_size + 1 );
-				memory->buffer[ fi.uncompressed_size ] = 0;
+				memory->buffer   = (unsigned char *) realloc(memory->buffer, fi.uncompressed_size + 1);
+				memory->buffer[fi.uncompressed_size] = 0;
 
-				while( unzReadCurrentFile( uf, memory->buffer, fi.uncompressed_size ) > 0 ){}
+				while (unzReadCurrentFile(uf, memory->buffer, fi.uncompressed_size) > 0){}
 
-				unzCloseCurrentFile( uf );
+				unzCloseCurrentFile(uf);
 
-				unzClose( uf );
+				unzClose(uf);
 					
 				return memory;
 			}
 		}
 		
-		unzClose( uf );
+		unzClose(uf);
 
 		return NULL;
 		
@@ -122,21 +135,21 @@ MEMORY *mopen( char *filename, unsigned char relative_path )
 }
 
 
-MEMORY *mclose( MEMORY *memory )
+MEMORY *mclose(MEMORY *memory)
 {
-	if( memory->buffer ) free( memory->buffer );
+	if (memory->buffer) free(memory->buffer);
 	
-	free( memory );
+	free(memory);
 	return NULL;
 }
 
 
-unsigned int mread( MEMORY *memory, void *dst, unsigned int size )
+unsigned int mread(MEMORY *memory, void *dst, unsigned int size)
 {
-	if( ( memory->position + size ) > memory->size )
-	{ size = memory->size - memory->position; }
+	if ((memory->position + size) > memory->size)
+        size = memory->size - memory->position;
 
-	memcpy( dst, &memory->buffer[ memory->position ], size );
+	memcpy(dst, &memory->buffer[memory->position], size);
 	
 	memory->position += size;
 
@@ -144,23 +157,23 @@ unsigned int mread( MEMORY *memory, void *dst, unsigned int size )
 }
 
 
-void minsert( MEMORY *memory, char *str, unsigned int position )
+void minsert(MEMORY *memory, char *str, unsigned int position)
 {
-	unsigned int s1 = strlen( str ),
+	unsigned int s1 = strlen(str),
 				 s2 = memory->size + s1 + 1;
 
-	char *buffer = ( char * )memory->buffer,
-		 *tmp	 = ( char * )calloc( 1, s2 );
+	char *buffer = (char *)memory->buffer,
+		 *tmp	 = (char *)calloc(1, s2);
 	
-	if( position )
-	{ strncpy( &tmp[ 0 ], &buffer[ 0 ], position ); }
+	if (position)
+        strncpy(&tmp[0], &buffer[0], position);
 
-	strcat( &tmp[ position ], str );
+	strcat(&tmp[position], str);
 	
-	strcat( &tmp[ position + s1 ], &buffer[ position ] );
+	strcat(&tmp[position + s1], &buffer[position]);
 
 	memory->size = s2;
 	
-	free( memory->buffer );
-	memory->buffer = ( unsigned char * )tmp;	
+	free(memory->buffer);
+	memory->buffer = (unsigned char *)tmp;	
 }

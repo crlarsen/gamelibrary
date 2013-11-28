@@ -31,14 +31,18 @@
  * - OBJVERTEXDATA
  * - PROGRAM
  * - SHADER
+ * - TEXTURE
  */
 
 #include "gfx.h"
 
 void PROGRAM::init(char *name) {
-    assert(strlen(name)<sizeof(this->name));
-    
-    strcpy(this->name, name);
+    assert(name==NULL || strlen(name)<sizeof(this->name));
+    if (name==NULL) {
+        memset(this->name, 0, sizeof(this->name));
+    } else {
+        strcpy(this->name, name);
+    }
 }
 
 PROGRAM::PROGRAM(char *name) : vertex_shader(NULL),
@@ -53,8 +57,8 @@ PROGRAM::PROGRAM(char *name) : vertex_shader(NULL),
 PROGRAM::PROGRAM(char                       *name,
                  char                       *vertex_shader_filename,
                  char                       *fragment_shader_filename,
-                 bool                       relative_path,
-                 bool                       debug_shader,
+                 const bool                 relative_path,
+                 const bool                 debug_shader,
                  PROGRAMBINDATTRIBCALLBACK  *programbindattribcallback,
                  PROGRAMDRAWCALLBACK        *programdrawcallback) :
     pid(0),
@@ -284,8 +288,8 @@ void PROGRAM::draw()
 bool PROGRAM::load_gfx(PROGRAMBINDATTRIBCALLBACK    *programbindattribcallback,
                        PROGRAMDRAWCALLBACK          *programdrawcallback,
                        char                         *filename,
-                       bool                         debug_shader,
-                       bool                         relative_path)
+                       const bool                   debug_shader,
+                       const bool                   relative_path)
 {
 	MEMORY *m = mopen(filename, relative_path);
 
@@ -334,16 +338,16 @@ bool PROGRAM::load_gfx(PROGRAMBINDATTRIBCALLBACK    *programbindattribcallback,
 
 void PROGRAM::build(PROGRAMBINDATTRIBCALLBACK   *programbindattribcallback,
                     PROGRAMDRAWCALLBACK         *programdrawcallback,
-                    bool                        debug_shader,
+                    const bool                  debug_shader,
                     char                        *program_path)
 {
-	char filename[ MAX_PATH ] = {""};
+	char filename[MAX_PATH] = {""};
 
-	sprintf( filename, "%s%s", program_path, this->name );
+	sprintf(filename, "%s%s", program_path, this->name);
 
 	this->load_gfx(programbindattribcallback,
-					  programdrawcallback,
-					  filename,
-					  debug_shader,
-					  0);
+                   programdrawcallback,
+                   filename,
+                   debug_shader,
+                   false);
 }

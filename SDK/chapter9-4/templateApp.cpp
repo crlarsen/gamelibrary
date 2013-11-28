@@ -141,7 +141,7 @@ void load_physic_world(void)
 {
 	btBulletWorldImporter *btbulletworldimporter = new btBulletWorldImporter(dynamicsworld);
 
-	MEMORY *memory = mopen(PHYSIC_FILE, 1);
+	MEMORY *memory = mopen(PHYSIC_FILE, true);
 
 	btbulletworldimporter->loadFileFromMemory((char *)memory->buffer, memory->size);
 
@@ -422,7 +422,7 @@ void load_level(void)
 
 	FONT_load(font_small,
 		  font_small->name,
-		  1,
+		  true,
 		  24.0f,
 		  512,
 		  512,
@@ -434,7 +434,7 @@ void load_level(void)
 
 	FONT_load(font_big,
 		  font_big->name,
-		  1,
+		  true,
 		  48.0f,
 		  512,
 		  512,
@@ -452,22 +452,22 @@ void load_level(void)
 
 			case 0: {
 
-				memory = mopen((char *)"red.ogg", 1);
+				memory = mopen((char *)"red.ogg", true);
 				break;
             }
 			case 1: {
 
-				memory = mopen((char *)"green.ogg", 1);
+				memory = mopen((char *)"green.ogg", true);
 				break;
 			}
 			case 2: {
 
-				memory = mopen((char *)"blue.ogg", 1);
+				memory = mopen((char *)"blue.ogg", true);
 				break;
 			}
 			case 3: {
 
-				memory = mopen((char *)"yellow.ogg", 1);
+				memory = mopen((char *)"yellow.ogg", true);
 				break;
 			}
 		}
@@ -491,7 +491,7 @@ void load_level(void)
 
 	OBJMESH *objmesh = NULL;
 
-	memory = mopen((char *)"water.ogg", 1);
+	memory = mopen((char *)"water.ogg", true);
 
 	water_soundbuffer =
 	SOUNDBUFFER_load((char *)"water", memory);
@@ -511,7 +511,7 @@ void load_level(void)
 	SOUND_play(water_sound, 1);
 
 
-	memory = mopen((char *)"lava.ogg", 1);
+	memory = mopen((char *)"lava.ogg", true);
 
 	lava_soundbuffer = SOUNDBUFFER_load((char *)"lava", memory);
 
@@ -530,7 +530,7 @@ void load_level(void)
 	SOUND_play(lava_sound, 1);
 
 
-	memory = mopen((char *)"toxic.ogg", 1);
+	memory = mopen((char *)"toxic.ogg", true);
 
 	toxic_soundbuffer = SOUNDBUFFER_load((char *)"toxic", memory);
 
@@ -549,7 +549,7 @@ void load_level(void)
 	SOUND_play(toxic_sound, 1);
     
     
-	memory = mopen((char *)"background.ogg", 1);
+	memory = mopen((char *)"background.ogg", true);
     
 	background_soundbuffer = SOUNDBUFFER_load_stream((char *)"background", memory);
     

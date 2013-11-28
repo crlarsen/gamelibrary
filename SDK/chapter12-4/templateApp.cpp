@@ -242,7 +242,7 @@ void templateAppInit(int width, int height)
     }
 
     /* Load the MD5 mesh file from disk. */
-    md5 = MD5_load_mesh(MD5_MESH, 1);
+    md5 = MD5_load_mesh(MD5_MESH, true);
 
     /* Convert the triangles to triangle strips. */
     MD5_optimize(md5, 128);
@@ -271,11 +271,11 @@ void templateAppInit(int width, int height)
     MD5_load_action(md5,
                     (char *)"idle",  // Internal name for this action.
                     (char *)"bob_idle.md5anim",  // The action file name.
-                    1);   // Use a relative path to load the action file.
+                    true);  // Use a relative path to load the action file.
     MD5_load_action(md5,
                     (char *)"walk",
                     (char *)"bob_walk.md5anim",
-                    1);
+                    true);
 
     /* Retrieve the pointer of the idle action. */
     idle = MD5_get_action(md5, (char *)"idle", 0);

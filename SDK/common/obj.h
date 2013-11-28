@@ -311,7 +311,7 @@ struct OBJ {
 	std::vector<vec2>           indexed_uv;		// vt
 
 public:
-    OBJ(char *filename=NULL, bool relative_path=true);
+    OBJ(char *filename=NULL, const bool relative_path=true);
     ~OBJ();
     OBJMESH *get_mesh(const char *name, const bool exact_name);
     int get_mesh_index(const char *name, const bool exact_name);

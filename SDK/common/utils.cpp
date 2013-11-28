@@ -58,14 +58,9 @@ unsigned int get_milli_time( void )
 
 void adjust_file_path( char *filepath )
 {
-	unsigned int i = 0,
-				 l = strlen( filepath );
-	
-	while( i != l )
-	{
-		if( filepath[ i ] == '\\' ) filepath[ i ] = '/';
-		++i;
-	}
+    for (int i=0, l=strlen(filepath); i!=l; ++i)
+		if (filepath[i] == '\\')
+            filepath[i] = '/';
 }
 
 
@@ -101,26 +96,19 @@ void get_file_name( char *filepath, char *name )
 }
 
 
-void get_file_extension( char *filepath, char *ext, unsigned char uppercase )
+void get_file_extension( char *filepath, char *ext, const bool uppercase )
 {
 	char *t = NULL;
 	
-	adjust_file_path( filepath );
+	adjust_file_path(filepath);
 	
-	t = strrchr( filepath, '.' );
+	t = strrchr(filepath, '.');
 	
-	if( t ) strcpy( ext, t + 1 );
+	if (t) strcpy( ext, t + 1 );
 	
-	if( uppercase )
-	{
-		unsigned int i = 0,
-					 l = strlen( ext );
-		
-		while( i != l )
-		{
-			ext[ i ] = toupper( ext[ i ] );
-			++i;
-		}
+	if (uppercase) {
+		for (int i=0, l=strlen(ext); i!=l; ++i)
+			ext[i] = toupper(ext[i]);
 	}
 }
 
@@ -138,7 +126,7 @@ void generate_color_from_index( unsigned int index, vec4 *color )
 	memcpy( &tmp_color.g, &i, 1 );
 
 	memcpy( &tmp_color.b, &index, 1 );
-	
+
 	color->x = tmp_color.r / 255.0f;
 	color->y = tmp_color.g / 255.0f;
 	color->z = tmp_color.b / 255.0f;
@@ -347,49 +335,49 @@ void build_frustum( vec4 frustum[ 6 ], mat4 *modelview_matrix, mat4 *projection_
 }
 
 
+// CRL
+// Note that if the sphere is in the frustum the return value is always
+// dependent on the last iteration through the loop.  What is stored in
+// the last position of frustum which makes it especially meaningful?
+// Is this by design or is a max()/min()  evaluation missing from the
+// function?  That is, is this an oversight?
 float sphere_distance_in_frustum( vec4  *frustum, vec3  *location, float radius )
 {
-	unsigned int i = 0;
-	
 	float d;
+
+    // CRL -- We can do the following in more places in this file, i.e.,
+    // expand the location to (one of) its equivalent value(s) in
+    // homogeneous space, and use the vec4_dot_vec4() method to make the
+    // code (IMHO) more readable.  I'll do this in earnest later when I
+    // have more tools in place.
+    vec4 loc = { location->x, location->y, location->z, 1.0f };
 	
-	while( i != 6 )
-	{
-		d = frustum[ i ].x * location->x + 
-			frustum[ i ].y * location->y + 
-			frustum[ i ].z * location->z + 
-			frustum[ i ].w;
-		
-		if( d < -radius )
-		{ return 0.0f; }
-		
-		++i;
+	for (int i=0; i!=6; ++i) {
+		d = vec4_dot_vec4(&frustum[i], &loc);
+
+		if (d < -radius)
+            return 0.0f;
 	}
-	
+
 	return d + radius;	
 }
 
 
-unsigned char point_in_frustum( vec4 *frustum, vec3 *location )
+bool point_in_frustum( vec4 *frustum, vec3 *location )
 {
-	unsigned int i = 0;
-	
-	while( i != 6 )
-	{
-		if( frustum[ i ].x * location->x +
-			frustum[ i ].y * location->y +
-			frustum[ i ].z * location->z +
-			frustum[ i ].w < 0.0f )
-		{ return 0; }
-		
-		++i;
+	for (int i=0; i!=6; ++i) {
+		if( frustum[i].x * location->x +
+			frustum[i].y * location->y +
+			frustum[i].z * location->z +
+			frustum[i].w < 0.0f )
+            return false;
 	}
 	
-	return 1;
+	return true;
 }
 
 
-unsigned char box_in_frustum( vec4 *frustum, vec3 *location, vec3 *dimension )
+bool box_in_frustum( vec4 *frustum, vec3 *location, vec3 *dimension )
 {
 	unsigned int i = 0;
 	
@@ -474,52 +462,41 @@ unsigned char box_in_frustum( vec4 *frustum, vec3 *location, vec3 *dimension )
 			continue;
 		}
 			
-		return 0;
+		return false;
 	}
 	
-	return 1;
+	return true;
 }
 
 
-unsigned char sphere_intersect_frustum( vec4  *frustum, vec3  *location, float radius )
+InFrustum sphere_intersect_frustum( vec4  *frustum, vec3  *location, float radius )
 {
-	float d;
-	
-	unsigned int i = 0;
-
 	unsigned char c = 0;
 
-	while( i != 6 )
-	{
-		d = frustum[ i ].x * location->x +
-		    frustum[ i ].y * location->y +
-		    frustum[ i ].z * location->z +
-		    frustum[ i ].w;
+	for (int i=0; i!=6; ++i) {
+		float   d = frustum[i].x * location->x +
+                    frustum[i].y * location->y +
+                    frustum[i].z * location->z +
+                    frustum[i].w;
 
-		if( d < -radius )
-		{ return 0; }
-		
-		else if( d > radius )
-		{ ++c; }
-		
-		++i;
+		if (d < -radius)
+            return IF_Outside;
+        else if (d > radius)
+            ++c;
 	}
 
-	return c == 6 ? 2: 1;
+	return c == 6 ? IF_Inside : IF_Intersect;
 }
 
 
-unsigned char box_intersect_frustum( vec4 *frustum,
-									 vec3 *location,
-									 vec3 *dimension )
+InFrustum box_intersect_frustum(vec4 *frustum,
+                                vec3 *location,
+                                vec3 *dimension)
 {
-	unsigned int i = 0;
-	
 	unsigned char c1,
 				  c2 = 0;
 
-	while( i != 6 )
-	{
+	for (int i=0; i!=6; ++i) {
 		c1 = 0;
 		
 		if( frustum[ i ].x * ( location->x - dimension->x ) + 
@@ -578,26 +555,21 @@ unsigned char box_intersect_frustum( vec4 *frustum,
 		{ ++c1; }
 		
 		
-		if( !c1 )
-		{ return 0; }
+		if (!c1) return IF_Outside;
 		
-		if( c1 == 8 )
-		{ ++c2; }
-	
-		++i;
+		if (c1 == 8) ++c2;
 	}
 
-	return c2 == 6 ? 2 : 1;
+	return c2 == 6 ? IF_Inside : IF_Intersect;
 }
 
 
-unsigned int get_next_pow2( unsigned int size )
+unsigned int get_next_pow2(unsigned int size)
 {
-	switch( size ) 
-	{
+	switch( size )  {
 		case 1:
 		case 2:
-		case 4:				
+		case 4:
 		case 8:
 		case 16:
 		case 32:
@@ -608,27 +580,35 @@ unsigned int get_next_pow2( unsigned int size )
 		case 1024:
 		case 2048:
 		case 4096:
-		case 8092:		
-		{ return size; }
+		case 8092:
+            return size;
 	}	
 
 	return ( unsigned int )( powf( 2.0f, ceilf( logf( ( float )size ) / logf( 2.0f ) ) ) );
 }
 
-
-unsigned int get_nearest_pow2( unsigned int size )
+// CRL
+// Is this loop really correct?  Do we want the nearest power of 2
+// or do we really want the nearest power of 2 greater than or equal
+// to size?  If we really want the latter the loop should be:
+//
+// for (unsigned int i=1; true; i<<=1 /* or i*=2 */)
+//     if (i >= size)
+//         return i;
+//
+// Or, perhaps, this loop should be substituted for the return statement
+// above in get_next_pow2().  This would avoid a bunch of floating point
+// logic which tends to be really expensive.  Unfortunately, this is
+// another case of providing functions which aren't used in any of the
+// sample programs so we have no way of testing which hypothesis is
+// correct.
+unsigned int get_nearest_pow2(unsigned int size)
 {
-	unsigned int i = 1;
-
-	while( 1 )
-	{
-		if( size == 1 ) return i;
-		
-		else if( size == 3 ) return i * 4;
-
-		size >>= 1;
-
-		i *= 2;
+    for (unsigned int i=1; true; i*=2, size>>=1) {
+        if (size == 1)
+            return i;
+        else if (size == 3)
+            return i * 4;
 	}
 }
 

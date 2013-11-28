@@ -238,7 +238,7 @@ void templateAppInit(int width, int height) {
          program != obj->program.end(); ++program) {
         (*program)->build(program_bind_attrib_location,
                           program_draw,
-                          1,
+                          true,
                           obj->program_path);
     }
 

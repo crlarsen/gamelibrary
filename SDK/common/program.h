@@ -31,6 +31,7 @@ as being the original software.
  * - OBJVERTEXDATA
  * - PROGRAM
  * - SHADER
+ * - TEXTURE
  */
 
 #ifndef PROGRAM_H
@@ -85,8 +86,8 @@ private:
 public:
     PROGRAM(char *name);
     PROGRAM(char *name, char *vertex_shader_filename,
-            char *fragment_shader_filename, bool relative_path,
-            bool debug_shader,
+            char *fragment_shader_filename, const bool relative_path,
+            const bool debug_shader,
             PROGRAMBINDATTRIBCALLBACK *programbindattribcallback,
             PROGRAMDRAWCALLBACK *programdrawcallback);
     ~PROGRAM();
@@ -98,7 +99,7 @@ public:
     void delete_id();
     void draw();
     void reset();
-    bool load_gfx(PROGRAMBINDATTRIBCALLBACK	*programbindattribcallback, PROGRAMDRAWCALLBACK	*programdrawcallback, char *filename, bool debug_shader, bool relative_path);
+    bool load_gfx(PROGRAMBINDATTRIBCALLBACK	*programbindattribcallback, PROGRAMDRAWCALLBACK	*programdrawcallback, char *filename, const bool debug_shader, const bool relative_path);
     void build(PROGRAMBINDATTRIBCALLBACK *programbindattribcallback,
                PROGRAMDRAWCALLBACK *programdrawcallback,
                bool debug_shader, char *program_path);

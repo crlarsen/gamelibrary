@@ -31,14 +31,15 @@ as being the original software.
  * - OBJVERTEXDATA
  * - PROGRAM
  * - SHADER
+ * - TEXTURE
  */
 
 #include "gfx.h"
 
 
-MD5 *MD5_load_mesh( char *filename, unsigned char relative_path )
+MD5 *MD5_load_mesh( char *filename, const bool relative_path )
 {
-	MEMORY *m = mopen( filename, relative_path );
+	MEMORY *m = mopen(filename, relative_path);
 	
 	if( !m ) return NULL;
 	
@@ -223,9 +224,9 @@ cleanup:
 }
 
 
-int MD5_load_action( MD5 *md5, char *name, char *filename, unsigned char relative_path )
+int MD5_load_action( MD5 *md5, char *name, char *filename, const bool relative_path )
 {
-	MEMORY *m = mopen( filename, relative_path );
+	MEMORY *m = mopen(filename, relative_path);
 	
 	if( !m ) return -1;	
 
