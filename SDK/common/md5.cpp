@@ -23,6 +23,7 @@ as being the original software.
 /*
  * Source code modified by Chris Larsen to make the following data types into
  * proper C++ classes:
+ * - MEMORY
  * - OBJ
  * - OBJMATERIAL
  * - OBJMESH
@@ -39,7 +40,7 @@ as being the original software.
 
 MD5 *MD5_load_mesh( char *filename, const bool relative_path )
 {
-	MEMORY *m = mopen(filename, relative_path);
+	MEMORY *m = new MEMORY(filename, relative_path);
 	
 	if( !m ) return NULL;
 	
@@ -209,14 +210,14 @@ next_line:
 		line = strtok( NULL, "\n" );
 	}
 
-	mclose( m );
+	delete m;
 	
 	return md5;
 	
 
 cleanup:
 
-	mclose( m );
+	delete m;
 
 	md5 = MD5_free( md5 );
 	
@@ -226,7 +227,7 @@ cleanup:
 
 int MD5_load_action( MD5 *md5, char *name, char *filename, const bool relative_path )
 {
-	MEMORY *m = mopen(filename, relative_path);
+	MEMORY *m = new MEMORY(filename, relative_path);
 	
 	if( !m ) return -1;	
 
@@ -358,7 +359,7 @@ next_line:
 		line = strtok( NULL, "\n" );	
 	}
 
-	mclose( m );
+	delete m;
 	
 	return ( md5->n_action - 1 );
 	
@@ -370,7 +371,7 @@ cleanup:
 	
 	md5->md5action = ( MD5ACTION * ) realloc( md5->md5action,
 											  md5->n_action * sizeof( MD5ACTION ) );
-	mclose( m );
+	delete m;
 	
 	return -1;
 }

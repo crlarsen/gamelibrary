@@ -27,6 +27,7 @@ as being the original software.
 /*
  * Source code modified by Chris Larsen to make the following data types into
  * proper C++ classes:
+ * - MEMORY
  * - OBJ
  * - OBJMATERIAL
  * - OBJMESH
@@ -183,7 +184,7 @@ void templateAppInit(int width, int height) {
         char soundfile[MAX_CHAR] = {""};
         sprintf(soundfile, "%02d.ogg", i);
         /* Load the sound file into memory. */
-        memory = mopen(soundfile, true);
+        memory = new MEMORY(soundfile, true);
         /* Create a new sound buffer pointer and associate the content loaded
          * from disk to it.  Note that the OGG decompresiion is automatically
          * handled inside the SOUNDBUFFER_load function.
@@ -193,7 +194,7 @@ void templateAppInit(int width, int height) {
          * to the audio memory, so there is no need to keep the sound file
          * alive in local memory.  The buffer is ready to be used.
          */
-        mclose(memory);
+        delete memory;
         /* Create a new sound source and link the sound buffer you just
          * created to it.
          */
@@ -201,12 +202,12 @@ void templateAppInit(int width, int height) {
     }
 
     /* Next, load the sound to play if the user makes a mistake. */
-    memory = mopen((char *)"wrong.ogg", true);
+    memory = new MEMORY((char *)"wrong.ogg", true);
     wrongbuffer = SOUNDBUFFER_load((char *)"wrong", memory);
-    mclose(memory);
+    delete memory;
     wrong = SOUND_add((char *)"wrong", wrongbuffer);
 
-    memory = mopen((char *)"lounge.ogg", true);
+    memory = new MEMORY((char *)"lounge.ogg", true);
     /* Create the sound buffer using the SOUNDBUFFER_load_stream API.  This
      * function will initialize multiple sound buffer IDs internally and
      * will fill them with uncompressed chunks of the OGG stream.  The
@@ -621,7 +622,7 @@ void templateAppExit(void) {
      * SOUNDBUFFER structure, so you can free it when the application
      * exits.
      */
-    mclose(ambientbuffer->memory);
+    delete ambientbuffer->memory;
     /* Free the sound buffer structure for the ambient music. */
     SOUNDBUFFER_free(ambientbuffer);
     /* Stop OpenAL, and free the device and its associated context. */

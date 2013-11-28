@@ -23,6 +23,7 @@ as being the original software.
 /*
  * Source code modified by Chris Larsen to make the following data types into
  * proper C++ classes:
+ * - MEMORY
  * - OBJ
  * - OBJMATERIAL
  * - OBJMESH
@@ -38,8 +39,7 @@ as being the original software.
 #define MEMORY_H
 
 
-typedef struct
-{
+struct MEMORY {
 	char			filename[MAX_PATH];
 	
 	unsigned int	size;
@@ -47,16 +47,24 @@ typedef struct
 	unsigned int	position;
 
 	unsigned char	*buffer;
-
-} MEMORY;
-
-
-MEMORY *mopen(const char *filename, const bool relative_path);
-
-MEMORY *mclose(MEMORY *memory);
-
-unsigned int mread(MEMORY *memory, void *dst, unsigned int size);
-
-void minsert(MEMORY *memory, char *str, unsigned int position);
+public:
+    MEMORY(const char *filename, const bool relative_path);
+    ~MEMORY();
+    unsigned int read(void *dst, unsigned int size);
+    void insert(const char *str, const unsigned int position);
+private:
+    // When I start compiling with C++ 11, use "= delete" instead of
+    // declaring these methods to be private.  Note that since these
+    // are never used I don't need to implement their bodies.  There
+    // are two situations where errors will be protected:
+    //   - If anything outside of the MEMORY classes, or any of its
+    //     friends, then the compiler will complain that the methods
+    //     are private.
+    //   - If any MEMORY method, or one of its friends, tries to call
+    //     either of these methods the link editor will generate an
+    //     error since their bodies are never implemented.
+    MEMORY(const MEMORY &src);
+    MEMORY &operator=(const MEMORY &rhs);
+};
 
 #endif

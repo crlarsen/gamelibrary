@@ -27,6 +27,7 @@ as being the original software.
 /*
  * Source code modified by Chris Larsen to make the following data types into
  * proper C++ classes:
+ * - MEMORY
  * - OBJ
  * - OBJMATERIAL
  * - OBJMESH
@@ -141,11 +142,11 @@ void load_physic_world(void)
 {
 	btBulletWorldImporter *btbulletworldimporter = new btBulletWorldImporter(dynamicsworld);
 
-	MEMORY *memory = mopen(PHYSIC_FILE, true);
+	MEMORY *memory = new MEMORY(PHYSIC_FILE, true);
 
 	btbulletworldimporter->loadFileFromMemory((char *)memory->buffer, memory->size);
 
-	mclose(memory);
+	delete memory;
 
 	for (int i=0; i!=btbulletworldimporter->getNumRigidBodies(); ++i) {
 		OBJMESH *objmesh = obj->get_mesh(btbulletworldimporter->getNameForPointer(
@@ -452,22 +453,22 @@ void load_level(void)
 
 			case 0: {
 
-				memory = mopen((char *)"red.ogg", true);
+				memory = new MEMORY((char *)"red.ogg", true);
 				break;
             }
 			case 1: {
 
-				memory = mopen((char *)"green.ogg", true);
+				memory = new MEMORY((char *)"green.ogg", true);
 				break;
 			}
 			case 2: {
 
-				memory = mopen((char *)"blue.ogg", true);
+				memory = new MEMORY((char *)"blue.ogg", true);
 				break;
 			}
 			case 3: {
 
-				memory = mopen((char *)"yellow.ogg", true);
+				memory = new MEMORY((char *)"yellow.ogg", true);
 				break;
 			}
 		}
@@ -476,7 +477,7 @@ void load_level(void)
          */
 		gems_soundbuffer[i] = SOUNDBUFFER_load((char *)"gem", memory);
 
-		mclose(memory);
+		delete memory;
         /* Create a new sound source for the current index and link the
          * current sound buffer.
          */
@@ -491,12 +492,12 @@ void load_level(void)
 
 	OBJMESH *objmesh = NULL;
 
-	memory = mopen((char *)"water.ogg", true);
+	memory = new MEMORY((char *)"water.ogg", true);
 
 	water_soundbuffer =
 	SOUNDBUFFER_load((char *)"water", memory);
 
-	mclose(memory);
+	delete memory;
 
 	water_sound = SOUND_add((char *)"water", water_soundbuffer);
 
@@ -511,11 +512,11 @@ void load_level(void)
 	SOUND_play(water_sound, 1);
 
 
-	memory = mopen((char *)"lava.ogg", true);
+	memory = new MEMORY((char *)"lava.ogg", true);
 
 	lava_soundbuffer = SOUNDBUFFER_load((char *)"lava", memory);
 
-	mclose(memory);
+	delete memory;
 
 	lava_sound = SOUND_add((char *)"lava", lava_soundbuffer);
 
@@ -530,11 +531,11 @@ void load_level(void)
 	SOUND_play(lava_sound, 1);
 
 
-	memory = mopen((char *)"toxic.ogg", true);
+	memory = new MEMORY((char *)"toxic.ogg", true);
 
 	toxic_soundbuffer = SOUNDBUFFER_load((char *)"toxic", memory);
 
-	mclose(memory);
+	delete memory;
 
 	toxic_sound = SOUND_add((char *)"toxic", toxic_soundbuffer);
 
@@ -549,7 +550,7 @@ void load_level(void)
 	SOUND_play(toxic_sound, 1);
     
     
-	memory = mopen((char *)"background.ogg", true);
+	memory = new MEMORY((char *)"background.ogg", true);
     
 	background_soundbuffer = SOUNDBUFFER_load_stream((char *)"background", memory);
     
@@ -573,7 +574,8 @@ void free_level(void)
 
 	background_sound = SOUND_free(background_sound);
 
-	background_soundbuffer->memory = mclose(background_soundbuffer->memory);
+	delete background_soundbuffer->memory;
+	background_soundbuffer->memory = NULL;
 
 	background_soundbuffer = SOUNDBUFFER_free(background_soundbuffer);
 

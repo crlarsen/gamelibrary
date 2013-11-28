@@ -23,6 +23,7 @@ as being the original software.
 /*
  * Source code modified by Chris Larsen to make the following data types into
  * proper C++ classes:
+ * - MEMORY
  * - OBJ
  * - OBJMATERIAL
  * - OBJMESH
@@ -101,7 +102,7 @@ unsigned char FONT_load(FONT            *font,
                         int             first_character,
                         int             count_character)
 {
-	MEMORY *m = mopen(filename, relative_path);
+	MEMORY *m = new MEMORY(filename, relative_path);
 
 	if( m )
 	{
@@ -129,7 +130,7 @@ unsigned char FONT_load(FONT            *font,
 							  count_character,
 							  font->character_data );
 
-		mclose( m );
+		delete m;
 		
 		glGenTextures(1, &font->tid );
 		

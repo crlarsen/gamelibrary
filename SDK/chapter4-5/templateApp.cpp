@@ -27,6 +27,7 @@ as being the original software.
 /*
  * Source code modified by Chris Larsen to make the following data types into
  * proper C++ classes:
+ * - MEMORY
  * - OBJ
  * - OBJMATERIAL
  * - OBJMESH
@@ -160,8 +161,8 @@ void templateAppInit(int width, int height)
      */
     for (auto objmaterial=obj->objmaterial.begin();
          objmaterial!=obj->objmaterial.end(); ++objmaterial) {
-        MEMORY *fragment_shader = mopen((char *)"Uber.fs", true);
-        MEMORY *vertex_shader = mopen((char *)"Uber.vs", true);
+        MEMORY *fragment_shader = new MEMORY((char *)"Uber.fs", true);
+        MEMORY *vertex_shader = new MEMORY((char *)"Uber.vs", true);
 
         objmaterial->build(NULL);
         /* The material has no alpha, so it is considered a solid
@@ -180,8 +181,7 @@ void templateAppInit(int width, int height)
              * at an arbitrary position in the current fragment shader
              * memory stream that you loaded in the previous step.
              */
-            minsert(/* The memory stream. */   fragment_shader,
-                    /* The code to insert. */   (char *)"#define SOLID_OBJECT\n",
+            fragment_shader->insert((char *)"#define SOLID_OBJECT\n", /* The code to insert. */
                     /* The character position in the stream to insert
                      * the code. In this case, it's 0, which represents
                      * the beginning of the stream. This way, only the
@@ -198,20 +198,18 @@ void templateAppInit(int width, int height)
              * ALPHA_TESTED_OBJECT code block of the shader by manually
              * inserting the definition.
              */
-            minsert(fragment_shader,
-                    (char *)"#define ALPHA_TESTED_OBJECT\n",
-                    0);
+            fragment_shader->insert((char *)"#define ALPHA_TESTED_OBJECT\n", 0);
         /* Same as above except that if the object does not fall between
          * the two previous conditions, you have to treat it as a
          * transparent object.
          */
         } else {
-            minsert(fragment_shader, (char *)"#define TRANSPARENT_OBJECT\n", 0);
+            fragment_shader->insert((char *)"#define TRANSPARENT_OBJECT\n", 0);
         }
 
         if (objmaterial->illumination_model) {
-            minsert(vertex_shader, (char *)"#define LIGHTING_SHADER\n", 0);
-            minsert(fragment_shader, (char *)"#define LIGHTING_SHADER\n", 0);
+            vertex_shader->insert((char *)"#define LIGHTING_SHADER\n", 0);
+            fragment_shader->insert((char *)"#define LIGHTING_SHADER\n", 0);
         }
 
         /* Use the objmaterial program pointer to initialize the shader program. */
@@ -246,8 +244,8 @@ void templateAppInit(int width, int height)
         objmaterial->set_draw_callback(material_draw_callback);
 
         /* Close and free the memory stream. */
-        mclose(fragment_shader);
-        mclose(vertex_shader);
+        delete fragment_shader;
+        delete vertex_shader;
     }
 }
 

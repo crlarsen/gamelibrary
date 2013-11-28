@@ -23,6 +23,7 @@ as being the original software.
 /*
  * Source code modified by Chris Larsen to make the following data types into
  * proper C++ classes:
+ * - MEMORY
  * - OBJ
  * - OBJMATERIAL
  * - OBJMESH
@@ -999,7 +1000,7 @@ void OBJMESH::free_vertex_data()
 
 bool OBJ::load_mtl(char *filename, const bool relative_path)
 {
-	MEMORY *m = mopen(filename, relative_path);
+	MEMORY *m = new MEMORY(filename, relative_path);
 
 	OBJMATERIAL *objmaterial = NULL;
 
@@ -1106,7 +1107,7 @@ bool OBJ::load_mtl(char *filename, const bool relative_path)
 			line = strtok(NULL, "\n");
 	}
 
-	mclose(m);
+	delete m;
 
 	return true;
 }
@@ -1120,7 +1121,7 @@ OBJ::OBJ(char *filename, const bool relative_path)
 
     if (filename == NULL) return;
 
-	MEMORY *o = mopen(filename, relative_path);
+	MEMORY *o = new MEMORY(filename, relative_path);
 	
 	if (!o) {
         return;
@@ -1297,7 +1298,7 @@ OBJ::OBJ(char *filename, const bool relative_path)
 				line = strtok(NULL, "\n");
 		}
 		
-		mclose(o);
+		delete o;
 	}
 
 	

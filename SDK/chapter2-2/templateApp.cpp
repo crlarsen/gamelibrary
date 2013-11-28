@@ -27,6 +27,7 @@ as being the original software.
 /*
  * Source code modified by Chris Larsen to make the following data types into
  * proper C++ classes:
+ * - MEMORY
  * - PROGRAM
  * - SHADER
  */
@@ -185,7 +186,10 @@ void templateAppExit( void )
 	/* Code to run when the application exits, perfect location to free everything. */
     printf("templateAppExit...\n");
 
-    if(m) m = mclose(m);
+    if(m) {
+        delete m;
+        m = NULL;
+    }
 
     if(program) {
         delete program;

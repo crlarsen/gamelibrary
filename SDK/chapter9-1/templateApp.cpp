@@ -27,6 +27,7 @@ as being the original software.
 /*
  * Source code modified by Chris Larsen to make the following data types into
  * proper C++ classes:
+ * - MEMORY
  * - OBJ
  * - OBJMATERIAL
  * - OBJMESH
@@ -100,7 +101,7 @@ void templateAppInit( int width, int height )
     /* Ask OpenAL to give you a valid ID for a new sound buffer. */
     alGenBuffers( 1, &soundbuffer );
     /* Load the raw sound file in memory. */
-    MEMORY *memory = mopen((char *)"test.raw", true);
+    MEMORY *memory = new MEMORY((char *)"test.raw", true);
     /* Send over the content of the file to the audio memory. */
     alBufferData( soundbuffer,
                  AL_FORMAT_MONO16,  // Tell OpenAL that the sound file is
@@ -112,7 +113,8 @@ void templateAppInit( int width, int height )
      * maintained by OpenAL and is stored in audio memory, so there's no need to
      * keep the buffer alive in local memory.
      */
-    memory = mclose( memory );
+    delete memory;
+    memory = NULL;
 
     /* Ask OpenAL to generate a new source ID. */
     alGenSources( 1, &soundsource );

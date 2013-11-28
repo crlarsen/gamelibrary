@@ -23,6 +23,7 @@ as being the original software.
 /*
  * Source code modified by Chris Larsen to make the following data types into
  * proper C++ classes:
+ * - MEMORY
  * - OBJ
  * - OBJMATERIAL
  * - OBJMESH
@@ -65,7 +66,7 @@ TEXTURE::TEXTURE(char *name, char *filename, const bool relative_path,
 {
     this->init(name);
 
-	MEMORY *m = mopen(filename, relative_path);
+	MEMORY *m = new MEMORY(filename, relative_path);
 	
 	if (m) {
 		this->load(m);
@@ -74,7 +75,7 @@ TEXTURE::TEXTURE(char *name, char *filename, const bool relative_path,
 		
 		this->free_texel_array();
 		
-		mclose(m);
+		delete m;
 	}
 }
 
@@ -104,7 +105,7 @@ void png_memory_read(png_structp structp, png_bytep bytep, png_size_t size)
 {
 	MEMORY *m = (MEMORY *) png_get_io_ptr(structp);
 
-	mread(m, bytep, size);
+	m->read(bytep, size);
 }
 
 
@@ -507,7 +508,7 @@ void TEXTURE::build(char            *texture_path,
 
 	sprintf(filename, "%s%s", texture_path, this->name);
 
-	m = mopen(filename, false);
+	m = new MEMORY(filename, false);
 
 	if (m) {
 		this->load(m);
@@ -518,6 +519,6 @@ void TEXTURE::build(char            *texture_path,
 
 		this->free_texel_array();
 
-		mclose(m);
+		delete m;
 	}
 }

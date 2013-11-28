@@ -23,6 +23,7 @@
 /*
  * Source code modified by Chris Larsen to make the following data types into
  * proper C++ classes:
+ * - MEMORY
  * - OBJ
  * - OBJMATERIAL
  * - OBJMESH
@@ -67,24 +68,24 @@ PROGRAM::PROGRAM(char                       *name,
 {
     this->init(name);
 
-    MEMORY *m = mopen(vertex_shader_filename, relative_path);
+    MEMORY *m = new MEMORY(vertex_shader_filename, relative_path);
 
     if (m) {
         this->vertex_shader = new SHADER(vertex_shader_filename, GL_VERTEX_SHADER);
 
         this->vertex_shader->compile((char *)m->buffer, debug_shader);
 
-        mclose(m);
+        delete m;
     }
 
-    m = mopen(fragment_shader_filename, relative_path);
+    m = new MEMORY(fragment_shader_filename, relative_path);
 
     if (m) {
         this->fragment_shader = new SHADER(fragment_shader_filename, GL_FRAGMENT_SHADER);
 
         this->fragment_shader->compile((char *)m->buffer, debug_shader);
 
-        mclose(m);
+        delete m;
     }
 
     this->link(debug_shader);
@@ -291,7 +292,7 @@ bool PROGRAM::load_gfx(PROGRAMBINDATTRIBCALLBACK    *programbindattribcallback,
                        const bool                   debug_shader,
                        const bool                   relative_path)
 {
-	MEMORY *m = mopen(filename, relative_path);
+	MEMORY *m = new MEMORY(filename, relative_path);
 
 	if (m) {
 		char    vertex_token[MAX_CHAR]   = { "GL_VERTEX_SHADER"   },
@@ -327,7 +328,7 @@ bool PROGRAM::load_gfx(PROGRAMBINDATTRIBCALLBACK    *programbindattribcallback,
 			this->link(debug_shader);
 		}
 		
-		mclose(m);
+		delete m;
 		
 		return true;
 	}

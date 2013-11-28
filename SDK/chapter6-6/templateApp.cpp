@@ -27,6 +27,7 @@ as being the original software.
 /*
  * Source code modified by Chris Larsen to make the following data types into
  * proper C++ classes:
+ * - MEMORY
  * - OBJ
  * - OBJMATERIAL
  * - OBJMESH
@@ -158,11 +159,11 @@ void load_physic_world(void)
 {
     btBulletWorldImporter *btbulletworldimporter = new btBulletWorldImporter(dynamicsworld);
 
-    MEMORY *memory = mopen(PHYSIC_FILE, true);
+    MEMORY *memory = new MEMORY(PHYSIC_FILE, true);
 
     btbulletworldimporter->loadFileFromMemory((char *)memory->buffer, memory->size);
 
-    mclose(memory);
+    delete memory;
 
     /* At this point all the rigid bodies and constraints have been re-created
      * and are now present inside your dynamic world.  All you have to do now
