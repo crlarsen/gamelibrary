@@ -17,6 +17,8 @@ authors for the various included works.
 History
 =======
 
+Nov 29, 2013 - Clean up utility functions, make MEMORY a class; add MEMORY tag.
+
 Nov 21, 2013 - Commit changes to make TEXTURE a class; add TEXTURE tag.
 
 Nov 11, 2013 - Add OBJ tag.
