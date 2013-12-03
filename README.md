@@ -17,6 +17,8 @@ authors for the various included works.
 History
 =======
 
+Dec 3, 2013 - Remove matrix inversion from Model-View matrix calculation.
+
 Nov 29, 2013 - Clean up utility functions, make MEMORY a class; add MEMORY tag.
 
 Nov 21, 2013 - Commit changes to make TEXTURE a class; add TEXTURE tag.
