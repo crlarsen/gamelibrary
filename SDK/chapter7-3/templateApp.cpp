@@ -221,13 +221,11 @@ void templateAppDraw(void) {
             location.z += forward.z * move_delta.z * 0.1f;
     }
 
-    GFX_translate(location.x, location.y, location.z);
+	GFX_rotate(-rotx, 1.0f, 0.0f, 0.0f);
 
-    GFX_rotate(rotz, 0.0f, 0.0f, 1.0f);
+	GFX_rotate(-rotz, 0.0f, 0.0f, 1.0f);
 
-    GFX_rotate(rotx, 1.0f, 0.0f, 0.0f);
-
-    mat4_invert(GFX_get_modelview_matrix());
+	GFX_translate(-location.x, -location.y, -location.z);
 
     build_frustum(frustum,
                   GFX_get_modelview_matrix(),

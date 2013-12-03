@@ -178,20 +178,21 @@ void templateAppDraw(void) {
         eye_location.y += direction.y * -touche_delta.x;
     }
 
-    /* First translate the model view matrix. */
-    GFX_translate(eye_location.x,
-                  eye_location.y,
-                  eye_location.z);
+    /* Rotate the matrix -90 degrees on the positive X axis to look
+     * forward on the Y axis.
+     */
+    GFX_rotate(-90.0f, 1.0f, 0.0f, 0.0f);
     /* Then rotate it on the Z axis using the rotation controlled by the
      * movement of the onscreen touch.
      */
-    GFX_rotate(rotz, 0.0f, 0.0f, 1.0f);
-    /* Next, rotate the matrix of 90 degrees on the positive X axis to look
-     * forward on the Y axis.
-     */
-    GFX_rotate(90.0f, 1.0f, 0.0f, 0.0f);
-    /* Invert the current model view matrix to create a camera view matrix. */
-    mat4_invert(GFX_get_modelview_matrix());
+    GFX_rotate(-rotz, 0.0f, 0.0f, 1.0f);
+    // CRL - In this case we can't push the translation through
+    // calculating the frustum, and into the loop to be merged with the
+    // other translation operation.
+    /* First translate the model view matrix. */
+    GFX_translate(-eye_location.x,
+                  -eye_location.y,
+                  -eye_location.z);
 
     /* Build the frustum planes.  Always make sure that you call the
      * function after the model view and project matrix have been fully updated.

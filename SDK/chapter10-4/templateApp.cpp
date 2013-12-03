@@ -471,13 +471,11 @@ void templateAppDraw(void)
     GFX_set_matrix_mode(MODELVIEW_MATRIX);
     GFX_load_identity();
 
-    GFX_translate(14.0f, -12.0f, 7.0f);
+    GFX_rotate(-72.0, 1.0f, 0.0f, 0.0f);
 
-    GFX_rotate(48.5f, 0.0f, 0.0f, 1.0f);
+    GFX_rotate(-48.5f, 0.0f, 0.0f, 1.0f);
 
-    GFX_rotate(72.0, 1.0f, 0.0f, 0.0f);
-
-    mat4_invert(GFX_get_modelview_matrix());
+    GFX_translate(-14.0f, +12.0f, -7.0f);
 
 
     for (objmesh=obj->objmesh.begin();

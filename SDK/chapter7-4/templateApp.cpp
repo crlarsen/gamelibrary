@@ -288,8 +288,12 @@ void templateAppDraw(void) {
         camera->btrigidbody->setActivationState(ISLAND_SLEEPING);
     }
 
-    GFX_translate(camera->location.x,
-                  camera->location.y,
+    GFX_rotate(-rotx, 1.0f, 0.0f, 0.0f);
+
+    GFX_rotate(-rotz, 0.0f, 0.0f, 1.0f);
+
+    GFX_translate(-camera->location.x,
+                  -camera->location.y,
                   /* Give an offset on the Z axis since the location represents
                    * the position of the object pivot point.  You need to
                    * simulate a real human eye looking at the scene, so add to
@@ -297,13 +301,7 @@ void templateAppDraw(void) {
                    * bounding box, to simulate that the eye position is located
                    * at the top of the collision object.
                    */
-                  camera->location.z + (camera->dimension.z * 0.5f));
-
-    GFX_rotate(rotz, 0.0f, 0.0f, 1.0f);
-
-    GFX_rotate(rotx, 1.0f, 0.0f, 0.0f);
-
-    mat4_invert(GFX_get_modelview_matrix());
+                  -camera->location.z - (camera->dimension.z * 0.5f));
 
     for (auto objmesh=obj->objmesh.begin();
          objmesh!=obj->objmesh.end(); ++objmesh) {

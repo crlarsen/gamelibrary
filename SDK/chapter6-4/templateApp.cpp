@@ -190,11 +190,11 @@ void add_rigid_body(OBJMESH *objmesh, float mass)
                                            btcollisionshape,
                                            localinertia);
 
-    /* Built inside the btRigidBody class, there is a void * variable that
-     * allows you to associate a user-defined pointer to the rigid body.
-     * By associating the current objmesh pointer to this data, you can then have
-     * direct access to the OBJMESH structure at any time inside any Bullet-driven
-     * functions and callbacks.
+    /* Built into the btRigidBody class is a "void *" variable that
+     * allows you to associate a user-defined pointer with the rigid
+     * body.  By associating the current objmesh pointer to this
+     * variable, you will have direct access to the OBJMESH structure
+     * at any time inside any Bullet-driven functions and callbacks.
      */
     objmesh->btrigidbody->setUserPointer(objmesh);
 

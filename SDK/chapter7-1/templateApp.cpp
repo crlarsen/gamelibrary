@@ -176,29 +176,23 @@ void templateAppDraw(void) {
         eye_location.y += direction.y * -touche_delta.x;
     }
 
-    /* First translate the model view matrix. */
-    GFX_translate(eye_location.x,
-                  eye_location.y,
-                  eye_location.z);
+    /* Rotate the matrix -90 degrees on the positive X axis to look
+     * forward on the Y axis.
+     */
+    GFX_rotate(-90.0f, 1.0f, 0.0f, 0.0f);
     /* Then rotate it on the Z axis using the rotation controlled by the
      * movement of the onscreen touch.
      */
-    GFX_rotate(rotz, 0.0f, 0.0f, 1.0f);
-    /* Next, rotate the matrix of 90 degrees on the positive X axis to look
-     * forward on the Y axis.
-     */
-    GFX_rotate(90.0f, 1.0f, 0.0f, 0.0f);
-    /* Invert the current model view matrix to create a camera view matrix. */
-    mat4_invert(GFX_get_modelview_matrix());
+    GFX_rotate(-rotz, 0.0f, 0.0f, 1.0f);
 
     for (auto objmesh=obj->objmesh.begin();
          objmesh!=obj->objmesh.end(); ++objmesh) {
 
         GFX_push_matrix();
 
-        GFX_translate(objmesh->location.x,
-                      objmesh->location.y,
-                      objmesh->location.z);
+        GFX_translate(objmesh->location.x-eye_location.x,
+                      objmesh->location.y-eye_location.y,
+                      objmesh->location.z-eye_location.z);
 
         glUniformMatrix4fv(program->uniform_map["MODELVIEWPROJECTIONMATRIX"].location,
                            1,
