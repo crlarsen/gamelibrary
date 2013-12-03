@@ -41,45 +41,45 @@ as being the original software.
 
 typedef struct
 {
-	GLenum          type;
-	
-	GLint			location;
+    GLenum  type;
 
-	bool            constant;
+    GLint   location;
+
+    bool    constant;
 
 } UNIFORM;
 
 
 typedef struct
 {
-	GLenum          type;
-	
-	GLint			location;
-	
+    GLenum  type;
+
+    GLint   location;
+
 } VERTEX_ATTRIB;
 
 
-typedef void( PROGRAMDRAWCALLBACK( void * ) );
+typedef void(PROGRAMDRAWCALLBACK(void *));
 
-typedef void( PROGRAMBINDATTRIBCALLBACK( void * ) );
+typedef void(PROGRAMBINDATTRIBCALLBACK(void *));
 
 
 struct PROGRAM {
-	char                        name[ MAX_CHAR ];
-	
-	SHADER                      *vertex_shader;
-	
-	SHADER                      *fragment_shader;
-	
-	GLuint                      pid;
-	
-    std::map<std::string,UNIFORM>   uniform_map;
+    char                                name[MAX_CHAR];
+
+    SHADER                              *vertex_shader;
+
+    SHADER                              *fragment_shader;
+
+    GLuint                              pid;
+
+    std::map<std::string,UNIFORM>       uniform_map;
 
     std::map<std::string,VERTEX_ATTRIB> vertex_attrib_map;
 
-	PROGRAMDRAWCALLBACK         *programdrawcallback;
-	
-	PROGRAMBINDATTRIBCALLBACK   *programbindattribcallback;
+    PROGRAMDRAWCALLBACK                 *programdrawcallback;
+
+    PROGRAMBINDATTRIBCALLBACK           *programbindattribcallback;
 private:
     void init(char *name);
     void add_vertex_attrib(char *name, GLenum type);

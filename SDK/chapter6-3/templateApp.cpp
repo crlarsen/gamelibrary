@@ -51,8 +51,10 @@ OBJ *obj = NULL;
 
 PROGRAM *program = NULL;
 
-TEMPLATEAPP templateApp = { templateAppInit,
-							templateAppDraw };
+TEMPLATEAPP templateApp = {
+    templateAppInit,
+    templateAppDraw
+};
 
 /* The collision world configuration. */
 btSoftBodyRigidBodyCollisionConfiguration *collisionconfiguration = NULL;
@@ -264,30 +266,30 @@ void program_bind_attrib_location(void *ptr) {
 
 void templateAppInit(int width, int height) {
 
-	atexit(templateAppExit);
+    atexit(templateAppExit);
 
-	GFX_start();
+    GFX_start();
 
     init_physic_world();
 
     dispatcher->setNearCallback(near_callback);
 
-	glViewport(0.0f, 0.0f, width, height);
+    glViewport(0.0f, 0.0f, width, height);
 
-	GFX_set_matrix_mode(PROJECTION_MATRIX);
-	GFX_load_identity();
-	GFX_set_perspective(45.0f,
+    GFX_set_matrix_mode(PROJECTION_MATRIX);
+    GFX_load_identity();
+    GFX_set_perspective(45.0f,
                         (float)width / (float)height,
                         0.1f,
                         100.0f,
                         -90.0f);
 
-	obj = new OBJ(OBJ_FILE, true);
+    obj = new OBJ(OBJ_FILE, true);
 
-	for (auto objmesh=obj->objmesh.begin();
+    for (auto objmesh=obj->objmesh.begin();
          objmesh!=obj->objmesh.end(); ++objmesh) {
 
-		objmesh->build();
+        objmesh->build();
 
         /* Test the current mesh name to verify it is the Cube.  If yes,
          * give it a rotation of 35 degrees on the XYZ axis; and then call the
@@ -308,10 +310,10 @@ void templateAppInit(int width, int height) {
             add_rigid_body(&(*objmesh), 0.0f);
         }
 
-		objmesh->free_vertex_data();
-	}
+        objmesh->free_vertex_data();
+    }
 
-	program = new PROGRAM((char *)"default",
+    program = new PROGRAM((char *)"default",
                           VERTEX_SHADER,
                           FRAGMENT_SHADER,
                           true,
@@ -319,51 +321,51 @@ void templateAppInit(int width, int height) {
                           program_bind_attrib_location,
                           NULL);
 
-	program->draw();
+    program->draw();
 }
 
 void templateAppDraw(void) {
-	glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
-	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+    glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
+    glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
 
-	GFX_set_matrix_mode(MODELVIEW_MATRIX);
-	GFX_load_identity();
+    GFX_set_matrix_mode(MODELVIEW_MATRIX);
+    GFX_load_identity();
     {
-		vec3 e = { 10.4f, -9.8f, 5.5f },
-             c = { -3.4f,  2.8f, 0.0f },
-             u = {  0.0f,  0.0f, 1.0f };
+        vec3    e = { 10.4f, -9.8f, 5.5f },
+                c = { -3.4f,  2.8f, 0.0f },
+                u = {  0.0f,  0.0f, 1.0f };
 
-		GFX_look_at(&e, &c, &u);
-	}
+        GFX_look_at(&e, &c, &u);
+    }
 
-	for (auto objmesh=obj->objmesh.begin();
+    for (auto objmesh=obj->objmesh.begin();
          objmesh!=obj->objmesh.end(); ++objmesh) {
 
-		GFX_push_matrix();
+        GFX_push_matrix();
 
         mat4 mat;
         objmesh->btrigidbody->getWorldTransform().getOpenGLMatrix((float *)&mat);
         GFX_multiply_matrix(&mat);
-		
-		glUniformMatrix4fv(program->uniform_map["MODELVIEWPROJECTIONMATRIX"].location,
+
+        glUniformMatrix4fv(program->uniform_map["MODELVIEWPROJECTIONMATRIX"].location,
                            1,
                            GL_FALSE,
                            (float *)GFX_get_modelview_projection_matrix());
+
+        objmesh->draw();
         
-		objmesh->draw();
-        
-		GFX_pop_matrix();
-	}
+        GFX_pop_matrix();
+    }
     
     dynamicsworld->stepSimulation(1.0f / 60.0f);
 }
 
 void templateAppExit(void) {
     free_physic_world();
-
+    
     delete program;
     program = NULL;
-
-	delete obj;
+    
+    delete obj;
 }

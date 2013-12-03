@@ -56,10 +56,12 @@ vec2 touche = { 0.0f, 0.0f };
 vec3 rot_angle = { 0.0f, 0.0f, 0.0f };
 
 
-TEMPLATEAPP templateApp = { templateAppInit,
-							templateAppDraw,
-							templateAppToucheBegan,
-							templateAppToucheMoved };
+TEMPLATEAPP templateApp = {
+    templateAppInit,
+    templateAppDraw,
+    templateAppToucheBegan,
+    templateAppToucheMoved
+};
 
 
 void program_bind_attrib_location(void *ptr) {
@@ -72,55 +74,55 @@ void program_bind_attrib_location(void *ptr) {
 
 void material_draw_callback(void *ptr)
 {
-	OBJMATERIAL *objmaterial = (OBJMATERIAL *)ptr;
+    OBJMATERIAL *objmaterial = (OBJMATERIAL *)ptr;
 
-	PROGRAM *program = objmaterial->program;
+    PROGRAM *program = objmaterial->program;
 
     for (auto it=program->uniform_map.begin(); it!=program->uniform_map.end(); ++it) {
         auto    &name = it->first;
         auto    &uniform = it->second;
 
-		if (name == "MODELVIEWMATRIX") {
-			glUniformMatrix4fv(uniform.location,
+        if (name == "MODELVIEWMATRIX") {
+            glUniformMatrix4fv(uniform.location,
                                1,
                                GL_FALSE,
                                (float *)GFX_get_modelview_matrix());
         } else if (name == "PROJECTIONMATRIX") {
-			glUniformMatrix4fv(uniform.location,
+            glUniformMatrix4fv(uniform.location,
                                1,
                                GL_FALSE,
                                (float *)GFX_get_projection_matrix());
         } else if ((name == TM_Diffuse_String) && !uniform.constant) {
-			uniform.constant = true;
-			glUniform1i(uniform.location, TM_Diffuse);
+            uniform.constant = true;
+            glUniform1i(uniform.location, TM_Diffuse);
         } else if (name == MP_Diffuse) {
             glUniform3fv(uniform.location,
                          1,
                          (float *)&objmaterial->diffuse);
-		}
-	}
+        }
+    }
 }
 
 
 void templateAppInit(int width, int height) {
 
-	atexit(templateAppExit);
+    atexit(templateAppExit);
 
-	GFX_start();
+    GFX_start();
 
-	glViewport(0.0f, 0.0f, width, height);
+    glViewport(0.0f, 0.0f, width, height);
 
-	GFX_set_matrix_mode(PROJECTION_MATRIX);
-	GFX_load_identity();
-	GFX_set_perspective(45.0f,
+    GFX_set_matrix_mode(PROJECTION_MATRIX);
+    GFX_load_identity();
+    GFX_set_perspective(45.0f,
                         (float)width / (float)height,
                         0.1f,
                         100.0f,
                         0.0f);
 
-	obj = new OBJ(OBJ_FILE, true);
+    obj = new OBJ(OBJ_FILE, true);
 
-	for (auto objmesh=obj->objmesh.begin();
+    for (auto objmesh=obj->objmesh.begin();
          objmesh!=obj->objmesh.end(); ++objmesh) {
         console_print("%s: %d: GL_TRIANGLES\n",
                       objmesh->name,
@@ -137,10 +139,10 @@ void templateAppInit(int width, int height) {
                       objmesh->objtrianglelist[0].n_indice_array);
 
 
-		objmesh->build();
+        objmesh->build();
 
-		objmesh->free_vertex_data();
-	}
+        objmesh->free_vertex_data();
+    }
 
 
     for (auto texture=obj->texture.begin();
@@ -152,7 +154,7 @@ void templateAppInit(int width, int height) {
     }
 
 
-	for (auto objmaterial=obj->objmaterial.begin();
+    for (auto objmaterial=obj->objmaterial.begin();
          objmaterial!=obj->objmaterial.end(); ++objmaterial) {
         objmaterial->build(new PROGRAM((char *)"default",
                                        VERTEX_SHADER,
@@ -162,62 +164,62 @@ void templateAppInit(int width, int height) {
                                        program_bind_attrib_location,
                                        NULL));
 
-		objmaterial->set_draw_callback(material_draw_callback);
-	}
+        objmaterial->set_draw_callback(material_draw_callback);
+    }
 }
 
 
 void templateAppDraw(void) {
 
-	glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
-	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+    glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
+    glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
-	GFX_set_matrix_mode(MODELVIEW_MATRIX);
-	GFX_load_identity();
+    GFX_set_matrix_mode(MODELVIEW_MATRIX);
+    GFX_load_identity();
     {
 
-		vec3 e = { 0.0, -3.0f, 0.0f },
-        c = { 0.0f, 0.0f, 0.0f },
-        u = { 0.0f, 0.0f, 1.0f };
+        vec3    e = { 0.0, -3.0f, 0.0f },
+                c = { 0.0f, 0.0f, 0.0f },
+                u = { 0.0f, 0.0f, 1.0f };
 
-		GFX_look_at(&e, &c, &u);
-	}
+        GFX_look_at(&e, &c, &u);
+    }
 
-	for (auto objmesh=obj->objmesh.begin();
+    for (auto objmesh=obj->objmesh.begin();
          objmesh!=obj->objmesh.end(); ++objmesh) {
-		GFX_push_matrix();
+        GFX_push_matrix();
 
-		if (auto_rotate) rot_angle.z += 2.0f;
+        if (auto_rotate) rot_angle.z += 2.0f;
 
-		GFX_rotate(rot_angle.x, 1.0f, 0.0f, 0.0f);
-		GFX_rotate(rot_angle.z, 0.0f, 0.0f, 1.0f);
+        GFX_rotate(rot_angle.x, 1.0f, 0.0f, 0.0f);
+        GFX_rotate(rot_angle.z, 0.0f, 0.0f, 1.0f);
 
-		objmesh->draw();
-        
-		GFX_pop_matrix();
-	}
+        objmesh->draw();
+
+        GFX_pop_matrix();
+    }
 }
 
 
 void templateAppToucheBegan(float x, float y, unsigned int tap_count) {
-	if (tap_count == 2) auto_rotate = !auto_rotate;
-
-	touche.x = x;
-	touche.y = y;
+    if (tap_count == 2) auto_rotate = !auto_rotate;
+    
+    touche.x = x;
+    touche.y = y;
 }
 
 
 void templateAppToucheMoved(float x, float y, unsigned int tap_count) {
-	auto_rotate = false;
-
-	rot_angle.z += -(touche.x - x);
-	rot_angle.x += -(touche.y - y);
-
-	touche.x = x;
-	touche.y = y;
+    auto_rotate = false;
+    
+    rot_angle.z += -(touche.x - x);
+    rot_angle.x += -(touche.y - y);
+    
+    touche.x = x;
+    touche.y = y;
 }
 
 
 void templateAppExit(void) {
-	delete obj;
+    delete obj;
 }

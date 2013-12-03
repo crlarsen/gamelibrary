@@ -82,16 +82,16 @@ ALuint soundsource;
 
 void templateAppInit( int width, int height )
 {
-	// Setup the exit callback function.
-	atexit( templateAppExit );
-	
-	// Initialize GLES.
-	GFX_start();
-	
-	// Setup a GLES viewport using the current width and height of the screen.
-	glViewport( 0, 0, width, height );
-	
-	/* Open the first valid device OpenAL finds and use it for playback. */
+    // Setup the exit callback function.
+    atexit( templateAppExit );
+
+    // Initialize GLES.
+    GFX_start();
+
+    // Setup a GLES viewport using the current width and height of the screen.
+    glViewport( 0, 0, width, height );
+
+    /* Open the first valid device OpenAL finds and use it for playback. */
     al_device = alcOpenDevice(NULL);
     /* Create a vanilla OpenAL context (linking the device initialized above). */
     al_context = alcCreateContext(al_device, NULL);
@@ -132,9 +132,9 @@ void templateAppInit( int width, int height )
 
 void templateAppDraw( void )
 {
-	// Clear the depth, stencil and colorbuffer.
-	glClear( GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT | GL_COLOR_BUFFER_BIT );
-
+    // Clear the depth, stencil and colorbuffer.
+    glClear( GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT | GL_COLOR_BUFFER_BIT );
+    
     /* Temp. variable to hold the state of the sound source. */
     int state = 0;
     /* Request OpenAL to give you the current state of the source.  The result
@@ -161,25 +161,25 @@ void templateAppDraw( void )
 
 void templateAppToucheBegan( float x, float y, unsigned int tap_count )
 {
-	/* Insert code to execute when a new touche is detected on screen. */
+    /* Insert code to execute when a new touche is detected on screen. */
 }
 
 
 void templateAppToucheMoved( float x, float y, unsigned int tap_count )
 {
-	/* Insert code to execute when a touche move on screen. */
+    /* Insert code to execute when a touche move on screen. */
 }
 
 
 void templateAppToucheEnded( float x, float y, unsigned int tap_count )
 {
-	/* Insert code to execute when a touche is removed from the screen. */
+    /* Insert code to execute when a touche is removed from the screen. */
 }
 
 
 void templateAppAccelerometer( float x, float y, float z )
 {
-	/* Insert code to execute with the accelerometer values ( when available on the system ). */
+    /* Insert code to execute with the accelerometer values ( when available on the system ). */
 }
 
 

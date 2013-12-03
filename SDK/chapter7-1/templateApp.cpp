@@ -51,11 +51,13 @@ OBJ *obj = NULL;
 
 PROGRAM *program = NULL;
 
-TEMPLATEAPP templateApp = { templateAppInit,
-							templateAppDraw,
-							templateAppToucheBegan,
-							templateAppToucheMoved,
-							templateAppToucheEnded };
+TEMPLATEAPP templateApp = {
+    templateAppInit,
+    templateAppDraw,
+    templateAppToucheBegan,
+    templateAppToucheMoved,
+    templateAppToucheEnded
+};
 
 /* To contain the rotation on the Z axis of the camera. */
 float rotz = 0.0f;
@@ -79,32 +81,32 @@ void program_bind_attrib_location(void *ptr) {
 
 
 void templateAppInit(int width, int height) {
-	atexit(templateAppExit);
+    atexit(templateAppExit);
 
-	GFX_start();
+    GFX_start();
 
-	glViewport(0.0f, 0.0f, width, height);
+    glViewport(0.0f, 0.0f, width, height);
 
-	GFX_set_matrix_mode(PROJECTION_MATRIX);
-	GFX_load_identity();
-	GFX_set_perspective(80.0f,
+    GFX_set_matrix_mode(PROJECTION_MATRIX);
+    GFX_load_identity();
+    GFX_set_perspective(80.0f,
                         (float)width / (float)height,
                         0.1f,
                         100.0f,
                         -90.0f);
 
-	obj = new OBJ(OBJ_FILE, true);
+    obj = new OBJ(OBJ_FILE, true);
 
-	for (auto objmesh=obj->objmesh.begin();
+    for (auto objmesh=obj->objmesh.begin();
          objmesh!=obj->objmesh.end(); ++objmesh) {
-		objmesh->optimize(128);
-		
-		objmesh->build();
+        objmesh->optimize(128);
 
-		objmesh->free_vertex_data();
-	}
-	
-	
+        objmesh->build();
+
+        objmesh->free_vertex_data();
+    }
+
+
     for (auto texture=obj->texture.begin();
          texture!=obj->texture.end(); ++texture) {
         (*texture)->build(obj->texture_path,
@@ -114,13 +116,13 @@ void templateAppInit(int width, int height) {
     }
 
 
-	for (auto objmaterial=obj->objmaterial.begin();
+    for (auto objmaterial=obj->objmaterial.begin();
          objmaterial!=obj->objmaterial.end(); ++objmaterial) {
-		objmaterial->build(NULL);
+        objmaterial->build(NULL);
     }
 
-	
-	program = new PROGRAM((char *)"default",
+
+    program = new PROGRAM((char *)"default",
                           VERTEX_SHADER,
                           FRAGMENT_SHADER,
                           true,
@@ -128,19 +130,19 @@ void templateAppInit(int width, int height) {
                           program_bind_attrib_location,
                           NULL);
 
-	program->draw();
-	
-	glUniform1i(program->get_uniform_location(TM_Diffuse_String), TM_Diffuse);
+    program->draw();
+
+    glUniform1i(program->get_uniform_location(TM_Diffuse_String), TM_Diffuse);
 }
 
 
 void templateAppDraw(void) {
 
-	glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
-	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+    glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
+    glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
-	GFX_set_matrix_mode(MODELVIEW_MATRIX);
-	GFX_load_identity();
+    GFX_set_matrix_mode(MODELVIEW_MATRIX);
+    GFX_load_identity();
 
     /* The touch delta Y only affects the rotation, so check if you got a
      * value different than 0 to process the forward/backward movements.
@@ -150,22 +152,22 @@ void templateAppDraw(void) {
          * the positive Y axis.
          */
         vec3 forward = { 0.0f, 1.0f, 0.0f },
-             /* Declare the direction vector that you will use to affect the
-              * current eye location of the camera.
-              */
-             direction;
+        /* Declare the direction vector that you will use to affect the
+         * current eye location of the camera.
+         */
+        direction;
 
         /* Rotate the current forward vector based on the current Z rotation.
          * By doing this, regardless of the rotation angle Z of the camera, up will
          * always be forward and down will always be backward.
          */
-        float r = rotz * DEG_TO_RAD,
-              c = cosf(r),
-              s = sinf(r);
+        float	r = rotz * DEG_TO_RAD,
+                c = cosf(r),
+                s = sinf(r);
 
         direction.x = c * forward.x - s * forward.y;
         direction.y = s * forward.x + c * forward.y;
-        /* You now have direction vector that is appropriately rotated to
+        /* You now have a direction vector that is appropriately rotated to
          * the current coordinate system of the camera.  Add the direction
          * vector to the eye_location to make the camera move.  And use the
          * touche_delta.x as the speed factor.
@@ -189,24 +191,24 @@ void templateAppDraw(void) {
     /* Invert the current model view matrix to create a camera view matrix. */
     mat4_invert(GFX_get_modelview_matrix());
 
-	for (auto objmesh=obj->objmesh.begin();
+    for (auto objmesh=obj->objmesh.begin();
          objmesh!=obj->objmesh.end(); ++objmesh) {
 
-		GFX_push_matrix();
+        GFX_push_matrix();
 
-		GFX_translate(objmesh->location.x,
+        GFX_translate(objmesh->location.x,
                       objmesh->location.y,
                       objmesh->location.z);
 
-		glUniformMatrix4fv(program->uniform_map["MODELVIEWPROJECTIONMATRIX"].location,
+        glUniformMatrix4fv(program->uniform_map["MODELVIEWPROJECTIONMATRIX"].location,
                            1,
                            GL_FALSE,
                            (float *)GFX_get_modelview_projection_matrix());
-
-		objmesh->draw();
-
-		GFX_pop_matrix();
-	}
+        
+        objmesh->draw();
+        
+        GFX_pop_matrix();
+    }
 }
 
 
@@ -220,7 +222,7 @@ void templateAppToucheBegan(float x, float y, unsigned int tap_count)
 
 void templateAppToucheMoved(float x, float y, unsigned int tap_count)
 {
-    /* Calculate the XY delta (thatyou will use as a direction vector)
+    /* Calculate the XY delta (that you will use as a direction vector)
      * for the current movement onscreen and clamp the range of both the movement
      * and the rotation since you don't want the movement to go wild because the
      * current delta unit is in pixels and the units inside your world are in

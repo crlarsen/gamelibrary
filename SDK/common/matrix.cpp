@@ -196,51 +196,51 @@ void mat4_rotate_fast( mat4 *m, vec4 *v )
 
 void mat4_rotate( mat4 *dst, mat4 *m, vec4 *v )
 {
-	float s = sinf( v->w * DEG_TO_RAD ),
-		  c = cosf( v->w * DEG_TO_RAD ),
-		  xx,
-		  yy,
-		  zz,
-		  xy,
-		  yz,
-		  zx,
-		  xs,
-		  ys,
-		  zs,
-		  c1;
-			
-	mat4 mat;
+    float s = sinf( v->w * DEG_TO_RAD ),
+    c = cosf( v->w * DEG_TO_RAD ),
+    xx,
+    yy,
+    zz,
+    xy,
+    yz,
+    zx,
+    xs,
+    ys,
+    zs,
+    c1;
 
-	vec3 t = { v->x, v->y, v->z };
+    mat4 mat;
 
-	mat4_identity( &mat );
-	
-	if( !v->w || !vec3_normalize( &t, &t ) ) return;
+    vec3 t = { v->x, v->y, v->z };
 
-	xx = t.x * t.x;
-	yy = t.y * t.y;
-	zz = t.z * t.z;
-	xy = t.x * t.y;
-	yz = t.y * t.z;
-	zx = t.z * t.x;
-	xs = t.x * s;
-	ys = t.y * s;
-	zs = t.z * s;
-	c1 = 1.0f - c;
+    mat4_identity( &mat );
 
-	mat.m[ 0 ].x = ( c1 * xx ) + c;
-	mat.m[ 1 ].x = ( c1 * xy ) - zs;
-	mat.m[ 2 ].x = ( c1 * zx ) + ys;
+    if( !v->w || !vec3_normalize( &t, &t ) ) return;
 
-	mat.m[ 0 ].y = ( c1 * xy ) + zs;
-	mat.m[ 1 ].y = ( c1 * yy ) + c;
-	mat.m[ 2 ].y = ( c1 * yz ) - xs;
+    xx = t.x * t.x;
+    yy = t.y * t.y;
+    zz = t.z * t.z;
+    xy = t.x * t.y;
+    yz = t.y * t.z;
+    zx = t.z * t.x;
+    xs = t.x * s;
+    ys = t.y * s;
+    zs = t.z * s;
+    c1 = 1.0f - c;
 
-	mat.m[ 0 ].z = ( c1 * zx ) - ys;
-	mat.m[ 1 ].z = ( c1 * yz ) + xs;
-	mat.m[ 2 ].z = ( c1 * zz ) + c;
-	
-	mat4_multiply_mat4( m, m, &mat );	
+    mat.m[ 0 ].x = ( c1 * xx ) + c;
+    mat.m[ 1 ].x = ( c1 * xy ) - zs;
+    mat.m[ 2 ].x = ( c1 * zx ) + ys;
+
+    mat.m[ 0 ].y = ( c1 * xy ) + zs;
+    mat.m[ 1 ].y = ( c1 * yy ) + c;
+    mat.m[ 2 ].y = ( c1 * yz ) - xs;
+
+    mat.m[ 0 ].z = ( c1 * zx ) - ys;
+    mat.m[ 1 ].z = ( c1 * yz ) + xs;
+    mat.m[ 2 ].z = ( c1 * zz ) + c;
+    
+    mat4_multiply_mat4( m, m, &mat );	
 }
 
 

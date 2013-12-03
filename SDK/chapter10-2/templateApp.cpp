@@ -45,8 +45,10 @@ as being the original software.
 
 OBJ *obj = NULL;
 
-TEMPLATEAPP templateApp = { templateAppInit,
-							templateAppDraw };
+TEMPLATEAPP templateApp = {
+    templateAppInit,
+    templateAppDraw
+};
 
 std::vector<OBJMESH>::iterator objmesh;
 
@@ -166,28 +168,28 @@ void program_bind_attrib_location(void *ptr) {
 
 void program_draw(void *ptr)
 {
-	PROGRAM *program = (PROGRAM *)ptr;
+    PROGRAM *program = (PROGRAM *)ptr;
 
     for (auto it=program->uniform_map.begin(); it!=program->uniform_map.end(); ++it){
         auto    &name = it->first;
         auto    &uniform = it->second;
 
-		if (uniform.constant) {
-			continue;
-		} else if (name == "MODELVIEWPROJECTIONMATRIX") {
-			glUniformMatrix4fv(uniform.location,
+        if (uniform.constant) {
+            continue;
+        } else if (name == "MODELVIEWPROJECTIONMATRIX") {
+            glUniformMatrix4fv(uniform.location,
                                1,
                                GL_FALSE,
                                (float *)GFX_get_modelview_projection_matrix());
-		} else if (name == TM_Diffuse_String) {
-			glUniform1i(uniform.location, TM_Diffuse);
+        } else if (name == TM_Diffuse_String) {
+            glUniform1i(uniform.location, TM_Diffuse);
 
-			uniform.constant = true;
-		} else if (name == TM_Bump_String) {
-			glUniform1i(uniform.location, TM_Bump);
+            uniform.constant = true;
+        } else if (name == TM_Bump_String) {
+            glUniform1i(uniform.location, TM_Bump);
 
-			uniform.constant = true;
-		} else if (name == "MODELVIEWMATRIX") {
+            uniform.constant = true;
+        } else if (name == "MODELVIEWMATRIX") {
             // Matrix Data
             glUniformMatrix4fv(uniform.location,
                                1,
@@ -199,7 +201,7 @@ void program_draw(void *ptr)
                                GL_FALSE,
                                (float *)GFX_get_projection_matrix());
 
-			uniform.constant = true;
+            uniform.constant = true;
         } else if (name == "NORMALMATRIX") {
             glUniformMatrix3fv(uniform.location,
                                1,
@@ -216,26 +218,26 @@ void program_draw(void *ptr)
              * also allow you to get better performance at runtime, because
              * the data will not be sent over and over for nothing.
              */
-			uniform.constant = true;
+            uniform.constant = true;
         } else if (name == "MATERIAL.diffuse") {
             glUniform4fv(uniform.location,
                          1,
                          (float *)&objmesh->current_material->diffuse);
 
-			uniform.constant = true;
+            uniform.constant = true;
         } else if (name == "MATERIAL.specular") {
             glUniform4fv(uniform.location,
                          1,
                          (float *)&objmesh->current_material->specular);
 
-			uniform.constant = true;
+            uniform.constant = true;
         } else if (name == "MATERIAL.shininess") {
             glUniform1f(uniform.location,
                         objmesh->current_material->specular_exponent * 0.128f);
 
-			uniform.constant = true;
+            uniform.constant = true;
         }
-	}
+    }
 
     /* A temp string to dynamically create the LAMP property names. */
     char tmp[MAX_CHAR] = {""};
@@ -279,7 +281,7 @@ void program_draw(void *ptr)
         LAMP_get_position_in_eye_space(lamp,
                                        &gfx.modelview_matrix[gfx.modelview_matrix_index - 1],
                                        &position);
-
+        
         glUniform3fv(program->get_uniform_location(tmp),
                      1,
                      (float *)&position);
@@ -289,25 +291,25 @@ void program_draw(void *ptr)
 
 void templateAppInit(int width, int height)
 {
-	atexit(templateAppExit);
+    atexit(templateAppExit);
 
-	GFX_start();
+    GFX_start();
 
-	glViewport(0.0f, 0.0f, width, height);
+    glViewport(0.0f, 0.0f, width, height);
 
-	glGetIntegerv(GL_VIEWPORT, viewport_matrix);
+    glGetIntegerv(GL_VIEWPORT, viewport_matrix);
 
-	obj = new OBJ(OBJ_FILE, true);
+    obj = new OBJ(OBJ_FILE, true);
 
-	for (auto objmesh=obj->objmesh.begin();
+    for (auto objmesh=obj->objmesh.begin();
          objmesh!=obj->objmesh.end(); ++objmesh) {
-		objmesh->optimize(128);
+        objmesh->optimize(128);
 
-		objmesh->build();
-
-		objmesh->free_vertex_data();
-	}
-
+        objmesh->build();
+        
+        objmesh->free_vertex_data();
+    }
+    
     for (auto texture=obj->texture.begin();
          texture!=obj->texture.end(); ++texture) {
         (*texture)->build(obj->texture_path,
@@ -345,44 +347,44 @@ void templateAppInit(int width, int height)
 
 void templateAppDraw(void)
 {
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
 
-	GFX_set_matrix_mode(PROJECTION_MATRIX);
-	GFX_load_identity();
+    GFX_set_matrix_mode(PROJECTION_MATRIX);
+    GFX_load_identity();
 
-	GFX_set_perspective(45.0f,
+    GFX_set_perspective(45.0f,
                         (float)viewport_matrix[2] / (float)viewport_matrix[3],
                         0.1f,
                         100.0f,
                         -90.0f);
 
-	GFX_set_matrix_mode(MODELVIEW_MATRIX);
-	GFX_load_identity();
+    GFX_set_matrix_mode(MODELVIEW_MATRIX);
+    GFX_load_identity();
 
-	GFX_translate(14.0f, -12.0f, 7.0f);
+    GFX_translate(14.0f, -12.0f, 7.0f);
 
-	GFX_rotate(48.5f, 0.0f, 0.0f, 1.0f);
+    GFX_rotate(48.5f, 0.0f, 0.0f, 1.0f);
 
-	GFX_rotate(72.0, 1.0f, 0.0f, 0.0f);
+    GFX_rotate(72.0, 1.0f, 0.0f, 0.0f);
 
-	mat4_invert(GFX_get_modelview_matrix());
+    mat4_invert(GFX_get_modelview_matrix());
 
 
-	for (objmesh=obj->objmesh.begin();
+    for (objmesh=obj->objmesh.begin();
          objmesh!=obj->objmesh.end(); ++objmesh) {
 
-		GFX_push_matrix();
+        GFX_push_matrix();
 
-		GFX_translate(objmesh->location.x,
+        GFX_translate(objmesh->location.x,
                       objmesh->location.y,
                       objmesh->location.z);
-
-		objmesh->draw();
-
-		GFX_pop_matrix();
-	}
+        
+        objmesh->draw();
+        
+        GFX_pop_matrix();
+    }
 }
 
 

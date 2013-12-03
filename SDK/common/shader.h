@@ -38,11 +38,11 @@ as being the original software.
 #define SHADER_H
 
 struct SHADER {
-	char			name[ MAX_CHAR ];
-	
-	GLenum          type;
+    char            name[MAX_CHAR];
 
-	GLuint          sid;
+    GLenum          type;
+
+    GLuint          sid;
 public:
     SHADER(char *name, GLenum type);
     ~SHADER();

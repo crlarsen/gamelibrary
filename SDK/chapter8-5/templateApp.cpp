@@ -56,18 +56,18 @@ PROGRAM *program = NULL;
 
 PROGRAM *path_point = NULL;
 
-vec2 view_location,
- 	 view_delta = { 0.0f, 0.0f };
+vec2    view_location,
+        view_delta = { 0.0f, 0.0f };
 
-vec3 eye,
-	 next_eye,
-	 center = { 0.0f, 0.0f, 0.0f },
-     up = { 0.0f, 0.0f, 1.0f };
+vec3    eye,
+        next_eye,
+        center = { 0.0f, 0.0f, 0.0f },
+        up = { 0.0f, 0.0f, 1.0f };
 
 
-float rotx		= 45.0f,
+float rotx	= 45.0f,
       next_rotx = 0.0f, 
-      rotz		= 0.0f,
+      rotz	= 0.0f,
       next_rotz	= -45.0f,
       distance	= 30.0f;	
 
@@ -118,10 +118,12 @@ enum GameState {
 /* Flag to handle the "game over" state. */
 GameState gameState = GameRunning;
 
-TEMPLATEAPP templateApp = { templateAppInit,
-							templateAppDraw,
-							templateAppToucheBegan,
-							templateAppToucheMoved };
+TEMPLATEAPP templateApp = {
+    templateAppInit,
+    templateAppDraw,
+    templateAppToucheBegan,
+    templateAppToucheMoved
+};
 
 
 btSoftBodyRigidBodyCollisionConfiguration *collisionconfiguration = NULL;
@@ -137,77 +139,77 @@ btSoftRigidDynamicsWorld *dynamicsworld = NULL;
 
 void init_physic_world(void)
 {
-	collisionconfiguration = new btSoftBodyRigidBodyCollisionConfiguration();
+    collisionconfiguration = new btSoftBodyRigidBodyCollisionConfiguration();
 
-	dispatcher = new btCollisionDispatcher(collisionconfiguration);
+    dispatcher = new btCollisionDispatcher(collisionconfiguration);
 
-	broadphase = new btDbvtBroadphase();
+    broadphase = new btDbvtBroadphase();
 
-	solver = new btSequentialImpulseConstraintSolver();
+    solver = new btSequentialImpulseConstraintSolver();
 
-	dynamicsworld = new btSoftRigidDynamicsWorld(dispatcher,
+    dynamicsworld = new btSoftRigidDynamicsWorld(dispatcher,
                                                  broadphase,
                                                  solver,
                                                  collisionconfiguration);
 
-	dynamicsworld->setGravity(btVector3(0.0f, 0.0f, -9.8f));
+    dynamicsworld->setGravity(btVector3(0.0f, 0.0f, -9.8f));
 }
 
 
 void load_physic_world(void)
 {
-	btBulletWorldImporter *btbulletworldimporter = new btBulletWorldImporter(dynamicsworld);
+    btBulletWorldImporter *btbulletworldimporter = new btBulletWorldImporter(dynamicsworld);
 
-	MEMORY *memory = new MEMORY(PHYSIC_FILE, true);
+    MEMORY *memory = new MEMORY(PHYSIC_FILE, true);
 
-	btbulletworldimporter->loadFileFromMemory((char *)memory->buffer, memory->size);
+    btbulletworldimporter->loadFileFromMemory((char *)memory->buffer, memory->size);
 
-	delete memory;
+    delete memory;
 
-	for (int i=0; i!=btbulletworldimporter->getNumRigidBodies(); ++i) {
-		OBJMESH *objmesh = obj->get_mesh(btbulletworldimporter->getNameForPointer(
-                                         btbulletworldimporter->getRigidBodyByIndex(i)), false);
-        
-		if (objmesh) { 
-			objmesh->btrigidbody = (btRigidBody *)btbulletworldimporter->getRigidBodyByIndex(i);
-			
-			objmesh->btrigidbody->setUserPointer(objmesh);
-		} 
-	}
+    for (int i=0; i!=btbulletworldimporter->getNumRigidBodies(); ++i) {
+        OBJMESH *objmesh = obj->get_mesh(btbulletworldimporter->getNameForPointer(btbulletworldimporter->getRigidBodyByIndex(i)),
+                                         false);
+
+        if (objmesh) {
+            objmesh->btrigidbody = (btRigidBody *)btbulletworldimporter->getRigidBodyByIndex(i);
+
+            objmesh->btrigidbody->setUserPointer(objmesh);
+        } 
+    }
     
-	delete btbulletworldimporter;
+    delete btbulletworldimporter;
 }
 
 
 void free_physic_world(void)
 {
-	while (dynamicsworld->getNumCollisionObjects()) {
-		btCollisionObject *btcollisionobject = dynamicsworld->getCollisionObjectArray()[0];
+    while (dynamicsworld->getNumCollisionObjects()) {
+        btCollisionObject *btcollisionobject = dynamicsworld->getCollisionObjectArray()[0];
 
-		btRigidBody *btrigidbody = btRigidBody::upcast(btcollisionobject);
+        btRigidBody *btrigidbody = btRigidBody::upcast(btcollisionobject);
 
-		if (btrigidbody) {
-			delete btrigidbody->getCollisionShape();
+        if (btrigidbody) {
+            delete btrigidbody->getCollisionShape();
 
-			delete btrigidbody->getMotionState();
+            delete btrigidbody->getMotionState();
 
-			dynamicsworld->removeRigidBody(btrigidbody);
+            dynamicsworld->removeRigidBody(btrigidbody);
 
-			dynamicsworld->removeCollisionObject(btcollisionobject);
+            dynamicsworld->removeCollisionObject(btcollisionobject);
 
-			delete btrigidbody;
-		}
-	}
+            delete btrigidbody;
+        }
+    }
 
-	delete collisionconfiguration; collisionconfiguration = NULL;
+    delete collisionconfiguration; collisionconfiguration = NULL;
 
-	delete dispatcher; dispatcher = NULL;
-
-	delete broadphase; broadphase = NULL;
-
-	delete solver; solver = NULL;
-
-	delete dynamicsworld; dynamicsworld = NULL;
+    delete dispatcher; dispatcher = NULL;
+    
+    delete broadphase; broadphase = NULL;
+    
+    delete solver; solver = NULL;
+    
+    delete dynamicsworld; dynamicsworld = NULL;
 }
 
 void program_bind_attrib_location(void *ptr) {
@@ -239,9 +241,9 @@ void near_callback(btBroadphasePair &btbroadphasepair,
 
 void load_game(void)
 {
-	obj = new OBJ(OBJ_FILE, true);
+    obj = new OBJ(OBJ_FILE, true);
 
-	for (int i=0; i!=obj->objmesh.size(); ++i) {
+    for (int i=0; i!=obj->objmesh.size(); ++i) {
         /* If the current mesh is the maze... */
         if (strstr(obj->objmesh[i].name, "maze")) {
             /* Initialize the NAVIGATION structure. */
@@ -270,7 +272,7 @@ void load_game(void)
             }
         }
 
-		obj->objmesh[i].optimize(128);
+        obj->objmesh[i].optimize(128);
 
         /* OBJMESH::build2 is another version of the OBJMESH::build that
          * does not use VAO (only pure glDraw calls), at the time of
@@ -278,17 +280,17 @@ void load_game(void)
          * commands (as you will do in this chapter) with VAO cause
          * issues on some Android drivers.
          */
-		obj->objmesh[i].build2();
+        obj->objmesh[i].build2();
 
-		obj->objmesh[i].free_vertex_data();
-	}
+        obj->objmesh[i].free_vertex_data();
+    }
 
 
-	init_physic_world();
-
+    init_physic_world();
+    
     /* Get the player mesh pointer. */
-	load_physic_world();
-
+    load_physic_world();
+    
     dispatcher->setNearCallback(near_callback);
 
     enemy = obj->get_mesh("enemy", false);
@@ -332,14 +334,14 @@ void load_game(void)
 }
 
 void templateAppInit(int width, int height) {
-	atexit(templateAppExit);
+    atexit(templateAppExit);
 
-	GFX_start();
+    GFX_start();
 
-	glViewport(0.0f, 0.0f, width, height);
+    glViewport(0.0f, 0.0f, width, height);
 
-	glGetIntegerv(GL_VIEWPORT, viewport_matrix);
-
+    glGetIntegerv(GL_VIEWPORT, viewport_matrix);
+    
     load_game();
 }
 
@@ -468,17 +470,17 @@ void move_entity(OBJMESH *objmesh,
 
 void templateAppDraw(void) {
 
-	glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
-	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+    glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
+    glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
-	GFX_set_matrix_mode(PROJECTION_MATRIX);
-	GFX_load_identity();
-	GFX_set_perspective(80.0f,
+    GFX_set_matrix_mode(PROJECTION_MATRIX);
+    GFX_load_identity();
+    GFX_set_perspective(80.0f,
                         (float)viewport_matrix[2] / (float)viewport_matrix[3],
                         1.0f,
                         1000.0f,
                         -90.0f);
-
+    
     if (gameState == GameRestart) {
         /* Clean up the memory. */
         templateAppExit();
@@ -488,49 +490,49 @@ void templateAppDraw(void) {
         gameState = GameRunning;
     }
 
-	GFX_set_matrix_mode(MODELVIEW_MATRIX);
-	GFX_load_identity();
+    GFX_set_matrix_mode(MODELVIEW_MATRIX);
+    GFX_load_identity();
 
-	if (view_delta.x || view_delta.y) {
-		if (view_delta.y) next_rotz -= view_delta.y;
+    if (view_delta.x || view_delta.y) {
+        if (view_delta.y) next_rotz -= view_delta.y;
 
-		if (view_delta.x) {
-			next_rotx -= view_delta.x;
-			next_rotx = CLAMP(next_rotx, 0.0f, 90.0f);
-		}
+        if (view_delta.x) {
+            next_rotx -= view_delta.x;
+            next_rotx = CLAMP(next_rotx, 0.0f, 90.0f);
+        }
 
-		view_delta.x =
-		view_delta.y = 0.0f;
-	}
+        view_delta.x =
+        view_delta.y = 0.0f;
+    }
 
-	rotx = rotx * 0.9f + next_rotx * 0.1f;
-	rotz = rotz * 0.9f + next_rotz * 0.1f;
+    rotx = rotx * 0.9f + next_rotx * 0.1f;
+    rotz = rotz * 0.9f + next_rotz * 0.1f;
 
-	eye.x = center.x +
+    eye.x = center.x +
             distance *
             cosf(rotx * DEG_TO_RAD) *
             sinf(rotz * DEG_TO_RAD);
 
-	eye.y = center.y -
+    eye.y = center.y -
             distance *
             cosf(rotx * DEG_TO_RAD) *
             cosf(rotz * DEG_TO_RAD);
 
-	eye.z = center.z +
+    eye.z = center.z +
             distance *
             sinf(rotx * DEG_TO_RAD);
 
-	rotx = rotx * 0.9f + next_rotx * 0.1f;
-	rotz = rotz * 0.9f + next_rotz * 0.1f;
-
+    rotx = rotx * 0.9f + next_rotx * 0.1f;
+    rotz = rotz * 0.9f + next_rotz * 0.1f;
+    
     center.x = maze->location.x;
     center.y = maze->location.y;
     center.z = maze->location.z;
 
-	GFX_look_at(&eye,
+    GFX_look_at(&eye,
                 &center,
                 &up);
-
+    
     if (double_tap) {
         /* Variable to hold the 3D location on the far plane of the frustum. */
         vec3 location;
@@ -711,32 +713,32 @@ void templateAppDraw(void) {
         draw_navigation_points(&navigationpathdata_enemy, &color);
     }
 
-	program->draw();
+    program->draw();
 
-	glUniform1i(program->get_uniform_location(TM_Diffuse_String), TM_Diffuse);
+    glUniform1i(program->get_uniform_location(TM_Diffuse_String), TM_Diffuse);
 
-	for (auto objmesh=obj->objmesh.begin();
+    for (auto objmesh=obj->objmesh.begin();
          objmesh!=obj->objmesh.end(); ++objmesh) {
 
-		GFX_push_matrix();
+        GFX_push_matrix();
 
-		mat4 mat;
+        mat4 mat;
 
-		objmesh->btrigidbody->getWorldTransform().getOpenGLMatrix((float *)&mat);
+        objmesh->btrigidbody->getWorldTransform().getOpenGLMatrix((float *)&mat);
 
-		memcpy(&objmesh->location, (vec3 *)&mat.m[3], sizeof(vec3));
+        memcpy(&objmesh->location, (vec3 *)&mat.m[3], sizeof(vec3));
 
-		GFX_multiply_matrix(&mat);
+        GFX_multiply_matrix(&mat);
 
-		glUniformMatrix4fv(program->get_uniform_location((char *)"MODELVIEWPROJECTIONMATRIX"),
+        glUniformMatrix4fv(program->get_uniform_location((char *)"MODELVIEWPROJECTIONMATRIX"),
                            1,
                            GL_FALSE,
                            (float *)GFX_get_modelview_projection_matrix());
-
-		objmesh->draw();
-
-		GFX_pop_matrix();
-	}
+        
+        objmesh->draw();
+        
+        GFX_pop_matrix();
+    }
 
     NAVIGATION_draw(navigation);
 
@@ -815,18 +817,18 @@ void templateAppToucheBegan(float x, float y, unsigned int tap_count)
         }
     }
 
-	view_location.x = x;
-	view_location.y = y;
+    view_location.x = x;
+    view_location.y = y;
 }
 
 
 void templateAppToucheMoved(float x, float y, unsigned int tap_count)
 {
-	view_delta.x = view_delta.x * 0.75f + (x - view_location.x) * 0.25f;
-	view_delta.y = view_delta.y * 0.75f + (y - view_location.y) * 0.25f;
+    view_delta.x = view_delta.x * 0.75f + (x - view_location.x) * 0.25f;
+    view_delta.y = view_delta.y * 0.75f + (y - view_location.y) * 0.25f;
 
-	view_location.x = x;
-	view_location.y = y;
+    view_location.x = x;
+    view_location.y = y;
 }
 
 
@@ -847,6 +849,6 @@ void templateAppExit(void) {
 
     delete program;
     program = NULL;
-
+    
     delete obj;
 }

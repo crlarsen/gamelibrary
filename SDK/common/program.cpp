@@ -123,36 +123,36 @@ void PROGRAM::add_vertex_attrib(char *name, GLenum type)
 
 bool PROGRAM::link(bool debug)
 {
-	GLenum  type;
+    GLenum  type;
 
-	char *log,
+    char *log,
     name[MAX_CHAR];
 
-	int status,
-        len,
-        total,
-        size;
+    int status,
+    len,
+    total,
+    size;
 
-	if (this->pid) return false;
+    if (this->pid) return false;
 
-	this->pid = glCreateProgram();
+    this->pid = glCreateProgram();
 
-	glAttachShader(this->pid, this->vertex_shader->sid);
+    glAttachShader(this->pid, this->vertex_shader->sid);
 
-	glAttachShader(this->pid, this->fragment_shader->sid);
+    glAttachShader(this->pid, this->fragment_shader->sid);
 
-	if (this->programbindattribcallback) this->programbindattribcallback(this);
+    if (this->programbindattribcallback) this->programbindattribcallback(this);
 
-	glLinkProgram(this->pid);
+    glLinkProgram(this->pid);
 
 
-	if (debug) {
-		glGetProgramiv(this->pid, GL_INFO_LOG_LENGTH, &len);
+    if (debug) {
+        glGetProgramiv(this->pid, GL_INFO_LOG_LENGTH, &len);
 
-		if (len) {
-			log = (char *) malloc(len);
+        if (len) {
+            log = (char *) malloc(len);
 
-			glGetProgramInfoLog(this->pid, len, &len, log);
+            glGetProgramInfoLog(this->pid, len, &len, log);
 
 #ifdef __IPHONE_4_0
 
@@ -160,25 +160,25 @@ bool PROGRAM::link(bool debug)
 #else
             __android_log_print(ANDROID_LOG_ERROR, "", "[ %s ]\n%s", program->name, log);
 #endif
-
-			free(log);
-		}
-	}
-
+            
+            free(log);
+        }
+    }
+    
     glGetProgramiv(this->pid, GL_LINK_STATUS, &status);
 
     if (!status) goto delete_program;
 
 
-	if (debug) {
-		glValidateProgram(this->pid);
+    if (debug) {
+        glValidateProgram(this->pid);
 
-		glGetProgramiv(this->pid, GL_INFO_LOG_LENGTH, &len);
+        glGetProgramiv(this->pid, GL_INFO_LOG_LENGTH, &len);
 
-		if (len) {
-			log = (char *) malloc(len);
+        if (len) {
+            log = (char *) malloc(len);
 
-			glGetProgramInfoLog(this->pid, len, &len, log);
+            glGetProgramInfoLog(this->pid, len, &len, log);
 
 #ifdef __IPHONE_4_0
 
@@ -187,20 +187,20 @@ bool PROGRAM::link(bool debug)
             __android_log_print(ANDROID_LOG_ERROR, "", "[ %s ]\n%s", program->name, log);
 #endif
 
-			free(log);
-		}
+            free(log);
+        }
 
 
-		glGetProgramiv(this->pid, GL_VALIDATE_STATUS, &status);
+        glGetProgramiv(this->pid, GL_VALIDATE_STATUS, &status);
 
-		if (!status) goto delete_program;
-	}
+        if (!status) goto delete_program;
+    }
 
 
-	glGetProgramiv(this->pid, GL_ACTIVE_ATTRIBUTES, &total);
+    glGetProgramiv(this->pid, GL_ACTIVE_ATTRIBUTES, &total);
 
     for (int i=0; i != total; ++i) {
-		glGetActiveAttrib(this->pid,
+        glGetActiveAttrib(this->pid,
                           i,
                           MAX_CHAR,
                           &len,
@@ -208,31 +208,31 @@ bool PROGRAM::link(bool debug)
                           &type,
                           name);
 
-		this->add_vertex_attrib(name, type);
-	}
+        this->add_vertex_attrib(name, type);
+    }
 
-	glGetProgramiv(this->pid, GL_ACTIVE_UNIFORMS, &total);
+    glGetProgramiv(this->pid, GL_ACTIVE_UNIFORMS, &total);
 
     for (int i=0; i != total; ++i) {
-		glGetActiveUniform(this->pid,
+        glGetActiveUniform(this->pid,
                            i,
                            MAX_CHAR,
                            &len,
                            &size,
                            &type,
                            name);
-
-		this->add_uniform(name, type);
-	}
-
-	return true;
-
-
+        
+        this->add_uniform(name, type);
+    }
+    
+    return true;
+    
+    
 delete_program:
-
-	this->delete_id();
-
-	return false;
+    
+    this->delete_id();
+    
+    return false;
 }
 
 
@@ -253,8 +253,8 @@ GLint PROGRAM::get_vertex_attrib_location(char *name)
     auto it = vertex_attrib_map.find(name);
 
     return it==vertex_attrib_map.end() ?
-        static_cast<GLint>(-1) :
-        it->second.location;
+           static_cast<GLint>(-1) :
+           it->second.location;
 }
 
 
@@ -263,26 +263,26 @@ GLint PROGRAM::get_uniform_location(char *name)
     auto it = uniform_map.find(name);
 
     return it==uniform_map.end() ?
-        static_cast<GLint>(-1) :
-        it->second.location;
+           static_cast<GLint>(-1) :
+           it->second.location;
 }
 
 
 void PROGRAM::delete_id()
 {
-	if (this->pid) {
-		glDeleteProgram(this->pid);
+    if (this->pid) {
+        glDeleteProgram(this->pid);
 
-		this->pid = 0;
-	}
+        this->pid = 0;
+    }
 }
 
 
 void PROGRAM::draw()
 {
-	glUseProgram(this->pid);
+    glUseProgram(this->pid);
 
-	if (this->programdrawcallback) this->programdrawcallback(this);
+    if (this->programdrawcallback) this->programdrawcallback(this);
 }
 
 
@@ -292,48 +292,48 @@ bool PROGRAM::load_gfx(PROGRAMBINDATTRIBCALLBACK    *programbindattribcallback,
                        const bool                   debug_shader,
                        const bool                   relative_path)
 {
-	MEMORY *m = new MEMORY(filename, relative_path);
+    MEMORY *m = new MEMORY(filename, relative_path);
 
-	if (m) {
-		char    vertex_token[MAX_CHAR]   = { "GL_VERTEX_SHADER"   },
-                fragment_token[MAX_CHAR] = { "GL_FRAGMENT_SHADER" },
-                *vertex_shader			 = strstr((char *)m->buffer, vertex_token),
-                *fragment_shader		 = strstr((char *)m->buffer, fragment_token);
-
-
-		get_file_name(filename, this->name);
+    if (m) {
+        char    vertex_token[MAX_CHAR]   = { "GL_VERTEX_SHADER"   },
+        fragment_token[MAX_CHAR] = { "GL_FRAGMENT_SHADER" },
+        *vertex_shader			 = strstr((char *)m->buffer, vertex_token),
+        *fragment_shader		 = strstr((char *)m->buffer, fragment_token);
 
 
-		if ((vertex_shader && fragment_shader) && (fragment_shader > vertex_shader)) {
-			this->vertex_shader = new SHADER(this->name, GL_VERTEX_SHADER);
+        get_file_name(filename, this->name);
 
-			vertex_shader += strlen(vertex_token);
 
-			*fragment_shader = 0;
+        if ((vertex_shader && fragment_shader) && (fragment_shader > vertex_shader)) {
+            this->vertex_shader = new SHADER(this->name, GL_VERTEX_SHADER);
 
-			this->vertex_shader->compile(vertex_shader, debug_shader);
+            vertex_shader += strlen(vertex_token);
 
+            *fragment_shader = 0;
+
+            this->vertex_shader->compile(vertex_shader, debug_shader);
+
+
+            this->fragment_shader = new SHADER(this->name, GL_FRAGMENT_SHADER);
+
+            fragment_shader += strlen(fragment_token);
+
+            this->fragment_shader->compile(fragment_shader, debug_shader);
+
+
+            this->programbindattribcallback = programbindattribcallback;
             
-			this->fragment_shader = new SHADER(this->name, GL_FRAGMENT_SHADER);
-			
-			fragment_shader += strlen(fragment_token);
-			
-			this->fragment_shader->compile(fragment_shader, debug_shader);
+            this->programdrawcallback = programdrawcallback;
             
-			
-			this->programbindattribcallback = programbindattribcallback;
-			
-			this->programdrawcallback = programdrawcallback;
-			
-			this->link(debug_shader);
-		}
-		
-		delete m;
-		
-		return true;
-	}
-	
-	return false;
+            this->link(debug_shader);
+        }
+        
+        delete m;
+        
+        return true;
+    }
+    
+    return false;
 }
 
 
@@ -342,11 +342,11 @@ void PROGRAM::build(PROGRAMBINDATTRIBCALLBACK   *programbindattribcallback,
                     const bool                  debug_shader,
                     char                        *program_path)
 {
-	char filename[MAX_PATH] = {""};
+    char filename[MAX_PATH] = {""};
 
-	sprintf(filename, "%s%s", program_path, this->name);
+    sprintf(filename, "%s%s", program_path, this->name);
 
-	this->load_gfx(programbindattribcallback,
+    this->load_gfx(programbindattribcallback,
                    programdrawcallback,
                    filename,
                    debug_shader,

@@ -54,24 +54,26 @@ OBJ *obj = NULL;
 PROGRAM *program = NULL;
 
 
-float rotz = 0.0f,
-	  rotx = 90.0f;
+float   rotz = 0.0f,
+        rotx = 90.0f;
 
 float screen_size = 0.0f;
 
-vec2 view_location,
- 	 view_delta;
+vec2    view_location,
+        view_delta;
 	 
-vec3 move_location = { 0.0f, 0.0f, 0.0f },
-	 move_delta;
+vec3    move_location = { 0.0f, 0.0f, 0.0f },
+        move_delta;
 
 OBJMESH *camera = NULL;
 
-TEMPLATEAPP templateApp = { templateAppInit,
-							templateAppDraw,
-							templateAppToucheBegan,
-							templateAppToucheMoved,
-							templateAppToucheEnded };
+TEMPLATEAPP templateApp = {
+    templateAppInit,
+    templateAppDraw,
+    templateAppToucheBegan,
+    templateAppToucheMoved,
+    templateAppToucheEnded
+};
 
 
 btSoftBodyRigidBodyCollisionConfiguration *collisionconfiguration = NULL;
@@ -87,76 +89,76 @@ btSoftRigidDynamicsWorld *dynamicsworld = NULL;
 
 void init_physic_world(void)
 {
-	collisionconfiguration = new btSoftBodyRigidBodyCollisionConfiguration();
+    collisionconfiguration = new btSoftBodyRigidBodyCollisionConfiguration();
 
-	dispatcher = new btCollisionDispatcher(collisionconfiguration);
+    dispatcher = new btCollisionDispatcher(collisionconfiguration);
 
-	broadphase = new btDbvtBroadphase();
+    broadphase = new btDbvtBroadphase();
 
-	solver = new btSequentialImpulseConstraintSolver();
+    solver = new btSequentialImpulseConstraintSolver();
 
-	dynamicsworld = new btSoftRigidDynamicsWorld(dispatcher,
+    dynamicsworld = new btSoftRigidDynamicsWorld(dispatcher,
                                                  broadphase,
                                                  solver,
                                                  collisionconfiguration);
 
-	dynamicsworld->setGravity(btVector3(0.0f, 0.0f, -9.8f));
+    dynamicsworld->setGravity(btVector3(0.0f, 0.0f, -9.8f));
 }
 
 
 void load_physic_world(void)
 {
-	btBulletWorldImporter *btbulletworldimporter = new btBulletWorldImporter(dynamicsworld);
+    btBulletWorldImporter *btbulletworldimporter = new btBulletWorldImporter(dynamicsworld);
 
-	MEMORY *memory = new MEMORY(PHYSIC_FILE, true);
+    MEMORY *memory = new MEMORY(PHYSIC_FILE, true);
 
-	btbulletworldimporter->loadFileFromMemory((char *)memory->buffer, memory->size);
+    btbulletworldimporter->loadFileFromMemory((char *)memory->buffer, memory->size);
 
-	delete memory;
+    delete memory;
 
-	for (int i=0; i!=btbulletworldimporter->getNumRigidBodies(); ++i) {
-		OBJMESH *objmesh = obj->get_mesh(btbulletworldimporter->getNameForPointer(btbulletworldimporter->getRigidBodyByIndex(i)), false);
+    for (int i=0; i!=btbulletworldimporter->getNumRigidBodies(); ++i) {
+        OBJMESH *objmesh = obj->get_mesh(btbulletworldimporter->getNameForPointer(btbulletworldimporter->getRigidBodyByIndex(i)), false);
 
-		if (objmesh) {
-			objmesh->btrigidbody = (btRigidBody *)btbulletworldimporter->getRigidBodyByIndex(i);
-			
-			objmesh->btrigidbody->setUserPointer(objmesh);
-		} 
-	}
+        if (objmesh) {
+            objmesh->btrigidbody = (btRigidBody *)btbulletworldimporter->getRigidBodyByIndex(i);
 
-	delete btbulletworldimporter;
+            objmesh->btrigidbody->setUserPointer(objmesh);
+        } 
+    }
+    
+    delete btbulletworldimporter;
 }
 
 
 void free_physic_world(void)
 {
-	while (dynamicsworld->getNumCollisionObjects()) {
-		btCollisionObject *btcollisionobject = dynamicsworld->getCollisionObjectArray()[0];
-		
-		btRigidBody *btrigidbody = btRigidBody::upcast(btcollisionobject);
+    while (dynamicsworld->getNumCollisionObjects()) {
+        btCollisionObject *btcollisionobject = dynamicsworld->getCollisionObjectArray()[0];
 
-		if (btrigidbody) {
-			delete btrigidbody->getCollisionShape();
-			
-			delete btrigidbody->getMotionState();
-			
-			dynamicsworld->removeRigidBody(btrigidbody);
-			
-			dynamicsworld->removeCollisionObject(btcollisionobject);
-			
-			delete btrigidbody;
-		}
-	}
-	
-	delete collisionconfiguration; collisionconfiguration = NULL;
+        btRigidBody *btrigidbody = btRigidBody::upcast(btcollisionobject);
 
-	delete dispatcher; dispatcher = NULL;
+        if (btrigidbody) {
+            delete btrigidbody->getCollisionShape();
 
-	delete broadphase; broadphase = NULL;
+            delete btrigidbody->getMotionState();
 
-	delete solver; solver = NULL;
-	
-	delete dynamicsworld; dynamicsworld = NULL;	
+            dynamicsworld->removeRigidBody(btrigidbody);
+
+            dynamicsworld->removeCollisionObject(btcollisionobject);
+
+            delete btrigidbody;
+        }
+    }
+
+    delete collisionconfiguration; collisionconfiguration = NULL;
+
+    delete dispatcher; dispatcher = NULL;
+    
+    delete broadphase; broadphase = NULL;
+    
+    delete solver; solver = NULL;
+    
+    delete dynamicsworld; dynamicsworld = NULL;	
 }
 
 
@@ -169,39 +171,39 @@ void program_bind_attrib_location(void *ptr) {
 
 
 void templateAppInit(int width, int height) {
-	screen_size = (width > height) ? width : height;
+    screen_size = (width > height) ? width : height;
 
-	atexit(templateAppExit);
+    atexit(templateAppExit);
 
-	GFX_start();
+    GFX_start();
 
-	glViewport(0.0f, 0.0f, width, height);
+    glViewport(0.0f, 0.0f, width, height);
 
-	GFX_set_matrix_mode(PROJECTION_MATRIX);
-	GFX_load_identity();
-	
-	GFX_set_perspective(80.0f,
+    GFX_set_matrix_mode(PROJECTION_MATRIX);
+    GFX_load_identity();
+
+    GFX_set_perspective(80.0f,
                         (float)width / (float)height,
                         0.1f,
                         100.0f,
                         -90.0f);
 
-	obj = new OBJ(OBJ_FILE, true);
+    obj = new OBJ(OBJ_FILE, true);
 
-	for (auto objmesh=obj->objmesh.begin();
+    for (auto objmesh=obj->objmesh.begin();
          objmesh!=obj->objmesh.end(); ++objmesh) {
-		objmesh->optimize(128);
-	
-		objmesh->build();
-		
-		objmesh->free_vertex_data();
-	}
-	
-	
-	init_physic_world();
-	
-	load_physic_world();
-	
+        objmesh->optimize(128);
+
+        objmesh->build();
+
+        objmesh->free_vertex_data();
+    }
+    
+    
+    init_physic_world();
+    
+    load_physic_world();
+    
     /* Query the camera mesh pointer. */
     camera = obj->get_mesh("camera", false);
     /* Set the rigid body to be a dynamic body. */
@@ -218,58 +220,58 @@ void templateAppInit(int width, int height) {
     }
 
 
-	for (auto objmaterial=obj->objmaterial.begin();
+    for (auto objmaterial=obj->objmaterial.begin();
          objmaterial!=obj->objmaterial.end(); ++objmaterial) {
-		objmaterial->build(NULL);
+        objmaterial->build(NULL);
     }
 
-	program = new PROGRAM((char *)"default",
+    program = new PROGRAM((char *)"default",
                           VERTEX_SHADER,
                           FRAGMENT_SHADER,
                           true,
                           false,
                           program_bind_attrib_location,
                           NULL);
-    
-	program->draw();
-	
-	glUniform1i(program->get_uniform_location(TM_Diffuse_String), TM_Diffuse);
+
+    program->draw();
+
+    glUniform1i(program->get_uniform_location(TM_Diffuse_String), TM_Diffuse);
 }
 
 
 void templateAppDraw(void) {
 
-	glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
-	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+    glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
+    glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
 
-	GFX_set_matrix_mode(MODELVIEW_MATRIX);
-	GFX_load_identity();
+    GFX_set_matrix_mode(MODELVIEW_MATRIX);
+    GFX_load_identity();
 
 
-	if (view_delta.x || view_delta.y) { 
+    if (view_delta.x || view_delta.y) {
 
-		if (view_delta.y) rotz -= view_delta.y;
+        if (view_delta.y) rotz -= view_delta.y;
 
-		if (view_delta.x) {
-			rotx += view_delta.x;
-			rotx = CLAMP(rotx, 0.0f, 180.0f);
-		}
+        if (view_delta.x) {
+            rotx += view_delta.x;
+            rotx = CLAMP(rotx, 0.0f, 180.0f);
+        }
+        
+        view_delta.x =
+        view_delta.y = 0.0f;
+    }
+    
+    
+    if (move_delta.z) {
+        vec3 forward;
 
-		view_delta.x =
-		view_delta.y = 0.0f;
-	}
-	
+        float   r = rotz * DEG_TO_RAD,
+                c = cosf(r),
+                s = sinf(r);
 
-	if (move_delta.z) {
-		vec3 forward;
-
-		float r = rotz * DEG_TO_RAD,
-			  c = cosf(r),
-			  s = sinf(r);
-		
-		forward.x = c * move_delta.y - s * move_delta.x;
-		forward.y = s * move_delta.y + c * move_delta.x;
+        forward.x = c * move_delta.y - s * move_delta.x;
+        forward.y = s * move_delta.y + c * move_delta.x;
         /* Assign the linear velocity of the collision object and multiply
          * the delta by 6.7m/s (the average velocity that human's achieve while
          * running.
@@ -282,9 +284,9 @@ void templateAppDraw(void) {
          * might be deactivated.
          */
         camera->btrigidbody->setActivationState(ACTIVE_TAG);
-	} else {
+    } else {
         camera->btrigidbody->setActivationState(ISLAND_SLEEPING);
-	}
+    }
 
     GFX_translate(camera->location.x,
                   camera->location.y,
@@ -297,16 +299,16 @@ void templateAppDraw(void) {
                    */
                   camera->location.z + (camera->dimension.z * 0.5f));
 
-	GFX_rotate(rotz, 0.0f, 0.0f, 1.0f);
+    GFX_rotate(rotz, 0.0f, 0.0f, 1.0f);
 
-	GFX_rotate(rotx, 1.0f, 0.0f, 0.0f);
-	
-	mat4_invert(GFX_get_modelview_matrix());
-	
-	for (auto objmesh=obj->objmesh.begin();
+    GFX_rotate(rotx, 1.0f, 0.0f, 0.0f);
+
+    mat4_invert(GFX_get_modelview_matrix());
+
+    for (auto objmesh=obj->objmesh.begin();
          objmesh!=obj->objmesh.end(); ++objmesh) {
 
-		GFX_push_matrix();
+        GFX_push_matrix();
 
         mat4 mat;
         /* Ask Bullet to return the OpenGL matrix for the current mesh and store
@@ -321,79 +323,79 @@ void templateAppDraw(void) {
         /* Multiply the matrix by the current modelview matrix. */
         GFX_multiply_matrix(&mat);
 
-            glUniformMatrix4fv(program->uniform_map["MODELVIEWPROJECTIONMATRIX"].location,
-							1,
-							GL_FALSE,
-							(float *)GFX_get_modelview_projection_matrix());
-
-		objmesh->draw();
-
-		GFX_pop_matrix();
-	}
-	
-	dynamicsworld->stepSimulation(1.0f / 60.0f);
+        glUniformMatrix4fv(program->uniform_map["MODELVIEWPROJECTIONMATRIX"].location,
+                           1,
+                           GL_FALSE,
+                           (float *)GFX_get_modelview_projection_matrix());
+        
+        objmesh->draw();
+        
+        GFX_pop_matrix();
+    }
+    
+    dynamicsworld->stepSimulation(1.0f / 60.0f);
 }
 
 
 void templateAppToucheBegan(float x, float y, unsigned int tap_count)
 {
-	if (y < (screen_size * 0.5f)) {
-		move_location.x = x;
-		move_location.y = y;
-	} else {
-		view_location.x = x;
-		view_location.y = y;
-	}
+    if (y < (screen_size * 0.5f)) {
+        move_location.x = x;
+        move_location.y = y;
+    } else {
+        view_location.x = x;
+        view_location.y = y;
+    }
 }
 
 
 void templateAppToucheMoved(float x, float y, unsigned int tap_count)
 {
-	if (y > ((screen_size * 0.5f) - (screen_size * 0.05f)) && 
-		y < ((screen_size * 0.5f) + (screen_size * 0.05f))) {
-		move_delta.z =
-		view_delta.x =
-		view_delta.y = 0.0f;
-		
-		move_location.x = x;
-		move_location.y = y;
-		
-		view_location.x = x;
-		view_location.y = y;
-	} else if (y < (screen_size * 0.5f)) {
-		vec3 touche = { x, 
-						y,
-						0.0f };
+    if (y > ((screen_size * 0.5f) - (screen_size * 0.05f)) &&
+        y < ((screen_size * 0.5f) + (screen_size * 0.05f))) {
+        move_delta.z =
+        view_delta.x =
+        view_delta.y = 0.0f;
 
-		vec3_diff(&move_delta,
+        move_location.x = x;
+        move_location.y = y;
+
+        view_location.x = x;
+        view_location.y = y;
+    } else if (y < (screen_size * 0.5f)) {
+        vec3 touche = { x,
+            y,
+            0.0f };
+
+        vec3_diff(&move_delta,
                   &touche,
                   &move_location);
 
-		vec3_normalize(&move_delta,
+        vec3_normalize(&move_delta,
                        &move_delta);
 
-		move_delta.z = CLAMP(vec3_dist(&move_location, &touche) / 128.0f,
+        move_delta.z = CLAMP(vec3_dist(&move_location, &touche) / 128.0f,
                              0.0f,
                              1.0f);
-	} else {
-		view_delta.x = view_delta.x * 0.75f + (x - view_location.x) * 0.25f;
-		view_delta.y = view_delta.y * 0.75f + (y - view_location.y) * 0.25f;
+    } else {
+        view_delta.x = view_delta.x * 0.75f + (x - view_location.x) * 0.25f;
+        view_delta.y = view_delta.y * 0.75f + (y - view_location.y) * 0.25f;
 
-		view_location.x = x;
-		view_location.y = y;
-	}
+        view_location.x = x;
+        view_location.y = y;
+    }
 }
 
 
 void templateAppToucheEnded(float x, float y, unsigned int tap_count)
 {
-	move_delta.z = 0.0f;
+    move_delta.z = 0.0f;
 }
 
 
 void templateAppExit(void) {
     delete program;
     program = NULL;
-
+    
     delete obj;
 }

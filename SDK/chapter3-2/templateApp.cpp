@@ -99,15 +99,15 @@ void program_draw_callback( void *ptr )
 
 void templateAppInit(int width, int height)
 {
-	// Setup the exit callback function.
-	atexit(templateAppExit);
+    // Setup the exit callback function.
+    atexit(templateAppExit);
 
-	// Initialize GLES.
-	GFX_start();
-	
-	// Setup a GLES viewport using the current width and height of the screen.
-	glViewport(0, 0, width, height);
-	
+    // Initialize GLES.
+    GFX_start();
+
+    // Setup a GLES viewport using the current width and height of the screen.
+    glViewport(0, 0, width, height);
+    
     GFX_set_matrix_mode(PROJECTION_MATRIX);
     GFX_load_identity();
     GFX_set_perspective( 45.0f,
@@ -229,10 +229,10 @@ void templateAppInit(int width, int height)
 
 void templateAppDraw(void)
 {
-	// Clear the depth, stencil and colorbuffer.
+    // Clear the depth, stencil and colorbuffer.
     glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
-	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-
+    glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+    
     GFX_set_matrix_mode(MODELVIEW_MATRIX);
     GFX_load_identity();
     {

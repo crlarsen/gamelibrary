@@ -45,8 +45,10 @@ as being the original software.
 
 OBJ *obj = NULL;
 
-TEMPLATEAPP templateApp = { templateAppInit,
-							templateAppDraw };
+TEMPLATEAPP templateApp = {
+    templateAppInit,
+    templateAppDraw
+};
 
 std::vector<OBJMESH>::iterator objmesh;
 
@@ -55,8 +57,8 @@ int viewport_matrix[4];
 LIGHT *light = NULL;
 
 
-vec3 center  = { 0.0f, 0.0f, 0.0f },
-	 up_axis = { 0.0f, 0.0f, 1.0f };
+vec3    center  = { 0.0f, 0.0f, 0.0f },
+        up_axis = { 0.0f, 0.0f, 1.0f };
 /* For convenience, declare a pointer to the projector texture. */
 TEXTURE *texture = NULL;
 /* The modelview and projection matrix from the projector (the spot
@@ -77,33 +79,33 @@ void program_bind_attrib_location(void *ptr) {
 
 void program_draw(void *ptr)
 {
-	PROGRAM *program = (PROGRAM *)ptr;
+    PROGRAM *program = (PROGRAM *)ptr;
 
     for (auto it=program->uniform_map.begin(); it!=program->uniform_map.end(); ++it){
         auto    &name = it->first;
         auto    &uniform = it->second;
 
-		if (uniform.constant) {
-			continue;
-		} else if (name == "MODELVIEWPROJECTIONMATRIX") {
-			glUniformMatrix4fv(uniform.location,
+        if (uniform.constant) {
+            continue;
+        } else if (name == "MODELVIEWPROJECTIONMATRIX") {
+            glUniformMatrix4fv(uniform.location,
                                1,
                                GL_FALSE,
                                (float *)GFX_get_modelview_projection_matrix());
-		} else if (name == "PROJECTOR") {
+        } else if (name == "PROJECTOR") {
             glUniform1i(uniform.location,
                         0);
 
-			uniform.constant = true;
-		} else if (name == TM_Diffuse_String) {
-			glUniform1i(uniform.location, TM_Diffuse);
+            uniform.constant = true;
+        } else if (name == TM_Diffuse_String) {
+            glUniform1i(uniform.location, TM_Diffuse);
 
-			uniform.constant = true;
-		} else if (name == TM_Bump_String) {
-			glUniform1i(uniform.location, TM_Bump);
+            uniform.constant = true;
+        } else if (name == TM_Bump_String) {
+            glUniform1i(uniform.location, TM_Bump);
 
-			uniform.constant = true;
-		} else if (name == "MODELVIEWMATRIX") {
+            uniform.constant = true;
+        } else if (name == "MODELVIEWMATRIX") {
             // Matrix Data
             glUniformMatrix4fv(uniform.location,
                                1,
@@ -115,13 +117,13 @@ void program_draw(void *ptr)
                                GL_FALSE,
                                (float *)GFX_get_projection_matrix());
 
-			uniform.constant = true;
+            uniform.constant = true;
         } else if (name == "NORMALMATRIX") {
             glUniformMatrix3fv(uniform.location,
                                1,
                                GL_FALSE,
                                (float *)GFX_get_normal_matrix());
-		} else if (name == "PROJECTORMATRIX") {
+        } else if (name == "PROJECTORMATRIX") {
             glUniformMatrix4fv(uniform.location,
                                1,
                                GL_FALSE,
@@ -137,90 +139,90 @@ void program_draw(void *ptr)
              * also allow you to get better performance at runtime, because
              * the data will not be sent over and over for nothing.
              */
-			uniform.constant = true;
+            uniform.constant = true;
         } else if (name == "MATERIAL.diffuse") {
-			glUniform4fv(uniform.location,
+            glUniform4fv(uniform.location,
                          1,
                          (float *)&objmesh->current_material->diffuse);
 
-			uniform.constant = true;
+            uniform.constant = true;
         } else if (name == "MATERIAL.specular") {
-			glUniform4fv(uniform.location,
+            glUniform4fv(uniform.location,
                          1,
                          (float *)&objmesh->current_material->specular);
 
-			uniform.constant = true;
+            uniform.constant = true;
         } else if (name == "MATERIAL.shininess") {
-			glUniform1f(uniform.location,
+            glUniform1f(uniform.location,
                         objmesh->current_material->specular_exponent * 0.128f);
 
-			uniform.constant = true;
-		} else if (name == "LIGHT_FS.color") {
+            uniform.constant = true;
+        } else if (name == "LIGHT_FS.color") {
             // Lamp Data
-			glUniform4fv(uniform.location,
+            glUniform4fv(uniform.location,
                          1,
                          (float *)&light->color);
 
-			uniform.constant = true;
-		} else if (name == "LIGHT_VS.position") {
-			vec4 position;
+            uniform.constant = true;
+        } else if (name == "LIGHT_VS.position") {
+            vec4 position;
 
-			static float rot_angle = 0.0f;
+            static float rot_angle = 0.0f;
 
-			light->position.x = 7.5f * cosf(rot_angle * DEG_TO_RAD);
-			light->position.y = 7.5f * sinf(rot_angle * DEG_TO_RAD);
+            light->position.x = 7.5f * cosf(rot_angle * DEG_TO_RAD);
+            light->position.y = 7.5f * sinf(rot_angle * DEG_TO_RAD);
 
-			rot_angle += 0.25f;
+            rot_angle += 0.25f;
 
-			LIGHT_get_position_in_eye_space(light,
+            LIGHT_get_position_in_eye_space(light,
                                             &gfx.modelview_matrix[gfx.modelview_matrix_index - 1],
                                             &position);
 
-			glUniform3fv(uniform.location,
+            glUniform3fv(uniform.location,
                          1,
                          (float *)&position);
-		} else if (name == "LIGHT_VS.spot_direction") {
-			vec3 direction;
+        } else if (name == "LIGHT_VS.spot_direction") {
+            vec3 direction;
 
-			vec3_diff(&light->spot_direction, &center, (vec3 *)&light->position);
+            vec3_diff(&light->spot_direction, &center, (vec3 *)&light->position);
 
-			vec3_normalize(&light->spot_direction,
+            vec3_normalize(&light->spot_direction,
                            &light->spot_direction);
 
-			LIGHT_get_direction_in_object_space(light,
+            LIGHT_get_direction_in_object_space(light,
                                                 &gfx.modelview_matrix[gfx.modelview_matrix_index - 1],
                                                 &direction);
-
-			glUniform3fv(uniform.location,
+            
+            glUniform3fv(uniform.location,
                          1,
                          (float *)&direction);
-		} else if (name == "LIGHT_FS.spot_cos_cutoff") {
-			glUniform1f(uniform.location,
+        } else if (name == "LIGHT_FS.spot_cos_cutoff") {
+            glUniform1f(uniform.location,
                         light->spot_cos_cutoff);
             
-			uniform.constant = true;
-		} else if (name == "LIGHT_FS.spot_blend") {
-			glUniform1f(uniform.location,
+            uniform.constant = true;
+        } else if (name == "LIGHT_FS.spot_blend") {
+            glUniform1f(uniform.location,
                         light->spot_blend);
             
-			uniform.constant = true;
-		}
-	}
+            uniform.constant = true;
+        }
+    }
 }
 
 
 void templateAppInit(int width, int height) {
 
-	atexit(templateAppExit);
+    atexit(templateAppExit);
 
-	glViewport(0.0f, 0.0f, width, height);
+    glViewport(0.0f, 0.0f, width, height);
 
-	glGetIntegerv(GL_VIEWPORT, viewport_matrix);
+    glGetIntegerv(GL_VIEWPORT, viewport_matrix);
 
-	GFX_start();
+    GFX_start();
 
-	obj = new OBJ(OBJ_FILE, true);
-
+    obj = new OBJ(OBJ_FILE, true);
+    
     for (auto objmesh=obj->objmesh.begin();
          objmesh != obj->objmesh.end(); ++objmesh) {
 
@@ -229,8 +231,8 @@ void templateAppInit(int width, int height) {
         objmesh->build();
 
         objmesh->free_vertex_data();
-	}
-
+    }
+    
     for (auto texture=obj->texture.begin();
          texture!=obj->texture.end(); ++texture) {
         (*texture)->build(obj->texture_path,
@@ -247,17 +249,17 @@ void templateAppInit(int width, int height) {
                           obj->program_path);
     }
 
-	for (auto objmaterial=obj->objmaterial.begin();
+    for (auto objmaterial=obj->objmaterial.begin();
          objmaterial!=obj->objmaterial.end(); ++objmaterial) {
-		objmaterial->build(NULL);
+        objmaterial->build(NULL);
     }
 
-	vec4 color = { 1.0f, 1.0f, 1.0f, 1.0f };
+    vec4 color = { 1.0f, 1.0f, 1.0f, 1.0f };
 
-	vec3 position = { 7.5f, 0.0f, 6.0f };
+    vec3 position = { 7.5f, 0.0f, 6.0f };
 
-	light = LIGHT_create_spot((char *)"spot", &color, &position, 0.0f, 0.0f, 0.0f, 75.0f, 0.05f);
-
+    light = LIGHT_create_spot((char *)"spot", &color, &position, 0.0f, 0.0f, 0.0f, 75.0f, 0.05f);
+    
     obj->get_mesh((char *)"projector", false)->visible = false;
 
     texture = obj->get_texture((char *)"projector", false);
@@ -328,29 +330,29 @@ void draw_scene_from_projector(void)
 
 void draw_scene(void)
 {
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
-	GFX_set_matrix_mode(PROJECTION_MATRIX);
-	GFX_load_identity();
+    GFX_set_matrix_mode(PROJECTION_MATRIX);
+    GFX_load_identity();
 
-	GFX_set_perspective( 45.0f,
+    GFX_set_perspective( 45.0f,
                         (float)viewport_matrix[2] / (float)viewport_matrix[3],
                         0.1f,
                         100.0f,
                         -90.0f);
 
-	GFX_set_matrix_mode(MODELVIEW_MATRIX);
-	GFX_load_identity();
+    GFX_set_matrix_mode(MODELVIEW_MATRIX);
+    GFX_load_identity();
 
-	GFX_translate(14.0f, -12.0f, 7.0f);
+    GFX_translate(14.0f, -12.0f, 7.0f);
 
-	GFX_rotate(48.5f, 0.0f, 0.0f, 1.0f);
+    GFX_rotate(48.5f, 0.0f, 0.0f, 1.0f);
 
-	GFX_rotate(72.0, 1.0f, 0.0f, 0.0f);
-
-	mat4_invert(GFX_get_modelview_matrix());
-
+    GFX_rotate(72.0, 1.0f, 0.0f, 0.0f);
+    
+    mat4_invert(GFX_get_modelview_matrix());
+    
     /* Bind the projector texture ID to the texture channel 0. */
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, texture->tid);
@@ -362,36 +364,36 @@ void draw_scene(void)
 
     mat4_copy_mat4(&projector_matrix_copy, &projector_matrix);
 
-	for (objmesh=obj->objmesh.begin();
+    for (objmesh=obj->objmesh.begin();
          objmesh!=obj->objmesh.end(); ++objmesh) {
 
-		GFX_push_matrix();
+        GFX_push_matrix();
 
-		GFX_translate(objmesh->location.x,
+        GFX_translate(objmesh->location.x,
                       objmesh->location.y,
                       objmesh->location.z);
 
         mat4_copy_mat4(&projector_matrix, &projector_matrix_copy);
 
         mat4_translate(&projector_matrix, &projector_matrix, &objmesh->location);
+
+        objmesh->draw();
         
-		objmesh->draw();
-        
-		GFX_pop_matrix();
-	}
+        GFX_pop_matrix();
+    }
 }
 
 
 void templateAppDraw(void) {
     draw_scene_from_projector();
 
-	draw_scene();
+    draw_scene();
 }
 
 
 void templateAppExit(void) {
 
-	light = LIGHT_free(light);
+    light = LIGHT_free(light);
 
     delete obj;
 }

@@ -40,13 +40,13 @@ as being the original software.
 
 
 struct MEMORY {
-	char			filename[MAX_PATH];
-	
-	unsigned int	size;
-	
-	unsigned int	position;
+    char            filename[MAX_PATH];
+    
+    unsigned int    size;
+    
+    unsigned int    position;
 
-	unsigned char	*buffer;
+    unsigned char   *buffer;
 public:
     MEMORY(const char *filename, const bool relative_path);
     ~MEMORY();
@@ -57,9 +57,9 @@ private:
     // declaring these methods to be private.  Note that since these
     // are never used I don't need to implement their bodies.  There
     // are two situations where errors will be protected:
-    //   - If anything outside of the MEMORY classes, or any of its
-    //     friends, then the compiler will complain that the methods
-    //     are private.
+    //   - If anything outside of the MEMORY class, or any of its
+    //     friends, tries to invoke these methods the compiler will
+    //     complain that the methods are private.
     //   - If any MEMORY method, or one of its friends, tries to call
     //     either of these methods the link editor will generate an
     //     error since their bodies are never implemented.

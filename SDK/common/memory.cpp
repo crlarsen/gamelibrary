@@ -40,137 +40,136 @@ as being the original software.
 MEMORY::MEMORY(const char *filename, const bool relative_path) :
     size(0), position(0), buffer(NULL)
 {
-	#ifdef __IPHONE_4_0
+    #ifdef __IPHONE_4_0
 
-		FILE *f;
+        FILE *f;
 		
-		char fname[MAX_PATH] = {""};
+        char fname[MAX_PATH] = {""};
 		
         assert(filename!=NULL);
-		if (relative_path) {
-			get_file_path(getenv("FILESYSTEM"), fname);
+        if (relative_path) {
+            get_file_path(getenv("FILESYSTEM"), fname);
 			
-			strcat(fname, filename);
-		} else {
+            strcat(fname, filename);
+        } else {
             strcpy(fname, filename);
         }
 
-		f = fopen(fname, "rb");
+        f = fopen(fname, "rb");
 		
-		if (!f) return;
+        if (!f) return;
 
         assert(strlen(fname)<sizeof(this->filename));
-		strcpy(this->filename, fname);
+        strcpy(this->filename, fname);
 		
 		
-		fseek(f, 0, SEEK_END);
-		this->size = ftell(f);
-		fseek(f, 0, SEEK_SET);
+        fseek(f, 0, SEEK_END);
+        this->size = ftell(f);
+        fseek(f, 0, SEEK_SET);
 		
 		
-		this->buffer = (unsigned char *) calloc(1, this->size + 1);
-		fread(this->buffer, this->size, 1, f);
-		this->buffer[this->size] = 0;
+        this->buffer = (unsigned char *) calloc(1, this->size + 1);
+        fread(this->buffer, this->size, 1, f);
+        this->buffer[this->size] = 0;
 		
 		
-		fclose(f);
+        fclose(f);
 		
-		return;
+        return;
 	
 	
-	#else
-	
-		char fpath[MAX_PATH] = {""},
-			 fname[MAX_PATH] = {""};
+    #else
+        char fpath[MAX_PATH] = {""},
+             fname[MAX_PATH] = {""};
 
-		unzFile		    uf;
-		unz_file_info   fi;
-		unz_file_pos    fp;
+        unzFile		    uf;
+        unz_file_info   fi;
+        unz_file_pos    fp;
 
-		strcpy(fpath, getenv("FILESYSTEM"));
+        strcpy(fpath, getenv("FILESYSTEM"));
 
-		uf = unzOpen(fpath);
+        uf = unzOpen(fpath);
 		
-		if (!uf) return;
+        if (!uf) return;
 
-		if (relative_path)
+        if (relative_path)
             sprintf(fname, "assets/%s", filename);
-		else
+        else
             strcpy(fname, filename);
 		
-		unzGoToFirstFile(uf);
+        unzGoToFirstFile(uf);
 
-		unzGetFilePos(uf, &fp);
+        unzGetFilePos(uf, &fp);
 		
-		if (unzLocateFile(uf, fname, 1) == UNZ_OK) {
-			unzGetCurrentFileInfo(uf,
+        if (unzLocateFile(uf, fname, 1) == UNZ_OK) {
+            unzGetCurrentFileInfo(uf,
                                   &fi,
                                   this->filename,
                                   MAX_PATH,
                                   NULL, 0,
                                   NULL, 0);
 
-			if (unzOpenCurrentFilePassword(uf, NULL) == UNZ_OK) {
-				this->position = 0;
-				this->size	 = fi.uncompressed_size;
-				this->buffer   = (unsigned char *) realloc(this->buffer, fi.uncompressed_size + 1);
-				this->buffer[fi.uncompressed_size] = 0;
+            if (unzOpenCurrentFilePassword(uf, NULL) == UNZ_OK) {
+                this->position = 0;
+                this->size     = fi.uncompressed_size;
+                this->buffer   = (unsigned char *) realloc(this->buffer, fi.uncompressed_size + 1);
+                this->buffer[fi.uncompressed_size] = 0;
 
-				while (unzReadCurrentFile(uf, this->buffer, fi.uncompressed_size) > 0){}
+                while (unzReadCurrentFile(uf, this->buffer, fi.uncompressed_size) > 0){}
 
-				unzCloseCurrentFile(uf);
+                unzCloseCurrentFile(uf);
 
-				unzClose(uf);
+                unzClose(uf);
 					
-				return;
-			}
-		}
+                return;
+            }
+        }
 		
-		unzClose(uf);
+        unzClose(uf);
 
-		return;
+        return;
 		
-	#endif
+    #endif
 }
 
 
 MEMORY::~MEMORY()
 {
-	if (this->buffer)
+    if (this->buffer)
         free(this->buffer);
 }
 
 
 unsigned int MEMORY::read(void *dst, unsigned int size)
 {
-	if ((this->position + size) > this->size)
+    if ((this->position + size) > this->size)
         size = this->size - this->position;
 
-	memcpy(dst, &this->buffer[this->position], size);
+    memcpy(dst, &this->buffer[this->position], size);
 	
-	this->position += size;
+    this->position += size;
 
-	return size;
+    return size;
 }
 
 
 void MEMORY::insert(const char *str, const unsigned int position)
 {
-	unsigned int s1 = strlen(str),
-				 s2 = this->size + s1 + 1;
+    unsigned int s1 = strlen(str),
+                 s2 = this->size + s1 + 1;
 
-	char *buffer = (char *)this->buffer,
-		 *tmp	 = (char *)calloc(1, s2);
+    char    *buffer = (char *)this->buffer,
+            *tmp    = (char *)calloc(1, s2);
 	
-	if (position)
+    if (position)
         strncpy(&tmp[0], &buffer[0], position);
 
-	strcat(&tmp[position], str);
+    strcat(&tmp[position], str);
 	
-	strcat(&tmp[position + s1], &buffer[position]);
+    strcat(&tmp[position + s1], &buffer[position]);
 
-	this->size = s2;
+    this->size = s2;
 	
-	free(this->buffer);
-	this->buffer = (unsigned char *)tmp;	
+    free(this->buffer);
+    this->buffer = (unsigned char *)tmp;
 }

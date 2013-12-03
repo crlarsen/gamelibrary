@@ -284,31 +284,31 @@ void GFX_multiply_matrix( mat4 *m )
 
 void GFX_translate( float x, float y, float z )
 {
-	vec3 v = { x, y, z };
+    vec3 v = { x, y, z };
 	
-	switch( gfx.matrix_mode )
-	{
-		case MODELVIEW_MATRIX:
-		{
-			mat4_translate( GFX_get_modelview_matrix(), GFX_get_modelview_matrix(), &v );
-			
-			break;
-		}
-	
-		case PROJECTION_MATRIX:
-		{
-			mat4_translate( GFX_get_projection_matrix(), GFX_get_projection_matrix(), &v );
-			
-			break;
-		}
+    switch( gfx.matrix_mode )
+    {
+        case MODELVIEW_MATRIX:
+        {
+            mat4_translate( GFX_get_modelview_matrix(), GFX_get_modelview_matrix(), &v );
 
-		case TEXTURE_MATRIX:
-		{
-			mat4_translate( GFX_get_texture_matrix(), GFX_get_texture_matrix(), &v );
-			
-			break;
-		}		
-	}
+            break;
+        }
+
+        case PROJECTION_MATRIX:
+        {
+            mat4_translate( GFX_get_projection_matrix(), GFX_get_projection_matrix(), &v );
+
+            break;
+        }
+
+        case TEXTURE_MATRIX:
+        {
+            mat4_translate( GFX_get_texture_matrix(), GFX_get_texture_matrix(), &v );
+            
+            break;
+        }		
+    }
 }
 
 
@@ -346,36 +346,36 @@ void GFX_rotate( float angle, float x, float y, float z )
 
 void GFX_scale( float x, float y, float z )
 {
-	static vec3 scale = { 1.0f, 1.0f, 1.0f };
-	
-	vec3 v = { x, y, z };
-	
-	if( !memcmp( &v, &scale, sizeof( vec3 ) ) ) return;
-	
-	
-	switch( gfx.matrix_mode )
-	{
-		case MODELVIEW_MATRIX:
-		{
-			mat4_scale( GFX_get_modelview_matrix(), GFX_get_modelview_matrix(), &v );
-			
-			break;
-		}
-	
-		case PROJECTION_MATRIX:
-		{
-			mat4_scale( GFX_get_projection_matrix(), GFX_get_projection_matrix(), &v );
-			
-			break;
-		}
+    static vec3 scale = { 1.0f, 1.0f, 1.0f };
 
-		case TEXTURE_MATRIX:
-		{
-			mat4_scale( GFX_get_texture_matrix(), GFX_get_texture_matrix(), &v );
-			
-			break;
-		}		
-	}
+    vec3 v = { x, y, z };
+
+    if( !memcmp( &v, &scale, sizeof( vec3 ) ) ) return;
+
+
+    switch( gfx.matrix_mode )
+    {
+        case MODELVIEW_MATRIX:
+        {
+            mat4_scale( GFX_get_modelview_matrix(), GFX_get_modelview_matrix(), &v );
+
+            break;
+        }
+
+        case PROJECTION_MATRIX:
+        {
+            mat4_scale( GFX_get_projection_matrix(), GFX_get_projection_matrix(), &v );
+
+            break;
+        }
+            
+        case TEXTURE_MATRIX:
+        {
+            mat4_scale( GFX_get_texture_matrix(), GFX_get_texture_matrix(), &v );
+            
+            break;
+        }		
+    }
 }
 
 
@@ -451,18 +451,18 @@ void GFX_set_orthographic_2d( float left, float right, float bottom, float top )
 
 void GFX_set_orthographic( float screen_ratio, float scale, float aspect_ratio, float clip_start, float clip_end, float screen_orientation )
 {
-	scale = ( scale * 0.5f ) * aspect_ratio;
+    scale = ( scale * 0.5f ) * aspect_ratio;
 
-	GFX_ortho( -1.0f, 
-			    1.0f, 
-			   -screen_ratio,
-			    screen_ratio, 
-			    clip_start,
-				clip_end );
-	
-	GFX_scale( 1.0f / scale, 1.0f / scale, 1.0f );
-		
-	if( screen_orientation ) GFX_rotate( screen_orientation, 0.0f, 0.0f, 1.0f );
+    GFX_ortho(-1.0f,
+              1.0f,
+              -screen_ratio,
+              screen_ratio,
+              clip_start,
+              clip_end );
+
+    GFX_scale( 1.0f / scale, 1.0f / scale, 1.0f );
+
+    if( screen_orientation ) GFX_rotate( screen_orientation, 0.0f, 0.0f, 1.0f );
 }
 
 

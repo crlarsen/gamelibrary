@@ -84,51 +84,51 @@ enum TextureMap {
 #define MP_Shininess    ((char *)"SHININESS")
 
 struct OBJMATERIAL {
-	char					name[ MAX_CHAR ];				// newmtl
+    char                    name[MAX_CHAR];             // newmtl
 
-	vec4					ambient;						// Ka
+    vec4                    ambient;                    // Ka
 
-	vec4					diffuse;						// Kd
+    vec4                    diffuse;                    // Kd
 
-	vec4					specular;						// Ks
+    vec4                    specular;                   // Ks
 
-	vec3					transmission_filter;			// Tf
+    vec3                    transmission_filter;        // Tf
 
-	int						illumination_model;				// illum
+    int                     illumination_model;         // illum
 
-	float					dissolve;						// d
+    float                   dissolve;                   // d
 
-	float					specular_exponent;				// Ns
+    float                   specular_exponent;          // Ns
 
-	float					optical_density;				// Ni
+    float                   optical_density;            // Ni
 
-	char					map_ambient[ MAX_CHAR ];		// map_Ka
+    char                    map_ambient[MAX_CHAR];      // map_Ka
 
-	char					map_diffuse[ MAX_CHAR ];		// map_Kd
+    char                    map_diffuse[MAX_CHAR];      // map_Kd
 
-	char					map_specular[ MAX_CHAR ];		// map_Ks
+    char                    map_specular[MAX_CHAR];     // map_Ks
 
-	char					map_translucency[ MAX_CHAR ];	// map_Tr
+    char                    map_translucency[MAX_CHAR]; // map_Tr
 
-	char					map_disp[ MAX_CHAR ];			// disp or map_disp
+    char                    map_disp[MAX_CHAR];         // disp or map_disp
 
-	char					map_bump[ MAX_CHAR ];			// bump or map_bump
+    char                    map_bump[MAX_CHAR];         // bump or map_bump
 
-	TEXTURE					*texture_ambient;
+    TEXTURE                 *texture_ambient;
 
-	TEXTURE					*texture_diffuse;
+    TEXTURE                 *texture_diffuse;
 
-	TEXTURE					*texture_specular;
+    TEXTURE                 *texture_specular;
 
-	TEXTURE					*texture_translucency;
+    TEXTURE                 *texture_translucency;
 
-	TEXTURE					*texture_disp;
+    TEXTURE                 *texture_disp;
 
-	TEXTURE					*texture_bump;
+    TEXTURE                 *texture_bump;
 
-	PROGRAM					*program;
+    PROGRAM                 *program;
 
-	MATERIALDRAWCALLBACK	*materialdrawcallback;
+    MATERIALDRAWCALLBACK    *materialdrawcallback;
 
     const OBJ               *parent;
 
@@ -166,8 +166,8 @@ struct OBJTRIANGLELIST
 {
     std::vector<OBJTRIANGLEINDEX>   objtriangleindex;
 
-	bool	 useuvs;
-	
+    bool	 useuvs;
+
     // Nasty!  Nasty!  Nasty!
     // This is one case where the vector foobar can't just use its
     // size() method as a substitute for n_foobar.  The code releases
@@ -175,15 +175,15 @@ struct OBJTRIANGLELIST
     // indice_array.size() goes to 0.  So later in the code when we
     // call glDrawElements() we're passing in zero.  Retain
     // n_indice_array in the data structure to prevent bugs.
-	unsigned short	 n_indice_array;
-	
-	std::vector<unsigned short> indice_array;
-	
-	OBJMATERIAL		 *objmaterial;
-	
-	int				 mode;
-	
-	unsigned int	 vbo;
+    unsigned short              n_indice_array;
+
+    std::vector<unsigned short> indice_array;
+
+    OBJMATERIAL                 *objmaterial;
+
+    int                         mode;
+
+    GLuint                      vbo;
 
 public:
     OBJTRIANGLELIST();
@@ -221,48 +221,48 @@ enum VertexAttribute {  // Use with glBindAttribLocation()
 #define OFFSET_NO_TEXCOORD_NEEDED  (~0)
 
 struct OBJMESH {
-	char                            name[ MAX_CHAR ];  // o
-	
-	bool                            visible;
-		
-	char                            group[ MAX_CHAR ]; // g
+    char                            name[MAX_CHAR];     // o
 
-	std::vector<OBJVERTEXDATA>      objvertexdata;
-	
-	std::vector<OBJTRIANGLELIST>    objtrianglelist;
-	
-	OBJMATERIAL                     *current_material;
-	
-	vec3                            location;
-	
-	vec3                            rotation;
-	
-	vec3                            scale;
-	
-	vec3                            min;
-	
-	vec3                            max;
-	
-	vec3                            dimension;
-	
-	float                           radius;
+    bool                            visible;
 
-	float                           distance;
-	
-	unsigned int                    vbo;
-	
-	unsigned int                    stride;
-	
-	unsigned int                    size;
+    char                            group[MAX_CHAR];    // g
 
-	unsigned int                    offset[ 5 ];    // offsets for vector attributes
-	
-	unsigned int                    vao;
-	
-	btRigidBody                     *btrigidbody;
-	
-	bool                            use_smooth_normals;
+    std::vector<OBJVERTEXDATA>      objvertexdata;
 
+    std::vector<OBJTRIANGLELIST>    objtrianglelist;
+
+    OBJMATERIAL                     *current_material;
+
+    vec3                            location;
+
+    vec3                            rotation;
+
+    vec3                            scale;
+
+    vec3                            min;
+
+    vec3                            max;
+
+    vec3                            dimension;
+
+    float                           radius;
+
+    float                           distance;
+
+    GLuint                          vbo;
+
+    unsigned int                    stride;
+
+    unsigned int                    size;
+
+    unsigned int                    offset[5];          // offsets for vector attributes
+
+    GLuint                          vao;
+
+    btRigidBody                     *btrigidbody;
+    
+    bool                            use_smooth_normals;
+    
     const OBJ                       *parent;
 
 public:
@@ -273,8 +273,7 @@ public:
     ~OBJMESH();
     OBJMESH(const OBJMESH &src);
     OBJMESH &operator=(const OBJMESH &rhs);
-    void add_vertex_data(OBJTRIANGLELIST *objtrianglelist,
-                         int vertex_index, int uv_index);
+    void add_vertex_data(const int vertex_index, const int uv_index);
     void update_bounds();
     void build_vbo();
     void set_attributes();
@@ -289,27 +288,27 @@ public:
 
 
 struct OBJ {
-	char                        texture_path[ MAX_PATH ];
+    char                        texture_path[MAX_PATH];
 
-	char                        program_path[ MAX_PATH ];
-	
-	std::vector<OBJMESH>        objmesh;
+    char                        program_path[MAX_PATH];
+
+    std::vector<OBJMESH>        objmesh;
 
     std::vector<OBJMATERIAL>    objmaterial;
 
-	std::vector<TEXTURE *>      texture;
+    std::vector<TEXTURE *>      texture;
 
-	std::vector<PROGRAM *>      program;
-	
-	std::vector<vec3>           indexed_vertex;	// v
+    std::vector<PROGRAM *>      program;
 
-	std::vector<vec3>           indexed_normal;
+    std::vector<vec3>           indexed_vertex;         // v
 
-	std::vector<vec3>           indexed_fnormal;
+    std::vector<vec3>           indexed_normal;
 
-	std::vector<vec3>           indexed_tangent;
+    std::vector<vec3>           indexed_fnormal;
 
-	std::vector<vec2>           indexed_uv;		// vt
+    std::vector<vec3>           indexed_tangent;
+    
+    std::vector<vec2>           indexed_uv;		// vt
 
 public:
     OBJ(char *filename=NULL, const bool relative_path=true);

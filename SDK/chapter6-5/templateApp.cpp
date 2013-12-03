@@ -51,11 +51,13 @@ OBJ *obj = NULL;
 
 PROGRAM *program = NULL;
 
-TEMPLATEAPP templateApp = { templateAppInit,
-							templateAppDraw,
-							templateAppToucheBegan,
-							NULL,
-							templateAppToucheEnded };
+TEMPLATEAPP templateApp = {
+    templateAppInit,
+    templateAppDraw,
+    templateAppToucheBegan,
+    NULL,
+    templateAppToucheEnded
+};
 
 vec2 start_pos = { 0.0f, 0.0f };
 
@@ -74,9 +76,9 @@ bool            restart_game = false,   // Flag to restart the game.
                 momo_launch  = false;   // Flag to let momo be thrown.
 unsigned char   banana       = 0;       // Banana counter.
 
-vec3 eye    = { 3.5f, -10.8f, 5.3f },
-	 center = { 3.5f,  -9.8f, 5.3f },
-	 up     = { 0.0f,   0.0f, 1.0f };
+vec3    eye    = { 3.5f, -10.8f, 5.3f },
+        center = { 3.5f,  -9.8f, 5.3f },
+        up     = { 0.0f,   0.0f, 1.0f };
 
 
 btSoftBodyRigidBodyCollisionConfiguration *collisionconfiguration = NULL;
@@ -92,20 +94,20 @@ btSoftRigidDynamicsWorld *dynamicsworld = NULL;
 
 void init_physic_world(void)
 {
-	collisionconfiguration = new btSoftBodyRigidBodyCollisionConfiguration();
+    collisionconfiguration = new btSoftBodyRigidBodyCollisionConfiguration();
 
-	dispatcher = new btCollisionDispatcher(collisionconfiguration);
+    dispatcher = new btCollisionDispatcher(collisionconfiguration);
 
-	broadphase = new btDbvtBroadphase();
+    broadphase = new btDbvtBroadphase();
 
-	solver = new btSequentialImpulseConstraintSolver();
+    solver = new btSequentialImpulseConstraintSolver();
 
-	dynamicsworld = new btSoftRigidDynamicsWorld(dispatcher,
+    dynamicsworld = new btSoftRigidDynamicsWorld(dispatcher,
                                                  broadphase,
                                                  solver,
                                                  collisionconfiguration);
 
-	dynamicsworld->setGravity(btVector3(0.0f, 0.0f, -9.8f));
+    dynamicsworld->setGravity(btVector3(0.0f, 0.0f, -9.8f));
 }
 
 enum ShapeType
@@ -213,33 +215,33 @@ void add_rigid_body(OBJMESH *objmesh, ShapeType bound, float mass, bool dynamic_
 
 void free_physic_world(void)
 {
-	while (dynamicsworld->getNumCollisionObjects()) {
-		btCollisionObject *btcollisionobject = dynamicsworld->getCollisionObjectArray()[0];
-		
-		btRigidBody *btrigidbody = btRigidBody::upcast(btcollisionobject);
+    while (dynamicsworld->getNumCollisionObjects()) {
+        btCollisionObject *btcollisionobject = dynamicsworld->getCollisionObjectArray()[0];
 
-		if (btrigidbody) {
-			delete btrigidbody->getCollisionShape();
-			
-			delete btrigidbody->getMotionState();
-			
-			dynamicsworld->removeRigidBody(btrigidbody);
-			
-			dynamicsworld->removeCollisionObject(btcollisionobject);
-			
-			delete btrigidbody;
-		}
-	}
-	
-	delete collisionconfiguration; collisionconfiguration = NULL;
+        btRigidBody *btrigidbody = btRigidBody::upcast(btcollisionobject);
 
-	delete dispatcher; dispatcher = NULL;
+        if (btrigidbody) {
+            delete btrigidbody->getCollisionShape();
 
-	delete broadphase; broadphase = NULL;
+            delete btrigidbody->getMotionState();
 
-	delete solver; solver = NULL;
-	
-	delete dynamicsworld; dynamicsworld = NULL;	
+            dynamicsworld->removeRigidBody(btrigidbody);
+
+            dynamicsworld->removeCollisionObject(btcollisionobject);
+
+            delete btrigidbody;
+        }
+    }
+
+    delete collisionconfiguration; collisionconfiguration = NULL;
+
+    delete dispatcher; dispatcher = NULL;
+    
+    delete broadphase; broadphase = NULL;
+    
+    delete solver; solver = NULL;
+    
+    delete dynamicsworld; dynamicsworld = NULL;	
 }
 
 
@@ -249,10 +251,10 @@ bool contact_added_callback(btManifoldPoint &btmanifoldpoint,
                             const btCollisionObject *btcollisionobject1,
                             int part_1, int index_1) {
 
-	OBJMESH *objmesh0 = (OBJMESH *)((btRigidBody *)btcollisionobject0)->getUserPointer();
+    OBJMESH *objmesh0 = (OBJMESH *)((btRigidBody *)btcollisionobject0)->getUserPointer();
 
-	OBJMESH *objmesh1 = (OBJMESH *)((btRigidBody *)btcollisionobject1)->getUserPointer();
-	
+    OBJMESH *objmesh1 = (OBJMESH *)((btRigidBody *)btcollisionobject1)->getUserPointer();
+
     /* Check if one of the two objects involved in the collision is a
      * momo and the other object is a banana. */
     if ((strstr(objmesh0->name, "momo") && strstr(objmesh1->name, "banana")) ||
@@ -289,8 +291,8 @@ bool contact_added_callback(btManifoldPoint &btmanifoldpoint,
 
         objmesh->btrigidbody = NULL;
     }
-
-	return false;
+    
+    return false;
 }
 
 
@@ -337,18 +339,18 @@ void get_next_momo(void)
 
 void load_game(void)
 {
-	init_physic_world();
-	
-	gContactAddedCallback = contact_added_callback;
+    init_physic_world();
 
-	obj = new OBJ(OBJ_FILE, true);
+    gContactAddedCallback = contact_added_callback;
+
+    obj = new OBJ(OBJ_FILE, true);
 
     for (auto objmesh=obj->objmesh.begin();
          objmesh!=obj->objmesh.end(); ++objmesh) {
 
-		objmesh->optimize(128);
-		
-		objmesh->build();
+        objmesh->optimize(128);
+
+        objmesh->build();
 
         if (strstr(objmesh->name, "momo")) {
             /* For each momo, create a sphere shape, with a mass of 2kg which
@@ -381,7 +383,8 @@ void load_game(void)
             /* Add to the rigid body collision flags the tags needed to respond
              * to custom material callbacks (contact added).
              */
-            objmesh->btrigidbody->setCollisionFlags(objmesh->btrigidbody->getCollisionFlags() | btCollisionObject::CF_CUSTOM_MATERIAL_CALLBACK);
+            objmesh->btrigidbody->setCollisionFlags(objmesh->btrigidbody->getCollisionFlags() |
+                                                    btCollisionObject::CF_CUSTOM_MATERIAL_CALLBACK);
             /* Until disturbed, keep the bananas from responding to the force
              * of gravity.
              */
@@ -395,9 +398,9 @@ void load_game(void)
             gameover = &*objmesh;
         }
 
-		objmesh->free_vertex_data();
-	}
-	
+        objmesh->free_vertex_data();
+    }
+
 
     for (auto texture=obj->texture.begin();
          texture!=obj->texture.end(); ++texture) {
@@ -407,7 +410,7 @@ void load_game(void)
                           0.0f);
     }
 
-	program = new PROGRAM((char *)"default",
+    program = new PROGRAM((char *)"default",
                           VERTEX_SHADER,
                           FRAGMENT_SHADER,
                           true,
@@ -417,11 +420,11 @@ void load_game(void)
 
     for (auto objmaterial=obj->objmaterial.begin();
          objmaterial!=obj->objmaterial.end(); ++objmaterial)
-		objmaterial->build(NULL);
+        objmaterial->build(NULL);
 
-	program->draw();
-	
-	glUniform1i(program->get_uniform_location(TM_Diffuse_String), TM_Diffuse);
+    program->draw();
+
+    glUniform1i(program->get_uniform_location(TM_Diffuse_String), TM_Diffuse);
 
     momo_index  = 0;
     momo_launch = false;
@@ -434,28 +437,28 @@ void load_game(void)
 
 void templateAppInit(int width, int height) {
 
-	atexit(templateAppExit);
+    atexit(templateAppExit);
 
-	GFX_start();
-	
-	glViewport(0.0f, 0.0f, width, height);
+    GFX_start();
 
-	GFX_set_matrix_mode(PROJECTION_MATRIX);
-	GFX_load_identity();
-	
-	GFX_set_orthographic((float)height / (float)width,
+    glViewport(0.0f, 0.0f, width, height);
+
+    GFX_set_matrix_mode(PROJECTION_MATRIX);
+    GFX_load_identity();
+
+    GFX_set_orthographic((float)height / (float)width,
                          15.0f,
                          (float)width / (float)height,
                          1.0f,
                          100.0f,
                          -90.0f);
-	load_game();
+    load_game();
 }
 
 
 void templateAppDraw(void) {
 
-	glClear(GL_DEPTH_BUFFER_BIT);
+    glClear(GL_DEPTH_BUFFER_BIT);
 
     /* If the restart flag is != 0, call the templateAppExit() function
      * to clear the scene, and then reload it using the load_game() function.
@@ -470,9 +473,9 @@ void templateAppDraw(void) {
         restart_game = false;
     }
 
-	GFX_set_matrix_mode(MODELVIEW_MATRIX);
-	GFX_load_identity();
-	
+    GFX_set_matrix_mode(MODELVIEW_MATRIX);
+    GFX_load_identity();
+
     if (momo) {
         /* Linearly interpolate the camera eye position with the current
          * location of momo on the X axis.
@@ -485,12 +488,12 @@ void templateAppDraw(void) {
         eye.x = CLAMP(eye.x, -2.0f, 3.5f);
     }
 
-	GFX_look_at(&eye, &center, &up);
+    GFX_look_at(&eye, &center, &up);
 
     for (auto objmesh=obj->objmesh.begin();
          objmesh!=obj->objmesh.end(); ++objmesh) {
 
-		GFX_push_matrix();
+        GFX_push_matrix();
 
         /* Check if the current mesh has a rigid body pointer. */
         if (objmesh->btrigidbody) {
@@ -510,22 +513,22 @@ void templateAppDraw(void) {
                           objmesh->location.y,
                           objmesh->location.z);
         }
-		
-		glUniformMatrix4fv(program->uniform_map["MODELVIEWPROJECTIONMATRIX"].location,
+
+        glUniformMatrix4fv(program->uniform_map["MODELVIEWPROJECTIONMATRIX"].location,
                            1,
                            GL_FALSE,
                            (float *)GFX_get_modelview_projection_matrix());
 
-		objmesh->draw();
+        objmesh->draw();
 
-		GFX_pop_matrix();
-	}
-	
-	dynamicsworld->stepSimulation(1.0f / 60.0f);
+        GFX_pop_matrix();
+    }
+
+    dynamicsworld->stepSimulation(1.0f / 60.0f);
 
     if (momo &&
-       (momo->btrigidbody->getLinearVelocity().length() > 20.0f ||
-        momo->btrigidbody->getActivationState() == ISLAND_SLEEPING))
+        (momo->btrigidbody->getLinearVelocity().length() > 20.0f ||
+         momo->btrigidbody->getActivationState() == ISLAND_SLEEPING))
         get_next_momo();
 
     if (!momo || !banana) {
@@ -538,8 +541,8 @@ void templateAppDraw(void) {
 
 void templateAppToucheBegan(float x, float y, unsigned int tap_count)
 {
-	start_pos.x = x;
-	start_pos.y = y;
+    start_pos.x = x;
+    start_pos.y = y;
 }
 
 
@@ -575,13 +578,13 @@ void templateAppToucheEnded(float x, float y, unsigned int tap_count)
 
 
 void templateAppExit(void) {
-
-	if (dynamicsworld) free_physic_world();
-
-	if (program) {
+    
+    if (dynamicsworld) free_physic_world();
+    
+    if (program) {
         delete program;
         program = NULL;
-	}
-	
-	delete obj;
+    }
+    
+    delete obj;
 }

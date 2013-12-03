@@ -53,13 +53,24 @@ typedef struct
 } vec2;
 
 
-typedef struct
-{
-	float x;
-	float y;
-	float z;
-
-} vec3;
+struct vec3 {
+    float x;
+    float y;
+    float z;
+//public:
+//    vec3() {}
+//    vec3(const float x, const float y=0, const float z=0) : x(x), y(y), z(z) {}
+//    vec3(const vec3 &src) : x(src.x), y(src.y), z(src.z) {}
+//    ~vec3() {}
+//    vec3 &operator=(const vec3 &rhs) {
+//        if (this != &rhs) {
+//            x = rhs.x;
+//            y = rhs.y;
+//            z = rhs.z;
+//        }
+//        return *this;
+//    }
+};
 
 
 typedef struct
@@ -92,11 +103,11 @@ typedef struct
 } quat;
 
 
-typedef struct
-{
-	vec3 m[ 3 ];
-
-} mat3;
+struct mat3 {
+	vec3 m[3];
+public:
+    mat3() {}
+};
 
 
 typedef struct

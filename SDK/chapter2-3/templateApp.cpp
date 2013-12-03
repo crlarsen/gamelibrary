@@ -39,12 +39,12 @@ as being the original software.
    which event callback you want to use. */
 
 TEMPLATEAPP templateApp = {
-                            /* Will be called once when the program starts. */
-							templateAppInit,
-							
-							/* Will be called every frame. This is the best location to plug your drawing. */
-							templateAppDraw,
-						  };
+    /* Will be called once when the program starts. */
+    templateAppInit,
+
+    /* Will be called every frame. This is the best location to plug your drawing. */
+    templateAppDraw,
+};
 
 #define VERTEX_SHADER   (char *)"first.vs"
 #define FRAGMENT_SHADER (char *)"first.fs"
@@ -56,16 +56,16 @@ MEMORY  *m = NULL;
 
 void templateAppInit( int width, int height )
 {
-	// Setup the exit callback function.
-	atexit( templateAppExit );
-	
-	// Initialize GLES.
-	GFX_start();
-	
-	// Setup a GLES viewport using the current width and height of the screen.
-	glViewport( 0, 0, width, height );
-	
-	/* Insert your initialization code here */
+    // Setup the exit callback function.
+    atexit( templateAppExit );
+
+    // Initialize GLES.
+    GFX_start();
+
+    // Setup a GLES viewport using the current width and height of the screen.
+    glViewport( 0, 0, width, height );
+
+    /* Insert your initialization code here */
     GFX_set_matrix_mode(PROJECTION_MATRIX);
     {
         /* Clean the projection matrix by loading an identity matrix. */
@@ -109,14 +109,14 @@ void templateAppDraw( void )
     };
 
     glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
-    
-	// Clear the depth, stencil and colorbuffer.
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	/* Insert your drawing code here */
+    // Clear the depth, stencil and colorbuffer.
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    /* Insert your drawing code here */
     /* Select the model view matrix. */
     GFX_set_matrix_mode(MODELVIEW_MATRIX);
-
+    
     /* Reset it to make sure you are going to deal with a clean identity matrix. */
     GFX_load_identity();
 

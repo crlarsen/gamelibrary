@@ -104,9 +104,11 @@ unsigned int cur_level = 0,
 FONT *font_small = NULL,
      *font_big   = NULL;
 
-TEMPLATEAPP templateApp = { templateAppInit,
-							templateAppDraw,
-							templateAppToucheBegan };
+TEMPLATEAPP templateApp = {
+    templateAppInit,
+    templateAppDraw,
+    templateAppToucheBegan
+};
 
 void program_bind_attrib_location(void *ptr) {
     PROGRAM *program = (PROGRAM *)ptr;
@@ -131,46 +133,46 @@ void decompress_stream(void *ptr) {
 
 void next_level(void) {
     /* Increase the current level number. */
-	++cur_level;
+    ++cur_level;
 
     /* Randomly generate a piano keys index based on the current level
      * number.
      */
-	for (int i=0; i!=cur_level; ++i)
-		level[i] = rand() % MAX_PIANO_KEY;
+    for (int i=0; i!=cur_level; ++i)
+        level[i] = rand() % MAX_PIANO_KEY;
 
     /* Reset the current sound level so the player can see and hear the
      * sequence to reproduce for the current_level.
      */
-	cur_level_sound = 0;
+    cur_level_sound = 0;
 }
 
 void templateAppInit(int width, int height) {
 
-	atexit(templateAppExit);
+    atexit(templateAppExit);
 
-	GFX_start();
-	
+    GFX_start();
+    
     /* Helper function to initialize the device and context as you did at the
      * beginning of this chapter.
      */
     AUDIO_start();
 	
-	glViewport(0.0f, 0.0f, width, height);
-	
-	glGetIntegerv(GL_VIEWPORT, &viewport_matrix[0]);
+    glViewport(0.0f, 0.0f, width, height);
 
-	obj = new OBJ(OBJ_FILE, true);
-	
-	for (auto objmesh=obj->objmesh.begin();
+    glGetIntegerv(GL_VIEWPORT, &viewport_matrix[0]);
+
+    obj = new OBJ(OBJ_FILE, true);
+
+    for (auto objmesh=obj->objmesh.begin();
          objmesh!=obj->objmesh.end(); ++objmesh) {
-		objmesh->optimize(128);
+        objmesh->optimize(128);
 
-		objmesh->build();
-		
-		objmesh->free_vertex_data();
-	}
-
+        objmesh->build();
+        
+        objmesh->free_vertex_data();
+    }
+    
     /* Declare an empty memory pointer to store the sound buffers. */
     MEMORY *memory = NULL;
     /* Reset the counter. */
@@ -257,7 +259,7 @@ void templateAppInit(int width, int height) {
 		objmaterial->build(NULL);
     }
 
-	program = new PROGRAM((char *)"default",
+    program = new PROGRAM((char *)"default",
                           VERTEX_SHADER,
                           FRAGMENT_SHADER,
                           true,
@@ -265,13 +267,13 @@ void templateAppInit(int width, int height) {
                           program_bind_attrib_location,
                           NULL);
 
-	srandom(get_milli_time());
+    srandom(get_milli_time());
 
-	next_level();
+    next_level();
 
-	font_small = FONT_init((char *)"foo.ttf");
+    font_small = FONT_init((char *)"foo.ttf");
 
-	FONT_load(font_small,
+    FONT_load(font_small,
               font_small->name,
               true,
               32.0f,
@@ -280,9 +282,9 @@ void templateAppInit(int width, int height) {
               32,
               96);
 
-	font_big = FONT_init((char *)"foo.ttf");
+    font_big = FONT_init((char *)"foo.ttf");
 
-	FONT_load(font_big,
+    FONT_load(font_big,
               font_big->name,
               true,
               64.0f,
@@ -295,30 +297,30 @@ void templateAppInit(int width, int height) {
 
 void templateAppDraw(void) {
 
-	glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
-	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+    glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
+    glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
-	GFX_set_matrix_mode(PROJECTION_MATRIX);
-	GFX_load_identity();
-	
-	GFX_set_perspective(50.0f,
+    GFX_set_matrix_mode(PROJECTION_MATRIX);
+    GFX_load_identity();
+
+    GFX_set_perspective(50.0f,
                         (float)viewport_matrix[2] / (float)viewport_matrix[3],
                         1.0f,
                         100.0f,
                         -90.0f);
 
-	GFX_set_matrix_mode(MODELVIEW_MATRIX);
-	GFX_load_identity();
+    GFX_set_matrix_mode(MODELVIEW_MATRIX);
+    GFX_load_identity();
 
 
-	vec3 e = { 0.0f, -8.0f, 7.5f },
-		 c = { 0.0f,  2.0f, 0.0f },
-		 u = { 0.0f,  0.0f, 1.0f };
-		 
-	GFX_look_at(&e, &c, &u);
-	
-	program->draw();
+    vec3    e = { 0.0f, -8.0f, 7.5f },
+            c = { 0.0f,  2.0f, 0.0f },
+            u = { 0.0f,  0.0f, 1.0f };
 
+    GFX_look_at(&e, &c, &u);
+    
+    program->draw();
+    
     /* If the current preview sound is different than the current level,
      * it means that the whole generated sequence has not been played back
      * to the user yet.
@@ -454,18 +456,18 @@ void templateAppDraw(void) {
 
     unsigned char source_playing = 0;
 
-	glUniform1i(program->get_uniform_location(TM_Diffuse_String), TM_Diffuse);
+    glUniform1i(program->get_uniform_location(TM_Diffuse_String), TM_Diffuse);
 
-	for (auto objmesh=obj->objmesh.begin();
+    for (auto objmesh=obj->objmesh.begin();
          objmesh!=obj->objmesh.end(); ++objmesh) {
 
-		GFX_push_matrix();
+        GFX_push_matrix();
 
-		GFX_translate(objmesh->location.x,
+        GFX_translate(objmesh->location.x,
                       objmesh->location.y,
                       objmesh->location.z);
 
-		glUniformMatrix4fv(program->get_uniform_location((char *)"MODELVIEWPROJECTIONMATRIX"),
+        glUniformMatrix4fv(program->get_uniform_location((char *)"MODELVIEWPROJECTIONMATRIX"),
                            1,
                            GL_FALSE,
                            (float *)GFX_get_modelview_projection_matrix());
@@ -476,7 +478,7 @@ void templateAppDraw(void) {
         sscanf(objmesh->name, "%d", &sound_index);
         /* Check the sound source is currently playing. */
         if (!strstr(objmesh->name, "curtain") &&
-           SOUND_get_state(soundsource[sound_index]) == AL_PLAYING) {
+            SOUND_get_state(soundsource[sound_index]) == AL_PLAYING) {
             source_playing = 1;
             /* Set full brightness as the color to use for the piano key
              * that is about to be drawn onscreen (since you fragment
@@ -501,74 +503,74 @@ void templateAppDraw(void) {
         glUniform4fv(program->get_uniform_location((char *)"COLOR"),
                      1,
                      (float *)&color);
-
-		objmesh->draw();
-		
-		GFX_pop_matrix();
-	}
-
+        
+        objmesh->draw();
+        
+        GFX_pop_matrix();
+    }
+    
     /* If the current player sound index is equal to the current level
      * number, it means that the player has cleared the level and entered
      * all the piano keys in the right order.  Time to move on to the
      * next level!
      */
-	if (cur_player_sound == cur_level && !source_playing) next_level();
+    if (cur_player_sound == cur_level && !source_playing) next_level();
 
-	GFX_set_matrix_mode(PROJECTION_MATRIX);
+    GFX_set_matrix_mode(PROJECTION_MATRIX);
 
-	GFX_load_identity();
+    GFX_load_identity();
 
-	float   half_width  = (float)viewport_matrix[2] * 0.5f,
-            half_height = (float)viewport_matrix[3] * 0.5f;
+    float   half_width  = (float)viewport_matrix[2] * 0.5f,
+    half_height = (float)viewport_matrix[3] * 0.5f;
 
-	GFX_set_orthographic_2d(-half_width,
+    GFX_set_orthographic_2d(-half_width,
                              half_width,
                             -half_height,
                              half_height);
 
-	GFX_rotate(-90.0f, 0.0f, 0.0f, 1.0f);
+    GFX_rotate(-90.0f, 0.0f, 0.0f, 1.0f);
 
-	GFX_translate(-half_height, -half_width, 0.0f);
+    GFX_translate(-half_height, -half_width, 0.0f);
 
-	GFX_set_matrix_mode(MODELVIEW_MATRIX);
+    GFX_set_matrix_mode(MODELVIEW_MATRIX);
 
-	GFX_load_identity();
+    GFX_load_identity();
+    
+    char str[MAX_CHAR] = {""};
 
-	char str[MAX_CHAR] = {""};
+    if (game_over) {
 
-	if (game_over) {
+        strcpy(str, "GAME OVER");
 
-		strcpy(str, "GAME OVER");
+        /* Yellow. */
+        color.x = 1.0f;
+        color.y = 1.0f;
+        color.z = 0.0f;
+        color.w = 1.0f;
 
-		/* Yellow. */
-		color.x = 1.0f;
-		color.y = 1.0f;
-		color.z = 0.0f;
-		color.w = 1.0f;
-
-		FONT_print(font_big,
-			   viewport_matrix[3] * 0.5f -
-			   FONT_length(font_big, str) * 0.5f,
-			   viewport_matrix[2] -
-			   font_big->font_size * 1.5f,
-			   str,
-			   &color);
-}
+        FONT_print(font_big,
+                   viewport_matrix[3] * 0.5f -
+                   FONT_length(font_big, str) * 0.5f,
+                   viewport_matrix[2] -
+                   font_big->font_size * 1.5f,
+                   str,
+                   &color);
+    }
 
 
-	sprintf(str, "Level:%d", cur_level);
+    sprintf(str, "Level:%d", cur_level);
 
-	/* Green. */
-	color.x = 0.0f;
-	color.y = 1.0f;
-	color.z = 0.0f;
-	color.w = 1.0f;
-	
-	FONT_print(font_small,
-		   5.0f,
-		   viewport_matrix[2] - font_small->font_size,
-		   str,
-		   &color);
+    /* Green. */
+    color.x = 0.0f;
+    color.y = 1.0f;
+    color.z = 0.0f;
+    color.w = 1.0f;
+    
+    FONT_print(font_small,
+               5.0f,
+               viewport_matrix[2] - font_small->font_size,
+               str,
+               &color);
 }
 
 
@@ -587,15 +589,15 @@ void templateAppToucheBegan(float x, float y, unsigned int tap_count)
         next_level();
     }
 
-	touche.x = x;
-	touche.y = y;
+    touche.x = x;
+    touche.y = y;
 }
 
 
 void templateAppExit(void) {
-	FONT_free(font_small);
+    FONT_free(font_small);
 
-	FONT_free(font_big);
+    FONT_free(font_big);
 
     /* Stop and free the decompression thread. */
     THREAD_free(thread);
@@ -630,6 +632,6 @@ void templateAppExit(void) {
 
     delete program;
     program = NULL;
-
+    
     delete obj;
 }

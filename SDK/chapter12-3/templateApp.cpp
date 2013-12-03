@@ -69,10 +69,12 @@ MD5ACTION *walk = NULL;
  */
 MD5JOINT *final_pose = NULL;
 
-TEMPLATEAPP templateApp = { templateAppInit,
-							templateAppDraw,
-							templateAppToucheBegan,
-							templateAppToucheMoved };
+TEMPLATEAPP templateApp = {
+    templateAppInit,
+    templateAppDraw,
+    templateAppToucheBegan,
+    templateAppToucheMoved
+};
 
 int viewport_matrix[4];
 
@@ -99,25 +101,25 @@ void program_bind_attrib_location(void *ptr) {
 
 void material_draw(void *ptr)
 {
-	OBJMATERIAL *objmaterial = (OBJMATERIAL *)ptr;
+    OBJMATERIAL *objmaterial = (OBJMATERIAL *)ptr;
 
-	PROGRAM *program = objmaterial->program;
+    PROGRAM *program = objmaterial->program;
 
     for (auto it=program->uniform_map.begin(); it!=program->uniform_map.end(); ++it) {
         auto    &name = it->first;
         auto    &uniform = it->second;
 
-		if (uniform.constant) {
-			continue;
-		} else if (name == TM_Diffuse_String) {
-			glUniform1i(uniform.location, TM_Diffuse);
+        if (uniform.constant) {
+            continue;
+        } else if (name == TM_Diffuse_String) {
+            glUniform1i(uniform.location, TM_Diffuse);
 
-			uniform.constant = true;
-		} else if (name == TM_Bump_String) {
-			glUniform1i(uniform.location, TM_Bump);
+            uniform.constant = true;
+        } else if (name == TM_Bump_String) {
+            glUniform1i(uniform.location, TM_Bump);
 
-			uniform.constant = true;
-		} else if (name == "MODELVIEWMATRIX") {
+            uniform.constant = true;
+        } else if (name == "MODELVIEWMATRIX") {
             // Matrix Data
             glUniformMatrix4fv(uniform.location,
                                1,
@@ -129,9 +131,9 @@ void material_draw(void *ptr)
                                GL_FALSE,
                                (float *)GFX_get_projection_matrix());
 
-			uniform.constant = true;
-		} else if (name == "NORMALMATRIX") {
-			glUniformMatrix3fv(uniform.location,
+            uniform.constant = true;
+        } else if (name == "NORMALMATRIX") {
+            glUniformMatrix3fv(uniform.location,
                                1,
                                GL_FALSE,
                                (float *)GFX_get_normal_matrix());
@@ -146,58 +148,58 @@ void material_draw(void *ptr)
              * also allow you to get better performance at runtime, because
              * the data will not be sent over and over for nothing.
              */
-			uniform.constant = true;
+            uniform.constant = true;
         } else if (name == "MATERIAL.diffuse") {
-			glUniform4fv(uniform.location,
+            glUniform4fv(uniform.location,
                          1,
                          (float *)&objmaterial->diffuse);
         } else if (name == "MATERIAL.specular") {
-			glUniform4fv(uniform.location,
+            glUniform4fv(uniform.location,
                          1,
                          (float *)&objmaterial->specular);
         } else if (name == "MATERIAL.shininess") {
-			glUniform1f(uniform.location,
+            glUniform1f(uniform.location,
                         objmaterial->specular_exponent * 0.128f);
 
-			uniform.constant = true;
-		} else if (name == "LIGHT_FS.color") {
+            uniform.constant = true;
+        } else if (name == "LIGHT_FS.color") {
             // Lamp Data
-			glUniform4fv(uniform.location,
+            glUniform4fv(uniform.location,
                          1,
                          (float *)&light->color);
 
-			uniform.constant = true;
-		} else if (name == "LIGHT_VS.direction") {
-			vec3 direction;
+            uniform.constant = true;
+        } else if (name == "LIGHT_VS.direction") {
+            vec3 direction;
 
-			LIGHT_get_direction_in_eye_space(light,
+            LIGHT_get_direction_in_eye_space(light,
                                              &gfx.modelview_matrix[gfx.modelview_matrix_index - 1],
                                              &direction);
-
-			glUniform3fv(uniform.location,
+            
+            glUniform3fv(uniform.location,
                          1,
                          (float *)&direction);
-
-			uniform.constant = true;
-		}
-	}
+            
+            uniform.constant = true;
+        }
+    }
 }
 
 
 void templateAppInit(int width, int height)
 {
-	atexit(templateAppExit);
+    atexit(templateAppExit);
 
-	GFX_start();
+    GFX_start();
 
-	glViewport(0.0f, 0.0f, width, height);
+    glViewport(0.0f, 0.0f, width, height);
 
-	glGetIntegerv(GL_VIEWPORT, viewport_matrix);
+    glGetIntegerv(GL_VIEWPORT, viewport_matrix);
 
-	vec4 color = { 1.0f, 1.0f, 1.0f, 1.0f };
+    vec4 color = { 1.0f, 1.0f, 1.0f, 1.0f };
 
-	light = LIGHT_create_directional((char *)"point", &color, 45.0f, 0.0f, 0.0f);
-
+    light = LIGHT_create_directional((char *)"point", &color, 45.0f, 0.0f, 0.0f);
+    
     /* Manually initialize a blank OBJ structure.  You do not need to
      * use the OBJ_load function this time, because there's no geometry
      * to load, only a material file.
@@ -339,29 +341,29 @@ void templateAppInit(int width, int height)
 
 void templateAppDraw(void)
 {
-	glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
-	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+    glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
+    glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
 
-	GFX_set_matrix_mode(PROJECTION_MATRIX);
-	GFX_load_identity();
+    GFX_set_matrix_mode(PROJECTION_MATRIX);
+    GFX_load_identity();
 
-	GFX_set_perspective( 45.0f,
+    GFX_set_perspective( 45.0f,
                         (float)viewport_matrix[2] / (float)viewport_matrix[3],
-                          0.1f,
+                        0.1f,
                         100.0f,
-                          0.0f);
+                        0.0f);
 
 
-	GFX_set_matrix_mode(MODELVIEW_MATRIX);
-	GFX_load_identity();
+    GFX_set_matrix_mode(MODELVIEW_MATRIX);
+    GFX_load_identity();
 
-	GFX_translate(0.0f, -14.0f, 3.0f);
+    GFX_translate(0.0f, -14.0f, 3.0f);
 
-	GFX_rotate(90.0, 1.0f, 0.0f, 0.0f);
-
-	mat4_invert(GFX_get_modelview_matrix());
-
+    GFX_rotate(90.0, 1.0f, 0.0f, 0.0f);
+    
+    mat4_invert(GFX_get_modelview_matrix());
+    
     GFX_push_matrix();
 
     /* If auto-rotate is ON, simply turn the geometry on the Z axis,
@@ -448,22 +450,22 @@ void templateAppDraw(void)
 
 void templateAppToucheBegan(float x, float y, unsigned int tap_count)
 {
-	if (tap_count == 2) auto_rotate = !auto_rotate;
+    if (tap_count == 2) auto_rotate = !auto_rotate;
 
-	touche.x = x;
-	touche.y = y;
+    touche.x = x;
+    touche.y = y;
 }
 
 
 void templateAppToucheMoved(float x, float y, unsigned int tap_count)
 {
-	auto_rotate = 0;
+    auto_rotate = 0;
 
-	rot_angle.z += x - touche.x;
-	rot_angle.x += y - touche.y;
+    rot_angle.z += x - touche.x;
+    rot_angle.x += y - touche.y;
 
-	touche.x = x;
-	touche.y = y;
+    touche.x = x;
+    touche.y = y;
 }
 
 
@@ -472,6 +474,6 @@ void templateAppExit(void)
     free(final_pose);
     delete obj;
     md5 = MD5_free(md5);
-
-	light = LIGHT_free(light);
+    
+    light = LIGHT_free(light);
 }

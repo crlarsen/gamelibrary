@@ -40,79 +40,79 @@ as being the original software.
 
 enum
 {
-	TEXTURE_CLAMP			= ( 1 << 0 ),
-	TEXTURE_MIPMAP			= ( 1 << 1 ),
-	TEXTURE_16_BITS			= ( 1 << 2 ),
-	TEXTURE_16_BITS_5551	= ( 1 << 3 )
+    TEXTURE_CLAMP        = ( 1 << 0 ),
+    TEXTURE_MIPMAP       = ( 1 << 1 ),
+    TEXTURE_16_BITS      = ( 1 << 2 ),
+    TEXTURE_16_BITS_5551 = ( 1 << 3 )
 };
 
 
 enum
 {
-	TEXTURE_FILTER_0X = 0,
-	TEXTURE_FILTER_1X = 1,
-	TEXTURE_FILTER_2X = 2,
-	TEXTURE_FILTER_3X = 3
+    TEXTURE_FILTER_0X = 0,
+    TEXTURE_FILTER_1X = 1,
+    TEXTURE_FILTER_2X = 2,
+    TEXTURE_FILTER_3X = 3
 };
 
 
 typedef struct
 {
-	unsigned int headersize;
-	
-	unsigned int height;
+    unsigned int headersize;
 
-	unsigned int width;
-	
-	unsigned int n_mipmap;
-	
-	unsigned int flags;
-	
-	unsigned int datasize;
-	
-	unsigned int bpp;
-	
-	unsigned int bitred;
+    unsigned int height;
 
-	unsigned int bitgreen;
+    unsigned int width;
 
-	unsigned int bitblue;
-	
-	unsigned int bitalpha;
-	
-	unsigned int tag;
-	
-	unsigned int n_surface;
+    unsigned int n_mipmap;
+
+    unsigned int flags;
+
+    unsigned int datasize;
+
+    unsigned int bpp;
+
+    unsigned int bitred;
+
+    unsigned int bitgreen;
+
+    unsigned int bitblue;
+
+    unsigned int bitalpha;
+    
+    unsigned int tag;
+    
+    unsigned int n_surface;
 
 } PVRHEADER;
 
 
 struct TEXTURE {
-	char			name[ MAX_CHAR ];
-	
-	unsigned int	tid;
-	
-	unsigned short	width;
-	
-	unsigned short	height;
-	
-	unsigned char	byte;
-	
-	unsigned int	size;
+    char		name[MAX_CHAR];
 
-	unsigned int	target;
-	
-	unsigned int	internal_format;
-	
-	unsigned int	format;
+    unsigned int	tid;
 
-	unsigned int	texel_type;
+    unsigned short	width;
 
-	unsigned char	*texel_array;
+    unsigned short	height;
 
-	unsigned int	n_mipmap;
-	
-	unsigned int	compression;
+    unsigned char	byte;
+
+    unsigned int	size;
+
+    unsigned int	target;
+
+    unsigned int	internal_format;
+
+    unsigned int	format;
+
+    unsigned int	texel_type;
+
+    unsigned char	*texel_array;
+    
+    unsigned int	n_mipmap;
+    
+    unsigned int	compression;
 private:
     void init(char *name);
 
