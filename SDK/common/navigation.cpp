@@ -23,7 +23,9 @@ as being the original software.
 /*
  * Source code modified by Chris Larsen to make the following data types into
  * proper C++ classes:
+ * - FONT
  * - MEMORY
+ * - NAVIGATION
  * - OBJ
  * - OBJMATERIAL
  * - OBJMESH
@@ -32,524 +34,455 @@ as being the original software.
  * - OBJVERTEXDATA
  * - PROGRAM
  * - SHADER
+ * - TEXTURE
  */
 
 #include "gfx.h"
 
 
-NAVIGATION *NAVIGATION_init( char *name )
+NAVIGATION::NAVIGATION(char *name) :
+    triangle_flags(NULL),
+    dtnavmesh(NULL),
+    program(NULL)
 {
-	NAVIGATION *navigation = ( NAVIGATION * ) calloc( 1, sizeof( NAVIGATION ) );
+    assert(name==NULL || strlen(name)<sizeof(this->name));
+    if (name == NULL) {
+        memset(this->name, 0, sizeof(this->name));
+    } else {
+        strcpy(this->name, name);
+    }
 
-	strcpy( navigation->name, name );
-
-	navigation->tolerance.x = 1.0f;
-	navigation->tolerance.y = 2.0f;
-	navigation->tolerance.z = 1.0f;
-	
-	NAVIGATION_set_default_configuration( navigation );
-
-	return navigation;
+    this->tolerance.x = 1.0f;
+    this->tolerance.y = 2.0f;
+    this->tolerance.z = 1.0f;
 }
 
 
-NAVIGATION *NAVIGATION_free( NAVIGATION *navigation )
+NAVIGATION::~NAVIGATION()
 {
-	if( navigation->dtnavmesh ) dtFreeNavMesh( navigation->dtnavmesh );
+    if (this->dtnavmesh)
+        dtFreeNavMesh(this->dtnavmesh);
+
+    if (this->program)
+        delete this->program;
+}
+
 	
-	if( navigation->program ) {
-		delete navigation->program;
-	}
-	
-	free( navigation );
-	
-	return NULL;
+bool NAVIGATION::build(OBJMESH *objmesh)
+{
+    unsigned int    k = 0,
+                    triangle_count = 0;
+
+    int *indices = NULL;
+
+    vec3 *vertex_array = (vec3 *) malloc(objmesh->objvertexdata.size() * sizeof(vec3)),
+    *vertex_start = vertex_array;
+
+    rcHeightfield *rcheightfield;
+
+    rcCompactHeightfield *rccompactheightfield;
+
+    rcContourSet *rccontourset;
+
+    rcPolyMesh *rcpolymesh;
+
+    rcPolyMeshDetail *rcpolymeshdetail;
+    
+    
+    for (auto objvertexdata=objmesh->objvertexdata.begin();
+         objvertexdata != objmesh->objvertexdata.end(); ++objvertexdata) {
+        memcpy(vertex_array,
+               &objmesh->parent->indexed_vertex[objvertexdata->vertex_index],
+               sizeof(vec3));
+
+        vec3_to_recast(vertex_array);
+
+        ++vertex_array;
+    }
+
+    
+    for (auto objtrianglelist=objmesh->objtrianglelist.begin();
+         objtrianglelist != objmesh->objtrianglelist.end(); ++objtrianglelist) {
+
+        triangle_count += objtrianglelist->n_indice_array;
+
+        indices = (int *) realloc(indices, triangle_count * sizeof(int));
+
+        for (int j=0; j != objtrianglelist->n_indice_array; ++j) {
+            indices[k] = objtrianglelist->indice_array[j];
+            
+            ++k;
+        }
+    }
+
+    triangle_count /= 3;
+
+    rcConfig rcconfig;
+
+    memset(&rcconfig, 0, sizeof(rcConfig));
+
+    rcconfig.cs                     = this->navigationconfiguration.cell_size;
+    rcconfig.ch                     = this->navigationconfiguration.cell_height;
+    rcconfig.walkableHeight         = (int)ceilf (this->navigationconfiguration.agent_height / rcconfig.ch);
+    rcconfig.walkableRadius         = (int)ceilf (this->navigationconfiguration.agent_radius / rcconfig.cs);
+    rcconfig.walkableClimb          = (int)floorf(this->navigationconfiguration.agent_max_climb / rcconfig.ch);
+    rcconfig.walkableSlopeAngle     = this->navigationconfiguration.agent_max_slope;
+    rcconfig.minRegionSize          = (int)rcSqr(this->navigationconfiguration.region_min_size);
+    rcconfig.mergeRegionSize        = (int)rcSqr(this->navigationconfiguration.region_merge_size);
+    rcconfig.maxEdgeLen             = (int)(this->navigationconfiguration.edge_max_len / rcconfig.cs);
+    rcconfig.maxSimplificationError = this->navigationconfiguration.edge_max_error;
+    rcconfig.maxVertsPerPoly        = (int)this->navigationconfiguration.vert_per_poly;
+    rcconfig.detailSampleDist	    = rcconfig.cs * this->navigationconfiguration.detail_sample_dst;
+    rcconfig.detailSampleMaxError   = rcconfig.ch * this->navigationconfiguration.detail_sample_max_error;
+    
+    
+    rcCalcBounds((float *)vertex_start,
+                 objmesh->objvertexdata.size(),
+                 rcconfig.bmin,
+                 rcconfig.bmax);
+
+
+    rcCalcGridSize(rcconfig.bmin,
+                   rcconfig.bmax,
+                   rcconfig.cs,
+                   &rcconfig.width,
+                   &rcconfig.height);
+
+
+    rcheightfield = rcAllocHeightfield();
+
+    rcCreateHeightfield(*rcheightfield,
+                        rcconfig.width,
+                        rcconfig.height,
+                        rcconfig.bmin,
+                        rcconfig.bmax,
+                        rcconfig.cs,
+                        rcconfig.ch);
+
+
+    this->triangle_flags = new unsigned char[triangle_count];
+
+    memset(this->triangle_flags, 0, triangle_count * sizeof(unsigned char));
+
+    rcMarkWalkableTriangles(rcconfig.walkableSlopeAngle,
+                            (float *)vertex_start,
+                            objmesh->objvertexdata.size(),
+                            indices,
+                            triangle_count,
+                            this->triangle_flags);
+    
+    
+    rcRasterizeTriangles((float *)vertex_start,
+                         objmesh->objvertexdata.size(),
+                         indices,
+                         this->triangle_flags,
+                         triangle_count,
+                         *rcheightfield,
+                         rcconfig.walkableClimb);
+    
+    
+    delete []this->triangle_flags;
+    this->triangle_flags = NULL;
+    
+    free(vertex_start);
+    free(indices);
+    
+    
+    rcFilterLowHangingWalkableObstacles(rcconfig.walkableClimb,
+                                        *rcheightfield);
+
+
+    rcFilterLedgeSpans(rcconfig.walkableHeight,
+                       rcconfig.walkableClimb,
+                       *rcheightfield);
+
+
+    rcFilterWalkableLowHeightSpans(rcconfig.walkableHeight,
+                                   *rcheightfield);
+
+
+    rccompactheightfield = rcAllocCompactHeightfield();
+
+    rcBuildCompactHeightfield(rcconfig.walkableHeight,
+                              rcconfig.walkableClimb,
+                              RC_WALKABLE,
+                              *rcheightfield,
+                              *rccompactheightfield);
+
+    rcFreeHeightField(rcheightfield);
+    rcheightfield = NULL;
+
+    rcErodeArea(RC_WALKABLE_AREA,
+                rcconfig.walkableRadius,
+                *rccompactheightfield);
+
+
+    rcBuildDistanceField(*rccompactheightfield);
+
+
+    rcBuildRegions(*rccompactheightfield,
+                   rcconfig.borderSize,
+                   rcconfig.minRegionSize,
+                   rcconfig.mergeRegionSize);
+    
+    
+    rccontourset = rcAllocContourSet();
+    
+    rcBuildContours(*rccompactheightfield,
+                    rcconfig.maxSimplificationError,
+                    rcconfig.maxEdgeLen,
+                    *rccontourset);
+    
+    
+    rcpolymesh = rcAllocPolyMesh();
+    
+    rcBuildPolyMesh(*rccontourset,
+                    rcconfig.maxVertsPerPoly,
+                    *rcpolymesh);
+    
+    
+    rcpolymeshdetail = rcAllocPolyMeshDetail();
+
+    rcBuildPolyMeshDetail(*rcpolymesh,
+                          *rccompactheightfield,
+                          rcconfig.detailSampleDist,
+                          rcconfig.detailSampleMaxError,
+                          *rcpolymeshdetail);
+
+
+    rcFreeCompactHeightfield(rccompactheightfield);
+    rccompactheightfield = NULL;
+
+    rcFreeContourSet(rccontourset);
+    rccontourset = NULL;
+
+
+    if (rcconfig.maxVertsPerPoly <= DT_VERTS_PER_POLYGON) {
+        dtNavMeshCreateParams dtnavmeshcreateparams;
+
+        unsigned char *nav_data = NULL;
+
+        int nav_data_size = 0;
+
+        for (int i=0; i != rcpolymesh->npolys; ++i) {
+            if (rcpolymesh->areas[i] == RC_WALKABLE_AREA) {
+                rcpolymesh->areas[i] = 0;
+                rcpolymesh->flags[i] = 0x01;
+            }
+        }
+        
+        
+        memset(&dtnavmeshcreateparams, 0, sizeof(dtNavMeshCreateParams));
+
+        dtnavmeshcreateparams.verts	       = rcpolymesh->verts;
+        dtnavmeshcreateparams.vertCount	       = rcpolymesh->nverts;
+        dtnavmeshcreateparams.polys	       = rcpolymesh->polys;
+        dtnavmeshcreateparams.polyAreas	       = rcpolymesh->areas;
+        dtnavmeshcreateparams.polyFlags	       = rcpolymesh->flags;
+        dtnavmeshcreateparams.polyCount	       = rcpolymesh->npolys;
+        dtnavmeshcreateparams.nvp	       = rcpolymesh->nvp;
+
+        dtnavmeshcreateparams.detailMeshes     = rcpolymeshdetail->meshes;
+        dtnavmeshcreateparams.detailVerts      = rcpolymeshdetail->verts;
+        dtnavmeshcreateparams.detailVertsCount = rcpolymeshdetail->nverts;
+        dtnavmeshcreateparams.detailTris       = rcpolymeshdetail->tris;
+        dtnavmeshcreateparams.detailTriCount   = rcpolymeshdetail->ntris;
+
+        dtnavmeshcreateparams.walkableHeight   = this->navigationconfiguration.agent_height;
+        dtnavmeshcreateparams.walkableRadius   = this->navigationconfiguration.agent_radius;
+        dtnavmeshcreateparams.walkableClimb    = this->navigationconfiguration.agent_max_climb;
+
+        rcVcopy(dtnavmeshcreateparams.bmin, rcpolymesh->bmin);
+        rcVcopy(dtnavmeshcreateparams.bmax, rcpolymesh->bmax);
+
+        dtnavmeshcreateparams.cs = rcconfig.cs;
+        dtnavmeshcreateparams.ch = rcconfig.ch;
+
+
+        dtCreateNavMeshData(&dtnavmeshcreateparams,
+                            &nav_data,
+                            &nav_data_size);
+        
+        if (!nav_data) return false;
+        
+        this->dtnavmesh = dtAllocNavMesh();
+        
+        this->dtnavmesh->init(nav_data,
+                              nav_data_size,
+                              DT_TILE_FREE_DATA,
+                              NAVIGATION_MAX_NODE);
+        
+        rcFreePolyMesh(rcpolymesh);
+        rcpolymesh = NULL;
+        
+        rcFreePolyMeshDetail(rcpolymeshdetail);
+        rcpolymeshdetail = NULL;
+        
+        return true;
+    }
+    
+    return false;
 }
 
 
-void NAVIGATION_set_default_configuration( NAVIGATION *navigation )
+bool NAVIGATION::get_path(NAVIGATIONPATH *navigationpath, NAVIGATIONPATHDATA *navigationpathdata)
 {
-	navigation->navigationconfiguration.cell_size				= 0.3f;
-	navigation->navigationconfiguration.cell_height				= 0.2f;
-	navigation->navigationconfiguration.agent_height			= 2.0f;
-	navigation->navigationconfiguration.agent_radius			= 0.8f;
-	navigation->navigationconfiguration.agent_max_climb			= 0.9f;
-	navigation->navigationconfiguration.agent_max_slope			= 45.0f;
-	navigation->navigationconfiguration.region_min_size			= 50.0f;
-	navigation->navigationconfiguration.region_merge_size		= 20.0f;
-	navigation->navigationconfiguration.edge_max_len			= 12.0f;
-	navigation->navigationconfiguration.edge_max_error			= 1.3f;
-	navigation->navigationconfiguration.vert_per_poly			= 6.0f;
-	navigation->navigationconfiguration.detail_sample_dst		= 6.0f;
-	navigation->navigationconfiguration.detail_sample_max_error	= 1.0f;	
+    vec3    start_location = { navigationpath->start_location.x,
+                               navigationpath->start_location.y,
+                               navigationpath->start_location.z },
+
+            end_location = { navigationpath->end_location.x,
+                             navigationpath->end_location.y,
+                             navigationpath->end_location.z };
+
+    vec3_to_recast(&start_location);
+
+    vec3_to_recast(&end_location);
+
+    navigationpath->start_reference = this->dtnavmesh->findNearestPoly((float *)&start_location,
+                                                                       (float *)&this->tolerance,
+                                                                       &navigationpath->path_filter,
+                                                                       0);
+
+
+    navigationpath->end_reference = this->dtnavmesh->findNearestPoly((float *)&end_location,
+                                                                     (float *)&this->tolerance,
+                                                                     &navigationpath->path_filter,
+                                                                     0);
+
+
+    navigationpath->poly_count = this->dtnavmesh->findPath(navigationpath->start_reference,
+                                                           navigationpath->end_reference,
+                                                           (float *)&start_location,
+                                                           (float *)&end_location,
+                                                           &navigationpath->path_filter,
+                                                           navigationpath->poly_array,
+                                                           NAVIGATION_MAX_POLY);
+
+    if (navigationpath->poly_count) {
+        vec3 closest_end;
+
+        if (navigationpath->poly_array[navigationpath->poly_count - 1] != navigationpath->end_reference) {
+            this->dtnavmesh->closestPointOnPoly(navigationpath->poly_array[navigationpath->poly_count - 1],
+                                                (float *)&end_location,
+                                                (float *)&closest_end);
+        } else {
+            memcpy(&closest_end, &navigationpath->end_location, sizeof(vec3));
+        }
+
+
+        navigationpathdata->path_point_count = this->dtnavmesh->findStraightPath((float *)&start_location,
+                                                                                 (float *)&closest_end,
+                                                                                 navigationpath->poly_array,
+                                                                                 navigationpath->poly_count,
+                                                                                 (float *)navigationpathdata->path_point_array,
+                                                                                 navigationpathdata->path_flags_array,
+                                                                                 navigationpathdata->path_poly_array,
+                                                                                 NAVIGATION_MAX_POLY);
+        
+        memcpy(&navigationpathdata->path_point_array[navigationpathdata->path_point_count],
+               &end_location,
+               sizeof(vec3));
+        
+        
+        if (navigationpathdata->path_point_count) {
+            for (int i=0; i != navigationpathdata->path_point_count + 1; ++i)
+                recast_to_vec3(&navigationpathdata->path_point_array[i]);
+            
+            return true;
+        }
+    }
+    
+    return false;
 }
 
 
-unsigned char NAVIGATION_build( NAVIGATION *navigation, OBJ *obj, unsigned int mesh_index )
+void NAVIGATION::draw()
 {
-	unsigned int i = 0,
-				 j = 0,
-				 k = 0,
-				 triangle_count = 0;
-	
-	int *indices = NULL;
-	
-	OBJMESH *objmesh = &obj->objmesh[ mesh_index ];
-	
-	vec3 *vertex_array = ( vec3 * ) malloc( objmesh->objvertexdata.size() * sizeof( vec3 ) ),
-		 *vertex_start = vertex_array;
+    if (!this->program) {
+        this->program = new PROGRAM(this->name);
 
-	rcHeightfield *rcheightfield;
-	
-	rcCompactHeightfield *rccompactheightfield;
-	
-	rcContourSet *rccontourset;
+        this->program->vertex_shader = new SHADER(this->name, GL_VERTEX_SHADER);
 
-	rcPolyMesh *rcpolymesh;
-	
-	rcPolyMeshDetail *rcpolymeshdetail;
-	
-	
-	while( i != objmesh->objvertexdata.size() )
-	{ 
-		memcpy( vertex_array,
-				&obj->indexed_vertex[ objmesh->objvertexdata[ i ].vertex_index ],
-				sizeof( vec3 ) );
-				
-		vec3_to_recast( vertex_array );
-		
-		++vertex_array;						
-		++i;
-	}
-	
-	
-	i = 0;
-	while( i != objmesh->objtrianglelist.size())
-	{
-		triangle_count += objmesh->objtrianglelist[ i ].n_indice_array;
-	
-		indices = ( int * ) realloc( indices, triangle_count * sizeof( int ) );
-	
-		j = 0;
-		while( j != objmesh->objtrianglelist[ i ].n_indice_array )
-		{
-			indices[ k ] = objmesh->objtrianglelist[ i ].indice_array[ j ];
-		
-			++k;
-			++j;
-		}
+        this->program->vertex_shader->compile("uniform highp mat4 MODELVIEWPROJECTIONMATRIX;"
+                                              "attribute highp vec3 POSITION;"
+                                              "void main( void ) {"
+                                              "gl_Position = MODELVIEWPROJECTIONMATRIX * vec4( POSITION, 1.0 ); }",
+                                              false);
 
-		++i;
-	}
-	
-	triangle_count /= 3;
-	
-	rcConfig rcconfig;
+        this->program->fragment_shader = new SHADER(this->name, GL_FRAGMENT_SHADER);
 
-	memset( &rcconfig, 0, sizeof( rcConfig ) );
-	
-	rcconfig.cs						= navigation->navigationconfiguration.cell_size;
-	rcconfig.ch						= navigation->navigationconfiguration.cell_height;
-	rcconfig.walkableHeight			= ( int )ceilf ( navigation->navigationconfiguration.agent_height / rcconfig.ch );
-	rcconfig.walkableRadius			= ( int )ceilf ( navigation->navigationconfiguration.agent_radius / rcconfig.cs );
-	rcconfig.walkableClimb			= ( int )floorf( navigation->navigationconfiguration.agent_max_climb / rcconfig.ch );
-	rcconfig.walkableSlopeAngle		= navigation->navigationconfiguration.agent_max_slope;
-	rcconfig.minRegionSize			= ( int )rcSqr( navigation->navigationconfiguration.region_min_size );
-	rcconfig.mergeRegionSize		= ( int )rcSqr( navigation->navigationconfiguration.region_merge_size );
-	rcconfig.maxEdgeLen				= ( int )( navigation->navigationconfiguration.edge_max_len / rcconfig.cs );
-	rcconfig.maxSimplificationError = navigation->navigationconfiguration.edge_max_error;
-	rcconfig.maxVertsPerPoly		= ( int )navigation->navigationconfiguration.vert_per_poly;
-	rcconfig.detailSampleDist		= rcconfig.cs * navigation->navigationconfiguration.detail_sample_dst;
-	rcconfig.detailSampleMaxError   = rcconfig.ch * navigation->navigationconfiguration.detail_sample_max_error;
-			
-	
-	rcCalcBounds( ( float * )vertex_start,
-				  objmesh->objvertexdata.size(),
-				  rcconfig.bmin,
-				  rcconfig.bmax );
-	
-	
-	rcCalcGridSize(  rcconfig.bmin,
-					 rcconfig.bmax,
-					 rcconfig.cs,
-					&rcconfig.width,
-					&rcconfig.height );
+        this->program->fragment_shader->compile("void main( void ) {"
+                                                "gl_FragColor = vec4( 0.25, 0.5, 1.0, 0.65 ); }",
+                                                false);
 
+        this->program->link(false);
+    }
 
-	rcheightfield = rcAllocHeightfield();
+    char vertex_attribute = this->program->get_vertex_attrib_location(VA_Position_String);
 
-	rcCreateHeightfield( *rcheightfield,
-						  rcconfig.width,
-						  rcconfig.height,
-						  rcconfig.bmin,
-						  rcconfig.bmax,
-						  rcconfig.cs,
-						  rcconfig.ch );
+    glBindVertexArrayOES(0);
 
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-	navigation->triangle_flags = new unsigned char[ triangle_count ];
-	
-	memset( navigation->triangle_flags, 0, triangle_count * sizeof( unsigned char ) );
-	
-	rcMarkWalkableTriangles( rcconfig.walkableSlopeAngle,
-							 ( float * )vertex_start,
-							 objmesh->objvertexdata.size(),
-							 indices,
-							 triangle_count,
-							 navigation->triangle_flags );
-	
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-	rcRasterizeTriangles( ( float * )vertex_start,
-						  objmesh->objvertexdata.size(),
-						  indices,
-						  navigation->triangle_flags,
-						  triangle_count,
-						 *rcheightfield,
-						  rcconfig.walkableClimb );
+    glEnable(GL_BLEND);
 
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	delete []navigation->triangle_flags;
-	navigation->triangle_flags = NULL;
+    this->program->draw();
 
-	free( vertex_start );
-	free( indices      );
-	
-
-	rcFilterLowHangingWalkableObstacles(  rcconfig.walkableClimb,
-										 *rcheightfield );
-	
-	
-	rcFilterLedgeSpans(  rcconfig.walkableHeight,
-						 rcconfig.walkableClimb,
-						*rcheightfield );
-	
-	
-	rcFilterWalkableLowHeightSpans(  rcconfig.walkableHeight,
-									*rcheightfield );
-
-	
-	rccompactheightfield = rcAllocCompactHeightfield();
-
-	rcBuildCompactHeightfield( rcconfig.walkableHeight,
-							   rcconfig.walkableClimb,
-							   RC_WALKABLE,
-							   *rcheightfield,
-							   *rccompactheightfield );
-
-	rcFreeHeightField( rcheightfield );
-	rcheightfield = NULL;
-
-	rcErodeArea( RC_WALKABLE_AREA,
-				 rcconfig.walkableRadius,
-				 *rccompactheightfield );
-
-
-	rcBuildDistanceField( *rccompactheightfield );
-
-
-	rcBuildRegions( *rccompactheightfield,
-					 rcconfig.borderSize,
-					 rcconfig.minRegionSize,
-					 rcconfig.mergeRegionSize );
-
-
-	rccontourset = rcAllocContourSet();
-
-	rcBuildContours( *rccompactheightfield,
-					  rcconfig.maxSimplificationError,
-					  rcconfig.maxEdgeLen,
-					 *rccontourset );
-
-
-	rcpolymesh = rcAllocPolyMesh();
-	
-	rcBuildPolyMesh( *rccontourset,
-					  rcconfig.maxVertsPerPoly,
-					 *rcpolymesh );
-
-
-	rcpolymeshdetail = rcAllocPolyMeshDetail();
-
-	rcBuildPolyMeshDetail( *rcpolymesh,
-						   *rccompactheightfield,
-							rcconfig.detailSampleDist,
-							rcconfig.detailSampleMaxError,
-						   *rcpolymeshdetail );
-
-
-	rcFreeCompactHeightfield( rccompactheightfield );
-	rccompactheightfield = NULL;
-	
-	rcFreeContourSet( rccontourset );
-	rccontourset = NULL;
-
-
-	if( rcconfig.maxVertsPerPoly <= DT_VERTS_PER_POLYGON )
-	{
-		dtNavMeshCreateParams dtnavmeshcreateparams;
-		
-		unsigned char *nav_data = NULL;
-		
-		int nav_data_size = 0;
-	
-		i = 0;
-		while( i != rcpolymesh->npolys )
-		{
-			if( rcpolymesh->areas[ i ] == RC_WALKABLE_AREA )
-			{
-				rcpolymesh->areas[ i ] = 0;
-				rcpolymesh->flags[ i ] = 0x01;
-			}
-							
-			++i;
-		}
-
-
-		memset( &dtnavmeshcreateparams, 0, sizeof( dtNavMeshCreateParams ) );
-		
-		dtnavmeshcreateparams.verts			   = rcpolymesh->verts;
-		dtnavmeshcreateparams.vertCount		   = rcpolymesh->nverts;
-		dtnavmeshcreateparams.polys			   = rcpolymesh->polys;
-		dtnavmeshcreateparams.polyAreas		   = rcpolymesh->areas;
-		dtnavmeshcreateparams.polyFlags		   = rcpolymesh->flags;
-		dtnavmeshcreateparams.polyCount		   = rcpolymesh->npolys;
-		dtnavmeshcreateparams.nvp			   = rcpolymesh->nvp;
-		
-		dtnavmeshcreateparams.detailMeshes	   = rcpolymeshdetail->meshes;
-		dtnavmeshcreateparams.detailVerts	   = rcpolymeshdetail->verts;
-		dtnavmeshcreateparams.detailVertsCount = rcpolymeshdetail->nverts;
-		dtnavmeshcreateparams.detailTris       = rcpolymeshdetail->tris;
-		dtnavmeshcreateparams.detailTriCount   = rcpolymeshdetail->ntris;
-		
-		dtnavmeshcreateparams.walkableHeight   = navigation->navigationconfiguration.agent_height;
-		dtnavmeshcreateparams.walkableRadius   = navigation->navigationconfiguration.agent_radius;
-		dtnavmeshcreateparams.walkableClimb    = navigation->navigationconfiguration.agent_max_climb;
-		
-		rcVcopy( dtnavmeshcreateparams.bmin, rcpolymesh->bmin );
-		rcVcopy( dtnavmeshcreateparams.bmax, rcpolymesh->bmax );
-		
-		dtnavmeshcreateparams.cs = rcconfig.cs;
-		dtnavmeshcreateparams.ch = rcconfig.ch;
-		
-		
-		dtCreateNavMeshData( &dtnavmeshcreateparams,
-							 &nav_data,
-							 &nav_data_size );
-		
-		if( !nav_data ) return 0;
-		
-		navigation->dtnavmesh = dtAllocNavMesh();
-		
-		navigation->dtnavmesh->init( nav_data,
-									 nav_data_size,
-									 DT_TILE_FREE_DATA,
-									 NAVIGATION_MAX_NODE );
-		
-		rcFreePolyMesh( rcpolymesh );
-		rcpolymesh = NULL;
-		
-		rcFreePolyMeshDetail( rcpolymeshdetail );
-		rcpolymeshdetail = NULL;
-		
-		return 1;
-	}
-	
-	return 0;
-}
-
-
-unsigned char NAVIGATION_get_path( NAVIGATION *navigation, NAVIGATIONPATH *navigationpath, NAVIGATIONPATHDATA *navigationpathdata )
-{
-	vec3 start_location = { navigationpath->start_location.x,
-							navigationpath->start_location.y,
-							navigationpath->start_location.z },
-							
-		 end_location = { navigationpath->end_location.x,
-						  navigationpath->end_location.y,
-						  navigationpath->end_location.z };
-		
-	vec3_to_recast( &start_location );
-								
-	vec3_to_recast( &end_location );
-
-	navigationpath->start_reference = navigation->dtnavmesh->findNearestPoly( ( float * )&start_location,
-																			  ( float * )&navigation->tolerance,
-																			  &navigationpath->path_filter,
-																			  0 );
-
-
-	navigationpath->end_reference = navigation->dtnavmesh->findNearestPoly( ( float * )&end_location,
-																			( float * )&navigation->tolerance,
-																			&navigationpath->path_filter,
-																			0 );
-	
-
-	navigationpath->poly_count = navigation->dtnavmesh->findPath( navigationpath->start_reference,
-																  navigationpath->end_reference,
-																  ( float * )&start_location,
-																  ( float * )&end_location,
-																  &navigationpath->path_filter,
-																  navigationpath->poly_array,
-																  NAVIGATION_MAX_POLY );
-
-	if( navigationpath->poly_count )
-	{
-		vec3 closest_end;
-
-		if( navigationpath->poly_array[ navigationpath->poly_count - 1 ] != navigationpath->end_reference )
-		{
-			navigation->dtnavmesh->closestPointOnPoly( navigationpath->poly_array[ navigationpath->poly_count - 1 ],
-													   ( float * )&end_location,
-													   ( float * )&closest_end );
-		}
-		else
-		{ memcpy( &closest_end, &navigationpath->end_location, sizeof( vec3 ) ); }
-
-	
-		navigationpathdata->path_point_count = navigation->dtnavmesh->findStraightPath( ( float * )&start_location,
-																						( float * )&closest_end,
-																						navigationpath->poly_array,
-																						navigationpath->poly_count,
-																						( float * )navigationpathdata->path_point_array,
-																						navigationpathdata->path_flags_array,
-																						navigationpathdata->path_poly_array,
-																						NAVIGATION_MAX_POLY );
-
-		memcpy( &navigationpathdata->path_point_array[ navigationpathdata->path_point_count ],
-				&end_location,
-				sizeof( vec3 ) );
-		
-
-		if( navigationpathdata->path_point_count )
-		{
-			unsigned int i = 0;
-					
-			while( i != navigationpathdata->path_point_count + 1 )
-			{
-				recast_to_vec3( &navigationpathdata->path_point_array[ i ] );
-				
-				++i;
-			}
-
-			return 1;
-		}
-	}
-
-	return 0;
-}
-
-
-void NAVIGATION_draw( NAVIGATION *navigation )
-{
-	if( !navigation->program )
-	{
-		navigation->program = new PROGRAM(navigation->name);
-		
-		navigation->program->vertex_shader = new SHADER(navigation->name, GL_VERTEX_SHADER);
-		
-		navigation->program->vertex_shader->compile("uniform highp mat4 MODELVIEWPROJECTIONMATRIX;"
-                                                    "attribute highp vec3 POSITION;"
-                                                    "void main( void ) {"
-                                                    "gl_Position = MODELVIEWPROJECTIONMATRIX * vec4( POSITION, 1.0 ); }",
-                                                    false);
-
-		navigation->program->fragment_shader = new SHADER(navigation->name, GL_FRAGMENT_SHADER);
-		
-		navigation->program->fragment_shader->compile("void main( void ) {"
-                                                      "gl_FragColor = vec4( 0.25, 0.5, 1.0, 0.65 ); }",
-                                                      false);
-
-		navigation->program->link(false);
-	}
-
-	char vertex_attribute = navigation->program->get_vertex_attrib_location(VA_Position_String);
-
-	glBindVertexArrayOES( 0 );
-
-	glBindBuffer( GL_ARRAY_BUFFER, 0 );
-	
-	glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 );
-	
-	glEnable( GL_BLEND );
-		
-	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-	
-	navigation->program->draw();
-
-	glUniformMatrix4fv(navigation->program->get_uniform_location((char *)"MODELVIEWPROJECTIONMATRIX"),
+    glUniformMatrix4fv(this->program->get_uniform_location((char *)"MODELVIEWPROJECTIONMATRIX"),
                        1,
                        GL_FALSE,
                        (float *)GFX_get_modelview_projection_matrix());
 
-	glEnableVertexAttribArray( vertex_attribute );
+    glEnableVertexAttribArray(vertex_attribute);
 
 
-	unsigned int j = 0;
+    for (int j=0; j != this->dtnavmesh->getMaxTiles(); ++j) {
+        dtMeshTile *_dtMeshTile = this->dtnavmesh->getTile(j);
 
-	while( j != navigation->dtnavmesh->getMaxTiles() )
-	{
-		dtMeshTile *_dtMeshTile = navigation->dtnavmesh->getTile( j );
-		
-		if( !_dtMeshTile->header )
-		{ continue; }
-		
-		unsigned int k = 0;
-		
-		while( k != _dtMeshTile->header->polyCount )
-		{
-			dtPoly *_dtPoly = &_dtMeshTile->polys[ k ];
-			
-			if( _dtPoly->type == DT_POLYTYPE_OFFMESH_CONNECTION )
-			{ continue; }
-			else
-			{
-				dtPolyDetail* pd = &_dtMeshTile->detailMeshes[ k ];
+        if (!_dtMeshTile->header) {
+            continue;
+        }
 
-				unsigned int l = 0;
-				
-				while( l != pd->triCount )
-				{
-					vec3 v[ 3 ];
-					
-					const unsigned char *t = &_dtMeshTile->detailTris[ ( pd->triBase + l ) << 2 ];
-					
-					int m = 2;
-					while( m != -1 )
-					{
-						if( t[ m ] < _dtPoly->vertCount )
-						{
-							memcpy( &v[ m ],
-									&_dtMeshTile->verts[ _dtPoly->verts[ t[ m ] ] * 3 ],
-									sizeof( vec3 ) );
-									
-							recast_to_vec3( &v[ m ] );							
-						}
-						else
-						{
-							memcpy( &v[ m ],
-									&_dtMeshTile->detailVerts[ ( pd->vertBase + t[ m ] - _dtPoly->vertCount ) * 3 ],
-									sizeof( vec3 ) );
-											
-							recast_to_vec3( &v[ m ] );
-						}
-					
-						--m;
-					}
+        for (int k=0; k != _dtMeshTile->header->polyCount; ++k) {
+            dtPoly *_dtPoly = &_dtMeshTile->polys[k];
+
+            if (_dtPoly->type == DT_POLYTYPE_OFFMESH_CONNECTION) {
+                continue;
+            } else {
+                dtPolyDetail* pd = &_dtMeshTile->detailMeshes[k];
+
+                for (int l=0; l != pd->triCount; ++l) {
+                    vec3 v[3];
+
+                    const unsigned char *t = &_dtMeshTile->detailTris[(pd->triBase + l) << 2];
+
+                    for (int m=2; m!=-1; --m) {
+                        if (t[m] < _dtPoly->vertCount) {
+                            memcpy(&v[m],
+                                   &_dtMeshTile->verts[_dtPoly->verts[t[m]] * 3],
+                                   sizeof(vec3));
+                        } else {
+                            memcpy(&v[m],
+                                   &_dtMeshTile->detailVerts[(pd->vertBase + t[m] - _dtPoly->vertCount) * 3],
+                                   sizeof(vec3));
+                        }
+
+                        recast_to_vec3(&v[m]);
+                    }
 
 
-					glVertexAttribPointer( 0, 3, GL_FLOAT, GL_FALSE, 0, ( float * )v );
-					
-					glDrawArrays( GL_TRIANGLES, 0, 3 );
-				
-					++l;
-				}
-			}
-		
-			++k;
-		}
-
-		++j;
-	}
-	
-	glDisable( GL_BLEND );	
+                    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (float *)v);
+                    
+                    glDrawArrays(GL_TRIANGLES, 0, 3);
+                }
+            }
+        }
+    }
+    
+    glDisable(GL_BLEND);	
 }

@@ -27,7 +27,9 @@ as being the original software.
 /*
  * Source code modified by Chris Larsen to make the following data types into
  * proper C++ classes:
+ * - FONT
  * - MEMORY
+ * - NAVIGATION
  * - OBJ
  * - OBJMATERIAL
  * - OBJMESH
@@ -228,7 +230,7 @@ void templateAppInit(int width, int height) {
         /* If the current mesh is the maze... */
         if (strstr(obj->objmesh[i].name, "maze")) {
             /* Initialize the NAVIGATION structure. */
-            navigation = NAVIGATION_init((char *)"maze");
+            navigation = new NAVIGATION((char *)"maze");
             /* Set up the height of the player, which is basically the same
              * as the Z dimension of the player.
              */
@@ -246,7 +248,7 @@ void templateAppInit(int width, int height) {
              * triangles that can be used.  Always make sure that you call this
              * function before building or optimizing the mesh.
              */
-            if (NAVIGATION_build(navigation, obj, i)) {
+            if (navigation->build(&obj->objmesh[i])) {
                 console_print("Navigation generated.\n");
             } else {
                 console_print("Unable to create the navigation mesh.");
@@ -437,9 +439,8 @@ void templateAppDraw(void) {
                      * inside the navigationpathdata_player variable; othewise
                      * the function will return 0.
                      */
-                    if (NAVIGATION_get_path(navigation,
-                                            &navigationpath_player,
-                                            &navigationpathdata_player)) {
+                    if (navigation->get_path(&navigationpath_player,
+                                             &navigationpathdata_player)) {
                         /* Loop while you've got some way points.  Please note
                          * that by default, the function will assign the number
                          * of path_point_count to be the way points returned by
@@ -495,7 +496,7 @@ void templateAppDraw(void) {
         GFX_pop_matrix();
     }
     
-    NAVIGATION_draw(navigation);
+    navigation->draw();
     
     dynamicsworld->stepSimulation(1.0f / 60.0f);
 }
@@ -522,7 +523,7 @@ void templateAppToucheMoved(float x, float y, unsigned int tap_count)
 
 
 void templateAppExit(void) {
-    NAVIGATION_free(navigation);
+    delete navigation;
 
     free_physic_world();
 

@@ -27,7 +27,9 @@ as being the original software.
 /*
  * Source code modified by Chris Larsen to make the following data types into
  * proper C++ classes:
+ * - FONT
  * - MEMORY
+ * - NAVIGATION
  * - OBJ
  * - OBJMATERIAL
  * - OBJMESH
@@ -420,29 +422,27 @@ void load_level(void)
         objmaterial->build(NULL);
     }
 
-    font_small = FONT_init((char *)"foo.ttf");
+    font_small = new FONT((char *)"foo.ttf");
 
-    FONT_load(font_small,
-              font_small->name,
-              true,
-              24.0f,
-              512,
-              512,
-              32,
-              96);
+    font_small->load(font_small->name,
+                     true,
+                     24.0f,
+                     512,
+                     512,
+                     32,
+                     96);
 
 
-    font_big = FONT_init((char *)"foo.ttf");
+    font_big = new FONT((char *)"foo.ttf");
 
-    FONT_load(font_big,
-              font_big->name,
-              true,
-              48.0f,
-              512,
-              512,
-              32,
-              96);
-    
+    font_big->load(font_big->name,
+                   true,
+                   48.0f,
+                   512,
+                   512,
+                   32,
+                   96);
+
     /* Declare a memory structure that you will use (and reuse) to load
      * each sound buffer.
      */
@@ -598,10 +598,12 @@ void free_level(void)
 
     THREAD_pause(thread);
     
-    font_small = FONT_free(font_small);
-    
-    font_big = FONT_free(font_big);
-    
+    delete font_small;
+    font_small = NULL;
+
+    delete font_big;
+    font_big = NULL;
+
     free_physic_world();
     
     delete obj;
@@ -811,22 +813,20 @@ void templateAppDraw(void) {
     if (game_state) {
         sprintf(level_str, "Level Clear!");
 
-        FONT_print(font_big,
-                   viewport_matrix[3] * 0.5f - FONT_length(font_big, level_str) * 0.5f + 4.0f,
-                   viewport_matrix[2] - font_big->font_size * 1.5f - 4.0f,
-                   level_str,
-                   &font_color);
+        font_big->print(viewport_matrix[3] * 0.5f - font_big->length(level_str) * 0.5f + 4.0f,
+                        viewport_matrix[2] - font_big->font_size * 1.5f - 4.0f,
+                        level_str,
+                        &font_color);
 
         /* Yellow. */
         font_color.x = 1.0f;
         font_color.y = 1.0f;
         font_color.z = 0.0f;
 
-        FONT_print(font_big,
-                   viewport_matrix[3] * 0.5f - FONT_length(font_big, level_str) * 0.5f,
-                   viewport_matrix[2] - font_big->font_size * 1.5f,
-                   level_str,
-                   &font_color);
+        font_big->print(viewport_matrix[3] * 0.5f - font_big->length(level_str) * 0.5f,
+                        viewport_matrix[2] - font_big->font_size * 1.5f,
+                        level_str,
+                        &font_color);
     }
     
     font_color.x = 0.0f;
@@ -836,34 +836,30 @@ void templateAppDraw(void) {
     sprintf(gem_str, "Gem Points:%02d", gem_points);
     sprintf(time_str, "Game Time:%02.2f", game_time * 0.1f);
 
-    FONT_print(font_small,
-               viewport_matrix[3] - FONT_length(font_small, gem_str) - 6.0f,
-               (font_small->font_size * 0.5f),
-               gem_str,
-               &font_color);
+    font_small->print(viewport_matrix[3] - font_small->length(gem_str) - 6.0f,
+                      (font_small->font_size * 0.5f),
+                      gem_str,
+                      &font_color);
 
-    FONT_print(font_small,
-               8.0f,
-               (font_small->font_size * 0.5f),
-               time_str,
-               &font_color);
+    font_small->print(8.0f,
+                      (font_small->font_size * 0.5f),
+                      time_str,
+                      &font_color);
 
     font_color.x = 1.0f;
     font_color.y = 1.0f;
     font_color.z = 0.0f;
 
-    FONT_print(font_small,
-               viewport_matrix[3] - FONT_length(font_small, gem_str) - 8.0f,
-               (font_small->font_size * 0.5f),
-               gem_str,
-               &font_color);
+    font_small->print(viewport_matrix[3] - font_small->length(gem_str) - 8.0f,
+                      (font_small->font_size * 0.5f),
+                      gem_str,
+                      &font_color);
 
-    FONT_print(font_small,
-               6.0f,
-               (font_small->font_size * 0.5f),
-               time_str,
-               &font_color);
-    
+    font_small->print(6.0f,
+                      (font_small->font_size * 0.5f),
+                      time_str,
+                      &font_color);
+
     if (!game_state) game_time += SOUND_get_time(background_sound);
 }
 

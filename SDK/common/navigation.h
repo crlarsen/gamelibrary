@@ -20,19 +20,34 @@ as being the original software.
 3. This notice may not be removed or altered from any source distribution.
 
 */
+/*
+ * Source code modified by Chris Larsen to make the following data types into
+ * proper C++ classes:
+ * - FONT
+ * - MEMORY
+ * - NAVIGATION
+ * - OBJ
+ * - OBJMATERIAL
+ * - OBJMESH
+ * - OBJTRIANGLEINDEX
+ * - OBJTRIANGLELIST
+ * - OBJVERTEXDATA
+ * - PROGRAM
+ * - SHADER
+ * - TEXTURE
+ */
 
 #ifndef NAVIGATION_H
 #define NAVIGATION_H
 
-#define NAVIGATION_MAX_NODE			1024
+#define NAVIGATION_MAX_NODE         1024
 
-#define NAVIGATION_MAX_POLY			512
+#define NAVIGATION_MAX_POLY         512
 
-#define NAVIGATION_MAX_PATH_POLY	256
+#define NAVIGATION_MAX_PATH_POLY    256
 
 
-typedef struct
-{
+struct NAVIGATIONCONFIGURATION {
 	float cell_size;
 
 	float cell_height;
@@ -58,25 +73,32 @@ typedef struct
 	float detail_sample_dst;
 
 	float detail_sample_max_error;
+public:
+    NAVIGATIONCONFIGURATION() : cell_size(0.3f),  cell_height(0.2f),
+        agent_height(2.0f), agent_radius(0.8f), agent_max_climb(0.9f),
+        agent_max_slope(45.0f), region_min_size(50.0f),
+        region_merge_size(20.0f),  edge_max_len(12.0f),
+        edge_max_error(1.3f), vert_per_poly(6.0f),
+        detail_sample_dst(6.0f), detail_sample_max_error(1.0f) {}
 
-} NAVIGATIONCONFIGURATION;
+};
 
 
 typedef struct
 {
-	vec3			start_location;
+	vec3		start_location;
 	
-	vec3			end_location;
+	vec3		end_location;
 
 	dtQueryFilter	path_filter;
 	
-	dtPolyRef		start_reference;
+	dtPolyRef	start_reference;
 
-	dtPolyRef		end_reference;
+	dtPolyRef	end_reference;
 	
 	unsigned int	poly_count;
 	
-	dtPolyRef		poly_array[ NAVIGATION_MAX_POLY ];
+	dtPolyRef	poly_array[ NAVIGATION_MAX_POLY ];
 
 } NAVIGATIONPATH;
 
@@ -87,40 +109,31 @@ typedef struct
 
 	unsigned char	path_flags_array[ NAVIGATION_MAX_PATH_POLY ];
 	
-	vec3			path_point_array[ NAVIGATION_MAX_PATH_POLY ];
+	vec3		path_point_array[ NAVIGATION_MAX_PATH_POLY ];
 	
-	dtPolyRef		path_poly_array[ NAVIGATION_MAX_PATH_POLY ];
+	dtPolyRef	path_poly_array[ NAVIGATION_MAX_PATH_POLY ];
 
 } NAVIGATIONPATHDATA;
 
 
-typedef struct
-{
-	char					name[ MAX_CHAR ];
-	
-	NAVIGATIONCONFIGURATION navigationconfiguration;
+struct NAVIGATION {
+    char                    name[MAX_CHAR];
 
-	vec3					tolerance;
+    NAVIGATIONCONFIGURATION navigationconfiguration;
 
-	unsigned char			*triangle_flags;
+    vec3                    tolerance;
 
-	dtNavMesh				*dtnavmesh;
-	
-	PROGRAM					*program;	
+    unsigned char           *triangle_flags;
 
-} NAVIGATION;
-
-
-NAVIGATION *NAVIGATION_init( char *name );
-
-NAVIGATION *NAVIGATION_free( NAVIGATION *navigation );
-
-void NAVIGATION_set_default_configuration( NAVIGATION *navigation );
-
-unsigned char NAVIGATION_build( NAVIGATION *navigation, OBJ *obj, unsigned int mesh_index );
-
-unsigned char NAVIGATION_get_path( NAVIGATION *navigation, NAVIGATIONPATH *navigationpath, NAVIGATIONPATHDATA *navigationpathdata );
-
-void NAVIGATION_draw( NAVIGATION *navigation );
+    dtNavMesh               *dtnavmesh;
+    
+    PROGRAM                 *program;
+public:
+    NAVIGATION(char *name);
+    ~NAVIGATION();
+    bool build(OBJMESH *objmesh);
+    bool get_path(NAVIGATIONPATH *navigationpath, NAVIGATIONPATHDATA *navigationpathdata);
+    void draw();
+};
 
 #endif

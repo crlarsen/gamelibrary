@@ -27,7 +27,9 @@ as being the original software.
 /*
  * Source code modified by Chris Larsen to make the following data types into
  * proper C++ classes:
+ * - FONT
  * - MEMORY
+ * - NAVIGATION
  * - OBJ
  * - OBJMATERIAL
  * - OBJMESH
@@ -271,27 +273,25 @@ void templateAppInit(int width, int height) {
 
     next_level();
 
-    font_small = FONT_init((char *)"foo.ttf");
+    font_small = new FONT((char *)"foo.ttf");
 
-    FONT_load(font_small,
-              font_small->name,
-              true,
-              32.0f,
-              512,
-              512,
-              32,
-              96);
+    font_small->load(font_small->name,
+                     true,
+                     32.0f,
+                     512,
+                     512,
+                     32,
+                     96);
 
-    font_big = FONT_init((char *)"foo.ttf");
+    font_big = new FONT((char *)"foo.ttf");
 
-    FONT_load(font_big,
-              font_big->name,
-              true,
-              64.0f,
-              512,
-              512,
-              32,
-              96);	
+    font_big->load(font_big->name,
+                   true,
+                   64.0f,
+                   512,
+                   512,
+                   32,
+                   96);	
 }
 
 
@@ -548,13 +548,12 @@ void templateAppDraw(void) {
         color.z = 0.0f;
         color.w = 1.0f;
 
-        FONT_print(font_big,
-                   viewport_matrix[3] * 0.5f -
-                   FONT_length(font_big, str) * 0.5f,
-                   viewport_matrix[2] -
-                   font_big->font_size * 1.5f,
-                   str,
-                   &color);
+        font_big->print(viewport_matrix[3] * 0.5f -
+                        font_big->length(str) * 0.5f,
+                        viewport_matrix[2] -
+                        font_big->font_size * 1.5f,
+                        str,
+                        &color);
     }
 
 
@@ -566,11 +565,10 @@ void templateAppDraw(void) {
     color.z = 0.0f;
     color.w = 1.0f;
     
-    FONT_print(font_small,
-               5.0f,
-               viewport_matrix[2] - font_small->font_size,
-               str,
-               &color);
+    font_small->print(5.0f,
+                      viewport_matrix[2] - font_small->font_size,
+                      str,
+                      &color);
 }
 
 
@@ -595,9 +593,9 @@ void templateAppToucheBegan(float x, float y, unsigned int tap_count)
 
 
 void templateAppExit(void) {
-    FONT_free(font_small);
+    delete font_small;
 
-    FONT_free(font_big);
+    delete font_big;
 
     /* Stop and free the decompression thread. */
     THREAD_free(thread);

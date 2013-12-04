@@ -23,7 +23,9 @@ as being the original software.
 /*
  * Source code modified by Chris Larsen to make the following data types into
  * proper C++ classes:
+ * - FONT
  * - MEMORY
+ * - NAVIGATION
  * - OBJ
  * - OBJMATERIAL
  * - OBJMESH
@@ -40,37 +42,32 @@ as being the original software.
 #define FONT_H
 
 
-typedef struct
-{
-	char			name[ MAX_CHAR ];
-	
-	stbtt_bakedchar *character_data;
-	
-	float			font_size;
-	
-	int				texture_width;
-	
-	int				texture_height;
-	
-	int				first_character;
-	
-	int				count_character;
-	
-	PROGRAM			*program;
-	
-	unsigned int	tid;
+struct FONT {
+    char            name[MAX_CHAR];
 
-} FONT;
+    stbtt_bakedchar *character_data;
 
+    float           font_size;
 
-FONT *FONT_init( char *name );
+    int             texture_width;
 
-FONT *FONT_free( FONT *font );
+    int             texture_height;
 
-unsigned char FONT_load( FONT *font, char *filename, const bool relative_path, float font_size, unsigned int texture_width, unsigned int texture_height, int first_character, int count_character );
+    int             first_character;
 
-void FONT_print( FONT *font, float x, float y, char *text, vec4 *color );
+    int             count_character;
 
-float FONT_length( FONT *font, char *text );
+    PROGRAM         *program;
+    
+    unsigned int    tid;
+public:
+    FONT(char *name);
+    ~FONT();
+    bool load(char *filename, bool relative_path, float font_size,
+              unsigned int texture_width, unsigned int texture_height,
+              int first_character, int count_character);
+    void print(float x, float y, char *text, vec4 *color);
+    float length(char *text);
+};
 
 #endif

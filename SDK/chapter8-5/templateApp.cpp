@@ -27,7 +27,9 @@ as being the original software.
 /*
  * Source code modified by Chris Larsen to make the following data types into
  * proper C++ classes:
+ * - FONT
  * - MEMORY
+ * - NAVIGATION
  * - OBJ
  * - OBJMATERIAL
  * - OBJMESH
@@ -247,7 +249,7 @@ void load_game(void)
         /* If the current mesh is the maze... */
         if (strstr(obj->objmesh[i].name, "maze")) {
             /* Initialize the NAVIGATION structure. */
-            navigation = NAVIGATION_init((char *)"maze");
+            navigation = new NAVIGATION((char *)"maze");
             /* Set up the height of the player, which is basically the same
              * as the Z dimension of the player.
              */
@@ -265,7 +267,7 @@ void load_game(void)
              * triangles that can be used.  Always make sure that you call this
              * function before building or optimizing the mesh.
              */
-            if (NAVIGATION_build(navigation, obj, i)) {
+            if (navigation->build(&obj->objmesh[i])) {
                 console_print("Navigation generated.\n");
             } else {
                 console_print("Unable to create the navigation mesh.");
@@ -618,9 +620,8 @@ void templateAppDraw(void) {
                      * inside the navigationpathdata_player variable; othewise
                      * the function will return 0.
                      */
-                    if (NAVIGATION_get_path(navigation,
-                                            &navigationpath_player,
-                                            &navigationpathdata_player)) {
+                    if (navigation->get_path(&navigationpath_player,
+                                             &navigationpathdata_player)) {
                         player_next_point = 1;
 
                         /* Loop while you've got some way points.  Please note
@@ -681,9 +682,8 @@ void templateAppDraw(void) {
         navigationpath_enemy.end_location.z = player->location.z;
 
         /* Send the query to the Detour. */
-        NAVIGATION_get_path(navigation,
-                            &navigationpath_enemy,
-                            &navigationpathdata_enemy);
+        navigation->get_path(&navigationpath_enemy,
+                             &navigationpathdata_enemy);
 
         /* Specify that the next way point the enemy should follow is the
          * first one inside the way points array.
@@ -740,7 +740,7 @@ void templateAppDraw(void) {
         GFX_pop_matrix();
     }
 
-    NAVIGATION_draw(navigation);
+    navigation->draw();
 
     if (!gameState) {
         dynamicsworld->stepSimulation(1.0f / 60.0f);
@@ -772,37 +772,36 @@ void templateAppDraw(void) {
              * so you can use the font name to load the font from disk on
              * the next line.
              */
-            font = FONT_init((char *)"foo.ttf");
-            FONT_load(font,
-                      font->name,
-                      true,
-                      64.0f,
-                      512,
-                      512,
-                      32,
-                      96);
+            font = new FONT((char *)"foo.ttf");
+            font->load(font->name,
+                       true,
+                       64.0f,
+                       512,
+                       512,
+                       32,
+                       96);
         }
 
         /* Pre-calculate the middle position of the screen on the X axis
          * based on the current viewport matrix.  In addition, use the
-         * FONT_length function to get the length in pixels of the text
+         * FONT::length function to get the length in pixels of the text
          * you are about to draw in order to be able to center it onscreen.
          */
-        float posx = (viewport_matrix[3] * 0.5f) - (FONT_length(font, msg) * 0.5f),
-        posy = viewport_matrix[2] - font->font_size;
+        float   posx = (viewport_matrix[3] * 0.5f) - (font->length(msg) * 0.5f),
+                posy = viewport_matrix[2] - font->font_size;
 
         /* The font is now ready to be used for printing text onscreen.
          * First draw the "Game Over" text in black, giving it a little
          * offset of 4 pixels on the X and Y axis.
          */
-        FONT_print(font, posx+4.0f, posy-4.0f, msg, &color);
+        font->print(posx+4.0f, posy-4.0f, msg, &color);
         /* Change the color to green, and draw the "Game Over" text again,
          * right on top of the black text, but this time without an offset.
          * This will make the text onscreen look like it has a shadow under
          * it.
          */
         color.y = 1.0f;
-        FONT_print(font, posx, posy, msg, &color);
+        font->print(posx, posy, msg, &color);
     }
 }
 
@@ -834,7 +833,7 @@ void templateAppToucheMoved(float x, float y, unsigned int tap_count)
 
 void templateAppExit(void) {
     if (font) {
-        FONT_free(font);
+        delete font;
         font = NULL;
     }
 
@@ -843,7 +842,7 @@ void templateAppExit(void) {
         path_point = NULL;
     }
 
-    NAVIGATION_free(navigation);
+    delete navigation;
 
     free_physic_world();
 
