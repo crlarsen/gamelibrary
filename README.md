@@ -17,6 +17,8 @@ authors for the various included works.
 History
 =======
 
+Dec 4, 2013 - Make NAVIGATION and FONT into Classes.
+
 Dec 3, 2013 - Remove matrix inversion from Model-View matrix calculation.
 
 Nov 29, 2013 - Clean up utility functions, make MEMORY a class; add MEMORY tag.
