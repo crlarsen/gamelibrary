@@ -41,46 +41,50 @@ as being the original software.
 
 #include "gfx.h"
 
+// Extract code common to the constructors SOUNDBUFFER() and
+// SOUNDBUFFERSTREAM().
+void SOUNDBUFFER::init(const char *name, MEMORY *memory)
+{
+    assert(name==NULL || strlen(name)<sizeof(this->name));
+    if (name) {
+        strcpy(this->name, name);
+    } else {
+        memset(this->name, 0, sizeof(this->name));
+    }
+
+    this->file = (OggVorbis_File *) calloc(1, sizeof(OggVorbis_File));
+
+    memset(bid, 0, sizeof(bid));
+
+    ov_open_callbacks(memory,
+                      this->file,
+                      NULL,
+                      0,
+                      audio.callbacks);
+
+    this->info = ov_info(this->file, -1);
+}
 
 SOUNDBUFFER::SOUNDBUFFER(const char *name, MEMORY *memory) :
-    file(NULL), info(NULL), memory(NULL)
+    file(NULL), memory(NULL)
 {
     char ext[MAX_CHAR] = {""};
 
     get_file_extension(memory->filename, ext, true);
 
     if (!strcmp(ext, "OGG")) {
-        memset(bid, 0, sizeof(bid));
-
-        unsigned int size;
-
-        assert(name==NULL || strlen(name)<sizeof(this->name));
-        if (name) {
-            strcpy(this->name, name);
-        } else {
-            memset(this->name, 0, sizeof(this->name));
-        }
-
-        this->file = (OggVorbis_File *) calloc(1, sizeof(OggVorbis_File));
-
-        ov_open_callbacks(memory,
-                          this->file,
-                          NULL,
-                          0,
-                          audio.callbacks);
-
-        this->info = ov_info(this->file, -1);
+        this->init(name, memory);
 
         // Always NULL with LLVM GCC? compiler bug?
         if (this->info) {
-            size = ((unsigned int)ov_pcm_total(this->file, -1) *
+            unsigned int size = ((unsigned int)ov_pcm_total(this->file, -1) *
                     this->info->channels << 1);
 
             int count,
-            bit;
+                bit;
 
-            char *data  = (char *) malloc(size),
-            *start = data;
+            char    *data  = (char *) malloc(size),
+                    *start = data;
 
             while ((count = ov_read(this->file,
                                     start,
@@ -120,30 +124,14 @@ SOUNDBUFFERSTREAM::SOUNDBUFFERSTREAM(const char *name, MEMORY *memory) : SOUNDBU
     get_file_extension(memory->filename, ext, true);
 
     if (!strcmp(ext, "OGG")) {
-        memset(bid, 0, sizeof(bid));
-
-        unsigned int i = 0;
-
-        strcpy(this->name, name);
+        this->init(name, memory);
 
         this->memory = memory;
 
-        this->file = (OggVorbis_File *) calloc(1, sizeof(OggVorbis_File));
-
-        ov_open_callbacks(memory,
-                          this->file,
-                          NULL,
-                          0,
-                          audio.callbacks);
-
-        this->info = ov_info(this->file, -1);
-
         alGenBuffers(MAX_BUFFER, &this->bid[0]);
 
-        while (i != MAX_BUFFER) {
+        for (int i=0; i!=MAX_BUFFER; ++i)
             this->decompress_chunk(i);
-            ++i;
-        }
     }
 }
 

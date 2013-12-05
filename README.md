@@ -17,6 +17,8 @@ authors for the various included works.
 History
 =======
 
+Dec 4, 2013 - Make SOUND and THREAD into Classes.
+
 Dec 4, 2013 - Make NAVIGATION and FONT into Classes.
 
 Dec 3, 2013 - Remove matrix inversion from Model-View matrix calculation.

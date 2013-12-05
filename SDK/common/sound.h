@@ -58,9 +58,8 @@ struct SOUNDBUFFER {
 
     unsigned int	bid[MAX_BUFFER];
 protected:
-    SOUNDBUFFER() {
-        memset(this, 0, sizeof(SOUNDBUFFER));
-    }
+    SOUNDBUFFER() {}
+    void init(const char *name, MEMORY *memory);
 public:
     // When "stream" is false, the constructor replaces the old
     // SOUNDBUFFER_load()
@@ -77,13 +76,13 @@ public:
 };
 
 struct SOUND {
-	char			name[ MAX_CHAR ];
-	
-	unsigned int	sid;
+    char		name[ MAX_CHAR ];
 
-	int				loop;
+    unsigned int	sid;
 
-	SOUNDBUFFER		*soundbuffer;
+    int			loop;
+
+    SOUNDBUFFER		*soundbuffer;
 public:
     SOUND(char *name, SOUNDBUFFER *soundbuffer);
     ~SOUND();
