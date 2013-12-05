@@ -17,6 +17,8 @@ authors for the various included works.
 History
 =======
 
+Dec 5, 2013 - Change the MD5 module into a C++ class.
+
 Dec 5, 2013 - Implement multiple lamp types using polymorphism.
 
 Dec 4, 2013 - Make SOUND and THREAD into Classes.
