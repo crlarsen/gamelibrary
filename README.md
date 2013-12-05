@@ -17,6 +17,8 @@ authors for the various included works.
 History
 =======
 
+Dec 5, 2013 - Implement multiple lamp types using polymorphism.
+
 Dec 4, 2013 - Make SOUND and THREAD into Classes.
 
 Dec 4, 2013 - Make NAVIGATION and FONT into Classes.
