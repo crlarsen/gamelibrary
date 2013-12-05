@@ -34,6 +34,9 @@ as being the original software.
  * - OBJVERTEXDATA
  * - PROGRAM
  * - SHADER
+ * - SOUND
+ * - TEXTURE
+ * - THREAD
  */
 
 #ifndef GFX_H

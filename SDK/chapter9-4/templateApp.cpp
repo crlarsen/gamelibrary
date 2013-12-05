@@ -38,7 +38,9 @@ as being the original software.
  * - OBJVERTEXDATA
  * - PROGRAM
  * - SHADER
+ * - SOUND
  * - TEXTURE
+ * - THREAD
  */
 
 #include "templateApp.h"
@@ -326,13 +328,12 @@ bool contact_added_callback(btManifoldPoint &btmanifoldpoint,
             index = 3;
         }
 
-        SOUND_set_location(gems_sound[index],
-                           &objmesh->location,
-                           objmesh->radius * gem_factor);
+        gems_sound[index]->set_location(&objmesh->location,
+                                        objmesh->radius * gem_factor);
 
-        SOUND_play(gems_sound[index], 0);
+        gems_sound[index]->play(0);
 
-        objmesh->visible = 0;
+        objmesh->visible = false;
 
         delete objmesh->btrigidbody->getCollisionShape();
 
@@ -353,7 +354,7 @@ bool contact_added_callback(btManifoldPoint &btmanifoldpoint,
 
 void decompress_stream(void *ptr)
 {
-    SOUND_update_queue(background_sound);
+    background_sound->update_queue();
 }
 
 
@@ -382,7 +383,7 @@ void load_level(void)
     level_clear->btrigidbody->setCollisionFlags(level_clear->btrigidbody->getCollisionFlags()  |
                                                 btCollisionObject::CF_CUSTOM_MATERIAL_CALLBACK |
                                                 btCollisionObject::CF_NO_CONTACT_RESPONSE);
-    level_clear->visible = 0;
+    level_clear->visible = false;
 
     for (auto objmesh=obj->objmesh.begin();
          objmesh!=obj->objmesh.end(); ++objmesh) {
@@ -476,18 +477,18 @@ void load_level(void)
         /* For the current gem buffer index, create a sound buffer using the
          * contents of the memory structure that you have loaded.
          */
-        gems_soundbuffer[i] = SOUNDBUFFER_load((char *)"gem", memory);
+        gems_soundbuffer[i] = new SOUNDBUFFER((char *)"gem", memory);
 
         delete memory;
         /* Create a new sound source for the current index and link the
          * current sound buffer.
          */
-        gems_sound[i] =  SOUND_add((char *)"gem", gems_soundbuffer[i]);
+        gems_sound[i] =  new SOUND((char *)"gem", gems_soundbuffer[i]);
         /* Set the volume for the source but do not start playing it yet.
          * You will handle the playback code inside the contact_added_callback
          * only when the player collides with a gem.
          */
-        SOUND_set_volume(gems_sound[i], 1.0f);
+        gems_sound[i]->set_volume(1.0f);
     }
     
     
@@ -495,73 +496,69 @@ void load_level(void)
 
     memory = new MEMORY((char *)"water.ogg", true);
 
-    water_soundbuffer =
-    SOUNDBUFFER_load((char *)"water", memory);
+    water_soundbuffer = new SOUNDBUFFER((char *)"water", memory);
 
     delete memory;
 
-    water_sound = SOUND_add((char *)"water", water_soundbuffer);
+    water_sound = new SOUND((char *)"water", water_soundbuffer);
 
     objmesh = obj->get_mesh("water", false);
 
-    SOUND_set_location(water_sound,
-                       &objmesh->location,
-                       objmesh->radius);
+    water_sound->set_location(&objmesh->location,
+                              objmesh->radius);
 
-    SOUND_set_volume(water_sound, 0.5f);
+    water_sound->set_volume(0.5f);
 
-    SOUND_play(water_sound, 1);
+    water_sound->play(1);
 
 
     memory = new MEMORY((char *)"lava.ogg", true);
 
-    lava_soundbuffer = SOUNDBUFFER_load((char *)"lava", memory);
+    lava_soundbuffer = new SOUNDBUFFER((char *)"lava", memory);
 
     delete memory;
 
-    lava_sound = SOUND_add((char *)"lava", lava_soundbuffer);
+    lava_sound = new SOUND((char *)"lava", lava_soundbuffer);
 
     objmesh = obj->get_mesh("lava", false);
 
-    SOUND_set_location(lava_sound,
-                       &objmesh->location,
-                       objmesh->radius);
+    lava_sound->set_location(&objmesh->location,
+                             objmesh->radius);
 
-    SOUND_set_volume(lava_sound, 0.5f);
+    lava_sound->set_volume(0.5f);
 
-    SOUND_play(lava_sound, 1);
+    lava_sound->play(1);
 
 
     memory = new MEMORY((char *)"toxic.ogg", true);
 
-    toxic_soundbuffer = SOUNDBUFFER_load((char *)"toxic", memory);
+    toxic_soundbuffer = new SOUNDBUFFER((char *)"toxic", memory);
 
     delete memory;
 
-    toxic_sound = SOUND_add((char *)"toxic", toxic_soundbuffer);
+    toxic_sound = new SOUND((char *)"toxic", toxic_soundbuffer);
 
     objmesh = obj->get_mesh("toxic", false);
     
-    SOUND_set_location(toxic_sound,
-                       &objmesh->location,
-                       objmesh->radius);
-    
-    SOUND_set_volume(toxic_sound, 0.5f);
+    toxic_sound->set_location(&objmesh->location,
+                              objmesh->radius);
 
-    SOUND_play(toxic_sound, 1);
+    toxic_sound->set_volume(0.5f);
+
+    toxic_sound->play(1);
 
 
     memory = new MEMORY((char *)"background.ogg", true);
 
-    background_soundbuffer = SOUNDBUFFER_load_stream((char *)"background", memory);
+    background_soundbuffer = new SOUNDBUFFERSTREAM((char *)"background", memory);
 
-    background_sound = SOUND_add((char *)"background", background_soundbuffer);
+    background_sound = new SOUND((char *)"background", background_soundbuffer);
 
-    SOUND_set_volume(background_sound, 0.5f);
+    background_sound->set_volume(0.5f);
 
-    SOUND_play(background_sound, 1);
-    
-    THREAD_play(thread);
+    background_sound->play(1);
+
+    thread->play();
 }
 
 
@@ -571,32 +568,42 @@ void free_level(void)
     game_state = 0;
     game_time  = 0.0f;
 
-    THREAD_pause(thread);
+    thread->pause();
 
-    background_sound = SOUND_free(background_sound);
+    delete background_sound;
+    background_sound = NULL;
 
     delete background_soundbuffer->memory;
     background_soundbuffer->memory = NULL;
 
-    background_soundbuffer = SOUNDBUFFER_free(background_soundbuffer);
+    delete background_soundbuffer;
+    background_soundbuffer = NULL;
 
     for (int i=0; i!=4; ++i) {
-        gems_sound[i] = SOUND_free(gems_sound[i]);
-        gems_soundbuffer[i] = SOUNDBUFFER_free(gems_soundbuffer[i]);
+        delete gems_sound[i];
+        gems_sound[i] = NULL;
+        delete gems_soundbuffer[i];
+        gems_soundbuffer[i] = NULL;
     }
 
-    water_sound = SOUND_free(water_sound);
-    water_soundbuffer = SOUNDBUFFER_free(water_soundbuffer);
+    delete water_sound;
+    water_sound = NULL;
+    delete water_soundbuffer;
+    water_soundbuffer = NULL;
 
-    lava_sound = SOUND_free(lava_sound);
-    lava_soundbuffer = SOUNDBUFFER_free(lava_soundbuffer);
+    delete lava_sound;
+    lava_sound = NULL;
+    delete lava_soundbuffer;
+    lava_soundbuffer = NULL;
 
-    toxic_sound = SOUND_free(toxic_sound);
-    toxic_soundbuffer = SOUNDBUFFER_free(toxic_soundbuffer);
+    delete toxic_sound;
+    toxic_sound = NULL;
+    delete toxic_soundbuffer;
+    toxic_soundbuffer = NULL;
 
     player = NULL;
 
-    THREAD_pause(thread);
+    thread->pause();
     
     delete font_small;
     font_small = NULL;
@@ -618,7 +625,7 @@ void templateAppInit(int width, int height) {
 
     AUDIO_start();
 
-    thread = THREAD_create(decompress_stream, NULL, THREAD_PRIORITY_NORMAL, 1);
+    thread = new THREAD(decompress_stream, NULL, THREAD_PRIORITY_NORMAL, 1);
 
     glViewport(0.0f, 0.0f, width, height);
 
@@ -860,7 +867,7 @@ void templateAppDraw(void) {
                       time_str,
                       &font_color);
 
-    if (!game_state) game_time += SOUND_get_time(background_sound);
+    if (!game_state) game_time += background_sound->get_time();
 }
 
 
@@ -892,7 +899,8 @@ void templateAppExit(void) {
 
     free_level();
 
-    thread = THREAD_free(thread);
+    delete thread;
+    thread = NULL;
 
     AUDIO_stop();
 }

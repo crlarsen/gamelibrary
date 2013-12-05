@@ -34,7 +34,9 @@
  * - OBJVERTEXDATA
  * - PROGRAM
  * - SHADER
+ * - SOUND
  * - TEXTURE
+ * - THREAD
  */
 
 #include "gfx.h"

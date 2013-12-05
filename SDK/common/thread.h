@@ -20,6 +20,24 @@ as being the original software.
 3. This notice may not be removed or altered from any source distribution.
 
 */
+/*
+ * Source code modified by Chris Larsen to make the following data types into
+ * proper C++ classes:
+ * - FONT
+ * - MEMORY
+ * - NAVIGATION
+ * - OBJ
+ * - OBJMATERIAL
+ * - OBJMESH
+ * - OBJTRIANGLEINDEX
+ * - OBJTRIANGLELIST
+ * - OBJVERTEXDATA
+ * - PROGRAM
+ * - SHADER
+ * - SOUND
+ * - TEXTURE
+ * - THREAD
+ */
 
 #ifndef THREAD_H
 #define THREAD_H
@@ -27,46 +45,38 @@ as being the original software.
 
 enum
 {
-	THREAD_PRIORITY_VERY_LOW  = 15,
-	THREAD_PRIORITY_LOW       = 23,
-	THREAD_PRIORITY_NORMAL    = 31,
-	THREAD_PRIORITY_HIGH 	  = 39,
-	THREAD_PRIORITY_VERY_HIGH = 47
+    THREAD_PRIORITY_VERY_LOW  = 15,
+    THREAD_PRIORITY_LOW       = 23,
+    THREAD_PRIORITY_NORMAL    = 31,
+    THREAD_PRIORITY_HIGH      = 39,
+    THREAD_PRIORITY_VERY_HIGH = 47
 };
 
 
-typedef void( THREADCALLBACK( void * ) );
+typedef void(THREADCALLBACK(void *));
 
 
-typedef struct
-{
-	unsigned char	state;
+struct THREAD {
+    unsigned char	state;
 
-	int				priority;
+    int			priority;
 
-	unsigned int	timeout;
-		
-	pthread_t		thread;
-	
-	unsigned int	thread_hdl;
-	
-	THREADCALLBACK	*threadcallback;
-	
-	void			*userdata;
+    unsigned int	timeout;
 
-} THREAD;
+    pthread_t		thread;
 
+    unsigned int	thread_hdl;
 
-THREAD *THREAD_create( THREADCALLBACK *threadcallback, void	*userdata, int priority, unsigned int timeout );
-
-THREAD *THREAD_free( THREAD *thread );
-
-void THREAD_set_callback( THREAD *thread, THREADCALLBACK *threadcallback );
-
-void THREAD_play( THREAD *thread );
-
-void THREAD_pause( THREAD *thread );
-
-void THREAD_stop( THREAD *thread );
+    THREADCALLBACK	*threadcallback;
+    
+    void		*userdata;
+public:
+    THREAD(THREADCALLBACK *threadcallback, void	*userdata, int priority, unsigned int timeout);
+    ~THREAD();
+    void set_callback(THREADCALLBACK *threadcallback);
+    void play();
+    void pause();
+    void stop();
+};
 
 #endif

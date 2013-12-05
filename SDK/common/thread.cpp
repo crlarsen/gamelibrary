@@ -20,87 +20,98 @@ as being the original software.
 3. This notice may not be removed or altered from any source distribution.
 
 */
+/*
+ * Source code modified by Chris Larsen to make the following data types into
+ * proper C++ classes:
+ * - FONT
+ * - MEMORY
+ * - NAVIGATION
+ * - OBJ
+ * - OBJMATERIAL
+ * - OBJMESH
+ * - OBJTRIANGLEINDEX
+ * - OBJTRIANGLELIST
+ * - OBJVERTEXDATA
+ * - PROGRAM
+ * - SHADER
+ * - SOUND
+ * - TEXTURE
+ * - THREAD
+ */
 
 #include "gfx.h"
 
 
-void *THREAD_run( void *ptr )
+static void *THREAD_run(void *ptr)
 {
-	THREAD *thread = ( THREAD * )ptr;
+    THREAD *thread = (THREAD *)ptr;
 
-	struct sched_param param;
+    struct sched_param param;
 
-	pthread_setschedparam( thread->thread, SCHED_RR, &param );
+    pthread_setschedparam(thread->thread, SCHED_RR, &param);
 
-	param.sched_priority = thread->priority;
+    param.sched_priority = thread->priority;
 
-	while( thread->state )
-	{
-		if( thread->state == PLAY && thread->threadcallback )
-		{ thread->threadcallback( thread ); }
-		
-		usleep( thread->timeout * 1000 );
-	}
-	
-	pthread_exit( NULL );
-	
-	return NULL;
+    while (thread->state) {
+        if (thread->state == PLAY && thread->threadcallback)
+            thread->threadcallback(thread);
+
+        usleep(thread->timeout * 1000);
+    }
+    
+    pthread_exit(NULL);
+    
+    return NULL;
 }
 
 
-THREAD *THREAD_create( THREADCALLBACK *threadcallback,
-					   void			  *userdata,
-					   int			   priority,
-					   unsigned int	   timeout )
+THREAD::THREAD(THREADCALLBACK   *threadcallback,
+               void		*userdata,
+               int		priority,
+               unsigned int	timeout) :
+    state(STOP), priority(priority), timeout(timeout),
+    threadcallback(threadcallback), userdata(userdata)
 {
-	THREAD *thread = ( THREAD * ) calloc( 1, sizeof( THREAD ) );
+    this->pause();
 
-	thread->threadcallback = threadcallback;
-	
-	thread->priority = priority;
-	thread->userdata = userdata;
-	thread->timeout  = timeout;
-
-	THREAD_pause( thread );
-
-	thread->thread_hdl = pthread_create( &thread->thread,
-										 NULL,
-										 THREAD_run,
-										 ( void * )thread );
-	return thread;
+    this->thread_hdl = pthread_create(&this->thread,
+                                      NULL,
+                                      THREAD_run,
+                                      (void *)this);
 }
 
 
-THREAD *THREAD_free( THREAD *thread )
+THREAD::~THREAD()
 {
-	THREAD_stop( thread );
-	
-	pthread_join( thread->thread, NULL );
-	
-	free( thread );
-	return NULL;
+    this->stop();
+
+    pthread_join(this->thread, NULL);
 }
 
 
-void THREAD_set_callback( THREAD *thread, THREADCALLBACK *threadcallback )
-{ thread->threadcallback = threadcallback; }
-
-
-void THREAD_play( THREAD *thread )
-{ thread->state = PLAY; }
-
-
-void THREAD_pause( THREAD *thread )
+void THREAD::set_callback(THREADCALLBACK *threadcallback)
 {
-	thread->state = PAUSE;
-	
-	usleep( thread->timeout * 1000 );
+    this->threadcallback = threadcallback;
 }
 
 
-void THREAD_stop( THREAD *thread )
+void THREAD::play()
 {
-	thread->state = STOP;
+    this->state = PLAY;
+}
 
-	usleep( thread->timeout * 1000 );
+
+void THREAD::pause()
+{
+    this->state = PAUSE;
+
+    usleep(this->timeout * 1000);
+}
+
+
+void THREAD::stop()
+{
+    this->state = STOP;
+
+    usleep(this->timeout * 1000);
 }

@@ -34,7 +34,9 @@ as being the original software.
  * - OBJVERTEXDATA
  * - PROGRAM
  * - SHADER
+ * - SOUND
  * - TEXTURE
+ * - THREAD
  */
 
 #include "gfx.h"
@@ -100,7 +102,7 @@ void get_file_name( char *filepath, char *name )
 }
 
 
-void get_file_extension( char *filepath, char *ext, const bool uppercase )
+void get_file_extension(char *filepath, char *ext, const bool uppercase)
 {
     char *t = NULL;
 

@@ -20,32 +20,63 @@ as being the original software.
 3. This notice may not be removed or altered from any source distribution.
 
 */
+/*
+ * Source code modified by Chris Larsen to make the following data types into
+ * proper C++ classes:
+ * - FONT
+ * - MEMORY
+ * - NAVIGATION
+ * - OBJ
+ * - OBJMATERIAL
+ * - OBJMESH
+ * - OBJTRIANGLEINDEX
+ * - OBJTRIANGLELIST
+ * - OBJVERTEXDATA
+ * - PROGRAM
+ * - SHADER
+ * - SOUND
+ * - TEXTURE
+ * - THREAD
+ */
 
 #ifndef SOUND_H
 #define SOUND_H
 
 #define MAX_BUFFER 4
 
-#define MAX_CHUNK_SIZE 1024 << 3
+#define MAX_CHUNK_SIZE  (1024 << 3)
 
 
-typedef struct
-{
-	char			name[ MAX_CHAR ];
-	
-	OggVorbis_File	*file;
+struct SOUNDBUFFER {
+    char		name[MAX_CHAR];
 
-	vorbis_info		*info;
-	
-	MEMORY			*memory;
-	
-	unsigned int	bid[ MAX_BUFFER ];
+    OggVorbis_File	*file;
 
-} SOUNDBUFFER;
+    vorbis_info		*info;
 
+    MEMORY		*memory;
 
-typedef struct
-{
+    unsigned int	bid[MAX_BUFFER];
+protected:
+    SOUNDBUFFER() {
+        memset(this, 0, sizeof(SOUNDBUFFER));
+    }
+public:
+    // When "stream" is false, the constructor replaces the old
+    // SOUNDBUFFER_load()
+    // When "stream" is true, the constructor replaces the old
+    // SOUNDBUFFER_load_stream()
+    SOUNDBUFFER(const char *name, MEMORY *memory);
+    ~SOUNDBUFFER();
+    unsigned char decompress_chunk(unsigned int buffer_index);
+};
+
+struct SOUNDBUFFERSTREAM : SOUNDBUFFER {
+public:
+    SOUNDBUFFERSTREAM(const char *name, MEMORY *memory);
+};
+
+struct SOUND {
 	char			name[ MAX_CHAR ];
 	
 	unsigned int	sid;
@@ -53,42 +84,20 @@ typedef struct
 	int				loop;
 
 	SOUNDBUFFER		*soundbuffer;
-
-} SOUND;
-
-
-SOUNDBUFFER *SOUNDBUFFER_load( char *name, MEMORY *memory );
-
-SOUNDBUFFER *SOUNDBUFFER_load_stream( char *name, MEMORY *memory );
-
-unsigned char SOUNDBUFFER_decompress_chunk( SOUNDBUFFER *soundbuffer, unsigned int buffer_index );
-
-SOUNDBUFFER *SOUNDBUFFER_free( SOUNDBUFFER *soundbuffer );
-
-SOUND *SOUND_add( char *name, SOUNDBUFFER *soundbuffer );
-
-SOUND *SOUND_free( SOUND *sound );
-
-void SOUND_play( SOUND *sound, int loop );
-
-void SOUND_pause( SOUND *sound );
-
-void SOUND_stop( SOUND *sound );
-
-void SOUND_set_speed( SOUND *sound, float speed );
-
-void SOUND_set_volume( SOUND *sound, float volume );
-
-void SOUND_set_location( SOUND *sound, vec3 *location, float reference_distance );
-
-void SOUND_rewind( SOUND *sound );
-
-float SOUND_get_time( SOUND *sound );
-
-int SOUND_get_state( SOUND *sound );
-
-float SOUND_get_volume( SOUND *sound );
-
-void SOUND_update_queue( SOUND *sound );
+public:
+    SOUND(char *name, SOUNDBUFFER *soundbuffer);
+    ~SOUND();
+    void play(int loop);
+    void pause();
+    void stop();
+    void set_speed(float speed);
+    void set_volume(float volume);
+    void set_location(vec3 *location, float reference_distance);
+    void rewind();
+    float get_time();
+    int get_state();
+    float get_volume();
+    void update_queue();
+};
 
 #endif

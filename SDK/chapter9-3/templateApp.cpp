@@ -38,7 +38,9 @@ as being the original software.
  * - OBJVERTEXDATA
  * - PROGRAM
  * - SHADER
+ * - SOUND
  * - TEXTURE
+ * - THREAD
  */
 
 #include "templateApp.h"
@@ -121,7 +123,7 @@ void program_bind_attrib_location(void *ptr) {
 
 /* The thread function callback.  Note that the void *ptr parameter is the
  * userdata pointer thatmight have been set when you called the
- * THREAD_create function.  It is up to you to cast it back to its original
+ * new THREAD function.  It is up to you to cast it back to its original
  * type before being able to the variable.
  */
 void decompress_stream(void *ptr) {
@@ -130,7 +132,7 @@ void decompress_stream(void *ptr) {
      * and filled with fresh new data decompress directly from the OGG sound
      * buffer in memory.
      */
-    SOUND_update_queue(ambient);
+    ambient->update_queue();
 }
 
 void next_level(void) {
@@ -193,7 +195,7 @@ void templateAppInit(int width, int height) {
          * from disk to it.  Note that the OGG decompresiion is automatically
          * handled inside the SOUNDBUFFER_load function.
          */
-        soundbuffer[i] = SOUNDBUFFER_load(soundfile, memory);
+        soundbuffer[i] = new SOUNDBUFFER(soundfile, memory);
         /* Free the memory.  At this stage, the sound buffer has been sent
          * to the audio memory, so there is no need to keep the sound file
          * alive in local memory.  The buffer is ready to be used.
@@ -202,24 +204,24 @@ void templateAppInit(int width, int height) {
         /* Create a new sound source and link the sound buffer you just
          * created to it.
          */
-        soundsource[i] = SOUND_add(obj->objmesh[i].name, soundbuffer[i]);
+        soundsource[i] = new SOUND(obj->objmesh[i].name, soundbuffer[i]);
     }
 
     /* Next, load the sound to play if the user makes a mistake. */
     memory = new MEMORY((char *)"wrong.ogg", true);
-    wrongbuffer = SOUNDBUFFER_load((char *)"wrong", memory);
+    wrongbuffer = new SOUNDBUFFER((char *)"wrong", memory);
     delete memory;
-    wrong = SOUND_add((char *)"wrong", wrongbuffer);
+    wrong = new SOUND((char *)"wrong", wrongbuffer);
 
     memory = new MEMORY((char *)"lounge.ogg", true);
-    /* Create the sound buffer using the SOUNDBUFFER_load_stream API.  This
+    /* Create the sound buffer using the new SOUNDBUFFER_stream API.  This
      * function will initialize multiple sound buffer IDs internally and
      * will fill them with uncompressed chunks of the OGG stream.  The
      * function will also automatically queue them in sequence for
      * real-time playback.
      */
-    ambientbuffer = SOUNDBUFFER_load_stream((char *)"lounge", memory);
-    ambient = SOUND_add((char *)"name", ambientbuffer);
+    ambientbuffer = new SOUNDBUFFERSTREAM((char *)"lounge", memory);
+    ambient = new SOUND((char *)"name", ambientbuffer);
     /* The sound buffer has to be continuously streamed from memory, so
      * you will have to decompress small pieces of the OGG file and queue
      * these chunks.  To make sure that this operation will not affect
@@ -227,22 +229,22 @@ void templateAppInit(int width, int height) {
      * create a new thread that will be used strictly for decompression
      * and queuing.
      */
-    thread = THREAD_create(decompress_stream,       // The thread callback
-                                                    // function.
-                           NULL,    // Use data pointer used to pass
-                                    // whatever information you want to
-                                    // make to make available inside the
-                                    // new process created by the thread.
-                           THREAD_PRIORITY_NORMAL,
-                           1);  // Thread timeout, or sleep time if you prefer,
-                                // in milliseconds.  By setting this parameter,
-                                // you can control the update frequency of the
-                                // thread on top of its priority.
-    THREAD_play(thread);
+    thread = new THREAD(decompress_stream,  // The thread callback
+                                            // function.
+                        NULL,   // Use data pointer used to pass
+                                // whatever information you want to
+                                // make to make available inside the
+                                // new process created by the thread.
+                        THREAD_PRIORITY_NORMAL,
+                        1);     // Thread timeout, or sleep time if you prefer,
+    // in milliseconds.  By setting this parameter,
+    // you can control the update frequency of the
+    // thread on top of its priority.
+    thread->play();
 
-    SOUND_set_volume(ambient, 0.5f);
+    ambient->set_volume(0.5f);
     /* Play sound in a loop. */
-    SOUND_play(ambient, 1);
+    ambient->play(1);
     /* Contrary to what you did previously, do not free the sound buffer
      * from the local memory.  The buffer needs to be available for
      * real-time decompression.
@@ -333,11 +335,11 @@ void templateAppDraw(void) {
          * sound would be too hard for the player to remember.
          */
         if (get_milli_time() - start > 1000) {
-            if (SOUND_get_state(soundsource[level[cur_level_sound]]) != AL_PLAYING) {
+            if (soundsource[level[cur_level_sound]]->get_state() != AL_PLAYING) {
 
-                SOUND_set_volume(soundsource[level[cur_level_sound]], 1.0f);
+                soundsource[level[cur_level_sound]]->set_volume(1.0f);
 
-                SOUND_play(soundsource[level[cur_level_sound]], 0);
+                soundsource[level[cur_level_sound]]->play(0);
 
                 ++cur_level_sound;
             }
@@ -432,15 +434,15 @@ void templateAppDraw(void) {
             sscanf(obj->objmesh[ucolor.b].name, "%d", &sound_index);
 
             if (level[cur_player_sound] != sound_index) {
-                SOUND_set_volume(wrong, 1.0f);
+                wrong->set_volume(1.0f);
 
-                SOUND_play(wrong, 0);
+                wrong->play(0);
 
                 game_over = 1;
             } else {
-                SOUND_set_volume(soundsource[sound_index], 1.0f);
+                soundsource[sound_index]->set_volume(1.0f);
 
-                SOUND_play(soundsource[sound_index], 0);
+                soundsource[sound_index]->play(0);
 
                 ++cur_player_sound;
             }
@@ -478,7 +480,7 @@ void templateAppDraw(void) {
         sscanf(objmesh->name, "%d", &sound_index);
         /* Check the sound source is currently playing. */
         if (!strstr(objmesh->name, "curtain") &&
-            SOUND_get_state(soundsource[sound_index]) == AL_PLAYING) {
+            soundsource[sound_index]->get_state() == AL_PLAYING) {
             source_playing = 1;
             /* Set full brightness as the color to use for the piano key
              * that is about to be drawn onscreen (since you fragment
@@ -598,23 +600,23 @@ void templateAppExit(void) {
     delete font_big;
 
     /* Stop and free the decompression thread. */
-    THREAD_free(thread);
+    delete thread;
 
     /* Loop while until the maximum number of piano keys is reached. */
     for (int i=0; i!=MAX_PIANO_KEY; ++i) {
         /* Stop and free the sound sources for each piano key as well as
          * their associated buffer.
          */
-        SOUND_free(soundsource[i]);
-        SOUNDBUFFER_free(soundbuffer[i]);
+        delete soundsource[i];
+        delete soundbuffer[i];
     }
 
     /* Same as above but for "wrong" sound. */
-    SOUND_free(wrong);
-    SOUNDBUFFER_free(wrongbuffer);
+    delete wrong;
+    delete wrongbuffer;
 
     /* Free the ambient source. */
-    SOUND_free(ambient);
+    delete ambient;
 
     /* Now it is time to free the ambient buffer memory.  Since no more
      * streaming will take place, you can now freely dispose of it.  As
@@ -624,7 +626,7 @@ void templateAppExit(void) {
      */
     delete ambientbuffer->memory;
     /* Free the sound buffer structure for the ambient music. */
-    SOUNDBUFFER_free(ambientbuffer);
+    delete ambientbuffer;
     /* Stop OpenAL, and free the device and its associated context. */
     AUDIO_stop();
 
