@@ -20,145 +20,281 @@ as being the original software.
 3. This notice may not be removed or altered from any source distribution.
 
 */
+/*
+ * Source code modified by Chris Larsen to make the following data types into
+ * proper C++ classes:
+ * - FONT
+ * - LIGHT
+ * - MD5
+ * - MEMORY
+ * - NAVIGATION
+ * - OBJ
+ * - OBJMATERIAL
+ * - OBJMESH
+ * - OBJTRIANGLEINDEX
+ * - OBJTRIANGLELIST
+ * - OBJVERTEXDATA
+ * - PROGRAM
+ * - SHADER
+ * - SOUND
+ * - TEXTURE
+ * - THREAD
+ */
 
 
 #include "gfx.h"
 
-
-LIGHT *LIGHT_create_directional( char *name, vec4 *color, float rotx, float roty, float rotz )
+DirectionalLight::DirectionalLight(const char *name,
+                                   const vec4 &color,
+                                   const float rotx,
+                                   const float roty,
+                                   const float rotz) : LIGHT(name, color, /* type = */ LIGHT_DIRECTIONAL)
 {
+    /* Declare the up axis vector to be static, because it won't change. */
     vec3 up_axis = { 0.0f, 0.0f, 1.0f };
-	
-    LIGHT *light = ( LIGHT * ) calloc( 1, sizeof( LIGHT ) );
-
-    strcpy( light->name, name );
-
-    memcpy( &light->color, color, sizeof( vec4 ) );
-
-    light->type = 0;
-
-    create_direction_vector( &light->direction, &up_axis, rotx, roty, rotz );
-    
-    return light;
+    /* Use the following helper function (which can be found in utils.cpp)
+     * to rotate the up axis by the XYZ rotation angle received as parameters.
+     * I think it's a lot easier to deal with angles when it comes to direction
+     * vectors.
+     */
+    create_direction_vector(&this->direction, &up_axis, rotx, roty, rotz);
 }
 
+void DirectionalLight::push_to_shader(PROGRAM *program) {
+    this->LIGHT::push_to_shader(program);
 
-LIGHT *LIGHT_create_point( char *name, vec4 *color, vec3 *position )
+    /* A temp string to dynamically create the LIGHT property names. */
+    char tmp[MAX_CHAR] = {""};
+    /* Temp variable to hold the direction in eye space. */
+    vec3 direction;
+    /* Create the lamp direction property name. */
+    sprintf(tmp, "LIGHT_VS.direction");
+    /* Call the function that you created in the previous step to
+     * convert the current world space direction vector of the lamp
+     * to eye space.  Note that at this point, the current model view
+     * matrix stack is pushed because you are currently drawing the
+     * object.  In order to calculate the right direction vector of
+     * the lamp, what you are interested in is gaining access to the
+     * camera model view matrix.  To do this, all you have to do is
+     * request the previous model view matrix, because you push it
+     * once in the templateAppDraw function.
+     */
+    this->get_direction_in_eye_space(&gfx.modelview_matrix[gfx.modelview_matrix_index - 1],
+                                     &direction);
+
+    glUniform3fv(program->get_uniform_location(tmp),
+                 1,
+                 (float *)&direction);
+}
+
+PointLight::PointLight(const char *name, const vec4 &color, const vec3 &position) : LIGHT(name, color, LIGHT_POINT)
 {
-    LIGHT *light = ( LIGHT * ) calloc( 1, sizeof( LIGHT ) );
-
-    strcpy( light->name, name );
-
-    memcpy( &light->color, color, sizeof( vec4 ) );
-
-    memcpy( &light->position, position, sizeof( vec3 ) );
-    light->position.w = 1.0f;
-
-    light->type = 1;
-    
-    return light;
+    /* Assign the position received in parameter to the current lamp
+     * pointer.  In addition, make sure thatyou specify 1 as the W
+     * component of the position, because you are going to need to
+     * multiply it by the modelview matrix the same way as if you were
+     * dealing with a vertex position in eye space.
+     */
+    memcpy(&this->position, &position, sizeof(vec3));
+    this->position.w = 1.0f;
 }
 
-
-LIGHT *LIGHT_create_point_with_attenuation( char *name, vec4 *color, vec3 *position, float distance, float linear_attenuation, float quadratic_attenuation )
+PointLight::PointLight(const char *name, const vec4 &color, const vec3 &position, const unsigned char t) : LIGHT(name, color, t)
 {
-    LIGHT *light = LIGHT_create_point( name, color, position );
-
-    light->distance = distance * 2.0f;
-
-    light->linear_attenuation = linear_attenuation;
-
-    light->quadratic_attenuation = quadratic_attenuation;
-
-    light->type = 2;
-    
-    return light;
+    /* Assign the position received in parameter to the current lamp
+     * pointer.  In addition, make sure thatyou specify 1 as the W
+     * component of the position, because you are going to need to
+     * multiply it by the modelview matrix the same way as if you were
+     * dealing with a vertex position in eye space.
+     */
+    memcpy(&this->position, &position, sizeof(vec3));
+    this->position.w = 1.0f;
 }
 
+void PointLight::push_to_shader(PROGRAM *program) {
+    this->LIGHT::push_to_shader(program);
 
-LIGHT *LIGHT_create_point_sphere( char *name, vec4 *color, vec3 *position, float distance )
+    char tmp[MAX_CHAR] = {""};
+
+    vec4 position;
+
+    sprintf(tmp, "LIGHT_VS.position");
+
+    this->get_position_in_eye_space(&gfx.modelview_matrix[gfx.modelview_matrix_index - 1],
+                                    &position);
+
+    glUniform3fv(program->get_uniform_location(tmp),
+                 1,
+                 (float *)&position);
+}
+
+AttenuatedPointLight::AttenuatedPointLight(const char *name, const vec4 &color,
+                                         const vec3 &position, const float d,
+                                         const float la,
+                                         const float qa) : distance(d*2.0),
+                                         linear_attenuation(la),
+                                         quadratic_attenuation(qa),
+                                         PointLight(name, color, position, LIGHT_POINT_WITH_ATTENUATION)
 {
-    LIGHT *light = LIGHT_create_point( name, color, position );
-
-    light->distance = distance;
-
-    light->type = 3;
-    
-    return light;
 }
 
+void AttenuatedPointLight::push_to_shader(PROGRAM *program) {
+    this->LIGHT::push_to_shader(program);
 
-LIGHT *LIGHT_create_spot( char *name, vec4 *color, vec3 *position, float rotx, float roty, float rotz, float fov, float spot_blend ) {
-	
+    char tmp[MAX_CHAR] = {""};
+
+    vec4 position;
+
+    sprintf(tmp, "LIGHT_VS.position");
+
+    this->get_position_in_eye_space(&gfx.modelview_matrix[gfx.modelview_matrix_index - 1],
+                                    &position);
+
+    glUniform3fv(program->get_uniform_location(tmp),
+                 1,
+                 (float *)&position);
+
+    sprintf(tmp, "LIGHT_FS.distance");
+    glUniform1f(program->get_uniform_location(tmp),
+                this->distance);
+
+    sprintf(tmp, "LIGHT_FS.linear_attenuation");
+    glUniform1f(program->get_uniform_location(tmp),
+                this->linear_attenuation);
+
+    sprintf(tmp, "LIGHT_FS.quadratic_attenuation");
+    glUniform1f(program->get_uniform_location(tmp),
+                this->quadratic_attenuation);
+
+}
+
+PointSphere::PointSphere(const char *name,
+                         const vec4 &color,
+                         const vec3 &position,
+                         const float distance) : distance(distance),
+                         PointLight(name, color, position, LIGHT_POINT_SPHERE)
+{
+}
+
+void PointSphere::push_to_shader(PROGRAM *program) {
+    this->PointLight::push_to_shader(program);
+
+    char tmp[MAX_CHAR] = {""};
+
+    sprintf(tmp, "LIGHT_FS.distance");
+    glUniform1f(program->get_uniform_location(tmp), distance);
+}
+
+SpotLight::SpotLight(const char *name,
+                     const vec4 &color,
+                     const vec3 &position,
+                     /* The XYZ rotation angle of the spot direction
+                      * vector in degrees.
+                      */
+                     const float rotx,
+                     const float roty,
+                     const float rotz,
+                     /* The field of view of the spot, also in degrees. */
+                     const float fov,
+                     /* The spot blend to smooth the edge of the spot.
+                      * This value is between the range of 0 and 1, where
+                      * 0 represents no smoothing.
+                      */
+                     const float spot_blend) : PointLight(name, color, position, LIGHT_SPOT) {
     static vec3 up_axis = { 0.0f, 0.0f, 1.0f };
-
-    LIGHT *light = ( LIGHT * ) calloc( 1, sizeof( LIGHT ) );
-
-    strcpy( light->name, name );
-
-    memcpy( &light->color, color, sizeof( vec4 ) );
-
-    light->spot_fov = fov;
-
-    light->spot_cos_cutoff = cosf( ( fov * 0.5f ) * DEG_TO_RAD );
-
-    light->spot_blend = CLAMP( spot_blend, 0.001, 1.0f );
-
-    memcpy( &light->position, position, sizeof( vec3 ) );
-    light->position.w = 1.0f;
-
-    light->type = 4;
-
-    create_direction_vector( &light->spot_direction,
+    this->spot_fov = fov;
+    /* Calculate the spot cosine cut off. */
+    this->spot_cos_cutoff = cosf((fov * 0.5f) * DEG_TO_RAD);
+    /* Clamp the spot blend to make sure that there won't be a division by 0
+     * inside the shader program.
+     */
+    this->spot_blend = CLAMP(spot_blend, 0.001, 1.0f);
+    /* Create the direction vector for the spot based on the XYZ rotation
+     * angle that the function receives.
+     */
+    create_direction_vector(&this->spot_direction,
                             &up_axis,
                             rotx,
                             roty,
-                            rotz );
-    return light;
+                            rotz);
+}
+
+void SpotLight::push_to_shader(PROGRAM *program) {
+    this->PointLight::push_to_shader(program);
+
+    char tmp[MAX_CHAR] = {""};
+
+    /* Calculating the direction of a spot is slightly different than
+     * for directional lamp, because the cone has to be projected in
+     * the same space as the object that might receive the light.
+     */
+    vec3 direction;
+
+    sprintf(tmp, "LIGHT_VS.spot_direction");
+    this->get_direction_in_object_space(&gfx.modelview_matrix[gfx.modelview_matrix_index - 1],
+                                        &direction);
+
+    glUniform3fv(program->get_uniform_location(tmp),
+                 1,
+                 (float *)&direction);
+    /* Send the spot cos cutoff to let the shader determine if a
+     * specific fragment is inside or outside the cone of light.
+     */
+    sprintf(tmp, "LIGHT_FS.spot_cos_cutoff");
+    glUniform1f(program->get_uniform_location(tmp), this->spot_cos_cutoff);
+
+    sprintf(tmp, "LIGHT_FS.spot_blend");
+    glUniform1f(program->get_uniform_location(tmp), this->spot_blend);
 }
 
 
-void LIGHT_get_direction_in_object_space( LIGHT *light, mat4 *m, vec3 *direction )
+void DirectionalLight::get_direction_in_eye_space(mat4 *m, vec3 *direction)
 {
-	mat4 invert;
-	
-	mat4_copy_mat4( &invert, m );
-	
-	mat4_invert( &invert );
-	
-	vec3_multiply_mat4( direction,
-						&light->spot_direction,
-						m );
-						
-	vec3_normalize( direction,
-					direction );
-	
-	vec3_invert( direction,
-				 direction );
-}
-
-
-void LIGHT_get_direction_in_eye_space( LIGHT *light, mat4 *m, vec3 *direction )
-{
-	vec3_multiply_mat4( direction,
-						&light->direction,
-						m );
-		
-	vec3_invert( direction, direction );
+    /* Multiply the current lamp direction by the view matrix received in
+     * parameter to be able to calculate the lamp direction in eye space.
+     */
+    vec3_multiply_mat4(direction,
+                       &this->direction,
+                       m);
+    /* Invert the vector, because in eye space, the direction is simply the
+     * inverted vector.
+     */
+    vec3_invert(direction, direction);
 }
 
 
 
-void LIGHT_get_position_in_eye_space( LIGHT *light, mat4 *m, vec4 *position )
+/* This function is basically very easy.  In the same way that you
+ * convert the position in your vertex shader, handle the conversion
+ * to eye space here so you you do not have to pass the modelview
+ * matrix of the camera to the shader, and offload a bit of work from
+ * the CPU.
+ */
+void PointLight::get_position_in_eye_space(mat4 *m, vec4 *position)
 {
-	vec4_multiply_mat4( position,
-						&light->position,
-						m );
+    /* Multiply the position by the matrix received in parameters and
+     * assign the result to the position vector.
+     */
+    vec4_multiply_mat4(position,
+                       &this->position,
+                       m);
 }
 
-
-LIGHT *LIGHT_free( LIGHT *light )
+void SpotLight::get_direction_in_object_space(mat4 *m, vec3 *direction)
 {
-	free( light );
-	return NULL;
+    mat4 invert;
+
+    mat4_copy_mat4(&invert, m);
+
+    mat4_invert(&invert);
+
+    vec3_multiply_mat4(direction,
+                       &this->spot_direction,
+                       m);
+
+    vec3_normalize(direction,
+                   direction);
+
+    vec3_invert(direction,
+                direction);
 }

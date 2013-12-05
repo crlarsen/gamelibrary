@@ -28,6 +28,8 @@ as being the original software.
  * Source code modified by Chris Larsen to make the following data types into
  * proper C++ classes:
  * - FONT
+ * - LIGHT
+ * - MD5
  * - MEMORY
  * - NAVIGATION
  * - OBJ
@@ -166,27 +168,11 @@ void material_draw(void *ptr)
                         objmaterial->specular_exponent * 0.128f);
 
             uniform.constant = true;
-        } else if (name == "LIGHT_FS.color") {
-            // Lamp Data
-            glUniform4fv(uniform.location,
-                         1,
-                         (float *)&light->color);
-
-            uniform.constant = true;
-        } else if (name == "LIGHT_VS.direction") {
-            vec3 direction;
-
-            LIGHT_get_direction_in_eye_space(light,
-                                             &gfx.modelview_matrix[gfx.modelview_matrix_index - 1],
-                                             &direction);
-            
-            glUniform3fv(uniform.location,
-                         1,
-                         (float *)&direction);
-            
-            uniform.constant = true;
         }
     }
+
+    // Lamp Data
+    light->push_to_shader(program);
 }
 
 
@@ -202,8 +188,8 @@ void templateAppInit(int width, int height)
 
     vec4 color = { 1.0f, 1.0f, 1.0f, 1.0f };
 
-    light = LIGHT_create_directional((char *)"point", &color, 45.0f, 0.0f, 0.0f);
-    
+    light = new DirectionalLight((char *)"point", color, 45.0f, 0.0f, 0.0f);
+
     /* Manually initialize a blank OBJ structure.  You do not need to
      * use the OBJ_load function this time, because there's no geometry
      * to load, only a material file.
@@ -249,92 +235,80 @@ void templateAppInit(int width, int height)
     }
 
     /* Load the MD5 mesh file from disk. */
-    md5 = MD5_load_mesh(MD5_MESH, true);
+    md5 = new MD5(MD5_MESH, true);
 
     /* Convert the triangles to triangle strips. */
-    MD5_optimize(md5, 128);
+    md5->optimize(128);
 
     /* Build the VBO and VAO and construct the normals and tangents for
      * each face of the meshes.
      */
-    MD5_build(md5);
+    md5->build();
 
     /* Loop while there are some mesh parts. */
-    for (int i=0; i!=md5->n_mesh; ++i) {
-        /* The current mesh pointer. */
-        MD5MESH *md5mesh = &md5->md5mesh[i];
-
+    for (auto md5mesh=md5->md5mesh.begin();
+         md5mesh!=md5->md5mesh.end(); ++md5mesh) {
         /* Query the OBJ material database to get the objmaterial
          * pointer for the current mesh part.  Note that for the MD5
          * format, each part name is considered as a shader that
          * corresponds to the same material entry name in the OBJ
          * material file.
          */
-        MD5_set_mesh_material(md5mesh,
-                              obj->get_material(md5mesh->shader, false));
+        md5mesh->set_mesh_material(obj->get_material(md5mesh->shader, false));
     }
 
     /* Load the actions from the disk. */
-    MD5_load_action(md5,
-                    (char *)"idle",  // Internal name for this action.
-                    (char *)"bob_idle.md5anim",  // The action file name.
-                    true);  // Use a relative path to load the action file.
-    MD5_load_action(md5,
-                    (char *)"walk",
-                    (char *)"bob_walk.md5anim",
-                    true);
+    md5->load_action((char *)"idle",  // Internal name for this action.
+                     (char *)"bob_idle.md5anim",  // The action file name.
+                     true);  // Use a relative path to load the action file.
+    md5->load_action((char *)"walk",
+                     (char *)"bob_walk.md5anim",
+                     true);
 
     /* Retrieve the pointer of the idle action. */
-    idle = MD5_get_action(md5, (char *)"idle", 0);
+    idle = md5->get_action((char *)"idle", false);
 
     /* Set the frame rate that want to use to play back the animation. */
-    MD5_set_action_fps(idle, 24.0f);
+    idle->set_action_fps(24.0f);
 
     /* Start playing the animation using looping. */
-//    MD5_action_play(idle,
-//                    /* The method to use to interpolate between frames.
-//                     * For this first example, simply use the
-//                     * MD5_METHOD_FRAME method to represent that each
-//                     * frame of the sequence will be played sequentially
-//                     * one after the other (no interpolation between
-//                     * each frame).
-//                     */
-//                     MD5_METHOD_FRAME,
-//                    /* Specify whether or not the animation should loop
-//                     * when the end frame is reached (either 1 or 0).
-//                     */
-//                     1);
+//    idle->action_play(/* The method to use to interpolate between frames.
+//                       * For this first example, simply use the
+//                       * MD5_METHOD_FRAME method to represent that each
+//                       * frame of the sequence will be played sequentially
+//                       * one after the other (no interpolation between
+//                       * each frame).
+//                       */
+//                      MD5_METHOD_FRAME,
+//                      /* Specify whether or not the animation should loop
+//                       * when the end frame is reached (either 1 or 0).
+//                       */
+//                      true);
 
-//    MD5_action_play(idle,
-//                     MD5_METHOD_LERP,
-//                     1);
+//    idle->action_play(MD5_METHOD_LERP, true);
 
-    MD5_action_play(idle,
-                    MD5_METHOD_SLERP,
-                    1);
+    idle->action_play(MD5_METHOD_SLERP, true);
 
     /* Get the walk animation pointer. */
-    walk = MD5_get_action(md5, (char *)"walk", 0);
+    walk = md5->get_action((char *)"walk", false);
 
     /* Set the rate of the animation playback. */
-    MD5_set_action_fps(walk, 24.0f);
+    walk->set_action_fps(24.0f);
 
     /* Play the walk action using spherical interpolation between frames
      * and loop when the end frame is reached.
      */
-    MD5_action_play(walk,
-                    MD5_METHOD_SLERP,
-                    1);
+    walk->action_play(MD5_METHOD_SLERP, true);
 
     /* Initialize a temporary skeleton to be able to store the final
      * pose after blending the idle and walk animation.
      */
-    final_pose = (MD5JOINT *) calloc(md5->n_joint, sizeof(MD5JOINT));
+    final_pose = (MD5JOINT *) calloc(md5->bind_pose.size(), sizeof(MD5JOINT));
 
     /* Free the mesh data that used to build the mesh, because this data
      * is no longer required for drawing.
      */
-    MD5_free_mesh_data(md5);
+    md5->free_mesh_data();
 
     /* Disable the cull face to make sure that even backfaces will drawn
      * onscreen.
@@ -410,42 +384,41 @@ void templateAppDraw(void)
     /* Increase the time step for all actions with statuses that are set
      * to PLAY.
      */
-    MD5_draw_action(md5, 1.0f / 60.0f);
+    md5->draw_action(1.0f / 60.0f);
 
     /* This is the interesting part.  This function receives two
      * skeleton poses and blends them together based on the a blend
      * factor.  The resulting skeleton will then be stored in the
      * final_pose array of joints.
      */
-    MD5_blend_pose(md5,
-                   /* The final skeleton. */
-                   final_pose,
-                   /* The first action to use for blending. */
-                   idle->pose,
-                   /* The second action to use for blending. */
-                   walk->pose,
-                   /* The method to use to blend the two skeletons
-                    * together based on the blend factor passed to the
-                    * function.  Note that joint's position will always
-                    * be linearly interpolated, and the rotation
-                    * interpolation will use the method specified by
-                    * this parameter.
-                    */
-                   MD5_METHOD_SLERP,
-                   /* Make sure that the blend_factor always stays in
-                    * bewteen 0 and 1.
-                    */
-                   CLAMP(blend_factor, 0.0f, 1.0f));
-    
+    md5->blend_pose(/* The final skeleton. */
+                    final_pose,
+                    /* The first action to use for blending. */
+                    idle->pose,
+                    /* The second action to use for blending. */
+                    walk->pose,
+                    /* The method to use to blend the two skeletons
+                     * together based on the blend factor passed to the
+                     * function.  Note that joint's position will always
+                     * be linearly interpolated, and the rotation
+                     * interpolation will use the method specified by
+                     * this parameter.
+                     */
+                    MD5_METHOD_SLERP,
+                    /* Make sure that the blend_factor always stays in
+                     * bewteen 0 and 1.
+                     */
+                    CLAMP(blend_factor, 0.0f, 1.0f));
+
     /* Use the final pose skeleton to calculate and update the vertex
      * positions of the skeleton's skin and the VBO with the latest
      * interpolated skeleton.
      */
-    MD5_set_pose(md5, final_pose);
-    
+    md5->set_pose(final_pose);
+
     /* Draw the model onscreen. */
-    MD5_draw(md5);
-    
+    md5->draw();
+
     GFX_pop_matrix();
 }
 
@@ -475,7 +448,10 @@ void templateAppExit(void)
 {
     free(final_pose);
     delete obj;
-    md5 = MD5_free(md5);
-    
-    light = LIGHT_free(light);
+    obj = NULL;
+    delete md5;
+    md5 = NULL;
+
+    delete light;
+    light = NULL;
 }

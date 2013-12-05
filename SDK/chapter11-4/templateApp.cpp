@@ -28,6 +28,7 @@ as being the original software.
  * Source code modified by Chris Larsen to make the following data types into
  * proper C++ classes:
  * - FONT
+ * - LIGHT
  * - MEMORY
  * - NAVIGATION
  * - OBJ
@@ -137,27 +138,11 @@ void program_draw(void *ptr)
                         objmesh->current_material->specular_exponent * 0.128f);
 
             uniform.constant = true;
-        } else if (name == "LIGHT_FS.color") {
-            // Lamp Data
-            glUniform4fv(uniform.location,
-                         1,
-                         (float *)&light->color);
-
-            uniform.constant = true;
-        } else if (name == "LIGHT_VS.position") {
-            vec4 position;
-
-            LIGHT_get_position_in_eye_space(light,
-                                            &gfx.modelview_matrix[gfx.modelview_matrix_index - 1],
-                                            &position);
-            
-            glUniform3fv(uniform.location,
-                         1,
-                         (float *)&position);
-            
-            uniform.constant = true;
         }
     }
+
+    // Light Data
+    light->push_to_shader(program);
 }
 
 
@@ -208,8 +193,8 @@ void templateAppInit(int width, int height)
 
     vec3 position = { 0.0f, 0.0f, 5.0f };
 
-    light = LIGHT_create_point((char *)"point", &color, &position);
-    
+    light = new PointLight((char *)"point", color, position);
+
     obj->get_mesh("sphere", false)->objtrianglelist[0].mode = GL_POINTS;
 }
 
@@ -294,7 +279,8 @@ void templateAppDraw(void)
 
 void templateAppExit(void) {
     
-    light = LIGHT_free(light);
-    
+    delete light;
+    light = NULL;
+
     delete obj;
 }

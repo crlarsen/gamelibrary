@@ -28,6 +28,7 @@ as being the original software.
  * Source code modified by Chris Larsen to make the following data types into
  * proper C++ classes:
  * - FONT
+ * - LIGHT
  * - MEMORY
  * - NAVIGATION
  * - OBJ
@@ -161,57 +162,24 @@ void program_draw(void *ptr)
                         objmesh->current_material->specular_exponent * 0.128f);
 
             uniform.constant = true;
-        } else if (name == "LIGHT_FS.color") {
-            // Lamp Data
-            glUniform4fv(uniform.location,
-                         1,
-                         (float *)&light->color);
-
-            uniform.constant = true;
-        } else if (name == "LIGHT_VS.position") {
-            vec4 position;
-
-            static float rot_angle = 0.0f;
-
-            light->position.x = 7.5f * cosf(rot_angle * DEG_TO_RAD);
-            light->position.y = 7.5f * sinf(rot_angle * DEG_TO_RAD);
-
-            rot_angle += 0.25f;
-
-            LIGHT_get_position_in_eye_space(light,
-                                            &gfx.modelview_matrix[gfx.modelview_matrix_index - 1],
-                                            &position);
-
-            glUniform3fv(uniform.location,
-                         1,
-                         (float *)&position);
-        } else if (name == "LIGHT_VS.spot_direction") {
-            vec3 direction;
-
-            vec3_diff(&light->spot_direction, &center, (vec3 *)&light->position);
-
-            vec3_normalize(&light->spot_direction,
-                           &light->spot_direction);
-
-            LIGHT_get_direction_in_object_space(light,
-                                                &gfx.modelview_matrix[gfx.modelview_matrix_index - 1],
-                                                &direction);
-            
-            glUniform3fv(uniform.location,
-                         1,
-                         (float *)&direction);
-        } else if (name == "LIGHT_FS.spot_cos_cutoff") {
-            glUniform1f(uniform.location,
-                        light->spot_cos_cutoff);
-            
-            uniform.constant = true;
-        } else if (name == "LIGHT_FS.spot_blend") {
-            glUniform1f(uniform.location,
-                        light->spot_blend);
-            
-            uniform.constant = true;
         }
     }
+
+    // Light Data
+    auto spotLight = dynamic_cast<SpotLight *>(light);
+
+    static float rot_angle = 0.0f;
+
+    spotLight->position.x = 7.5f * cosf(rot_angle * DEG_TO_RAD);
+    spotLight->position.y = 7.5f * sinf(rot_angle * DEG_TO_RAD);
+
+    rot_angle += 0.25f;
+
+    vec3_diff(&spotLight->spot_direction, &center, (vec3 *)&spotLight->position);
+
+    vec3_normalize(&spotLight->spot_direction,
+                   &spotLight->spot_direction);
+    light->push_to_shader(program);
 }
 
 
@@ -262,8 +230,8 @@ void templateAppInit(int width, int height) {
 
     vec3 position = { 7.5f, 0.0f, 6.0f };
 
-    light = LIGHT_create_spot((char *)"spot", &color, &position, 0.0f, 0.0f, 0.0f, 75.0f, 0.05f);
-    
+    light = new SpotLight((char *)"spot", color, position, 0.0f, 0.0f, 0.0f, 75.0f, 0.05f);
+
     obj->get_mesh((char *)"projector", false)->visible = false;
 
     texture = obj->get_texture((char *)"projector", false);
@@ -288,7 +256,8 @@ void draw_scene_from_projector(void)
     GFX_set_matrix_mode(PROJECTION_MATRIX);
     GFX_load_identity();
 
-    GFX_set_perspective(light->spot_fov,
+    auto spotLight = dynamic_cast<SpotLight *>(light);
+    GFX_set_perspective(spotLight->spot_fov,
                         (float)viewport_matrix[2] / (float)viewport_matrix[3],
                         1.0f,
                         20.0f,
@@ -303,7 +272,7 @@ void draw_scene_from_projector(void)
      * drawing anything, just gather the necessary matrices to be able to
      * project the texture from the spot.
      */
-    GFX_look_at((vec3 *)&light->position, &center, &up_axis);
+    GFX_look_at((vec3 *)&spotLight->position, &center, &up_axis);
 
     projector_matrix.m[0].x = 0.5f;
     projector_matrix.m[0].y = 0.0f;
@@ -395,7 +364,8 @@ void templateAppDraw(void) {
 
 void templateAppExit(void) {
 
-    light = LIGHT_free(light);
+    delete light;
+    light = NULL;
 
     delete obj;
 }

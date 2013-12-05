@@ -20,6 +20,26 @@ as being the original software.
 3. This notice may not be removed or altered from any source distribution.
 
 */
+/*
+ * Source code modified by Chris Larsen to make the following data types into
+ * proper C++ classes:
+ * - FONT
+ * - LIGHT
+ * - MD5
+ * - MEMORY
+ * - NAVIGATION
+ * - OBJ
+ * - OBJMATERIAL
+ * - OBJMESH
+ * - OBJTRIANGLEINDEX
+ * - OBJTRIANGLELIST
+ * - OBJVERTEXDATA
+ * - PROGRAM
+ * - SHADER
+ * - SOUND
+ * - TEXTURE
+ * - THREAD
+ */
 
 
 #ifndef LIGHT_H
@@ -34,52 +54,174 @@ enum
 	LIGHT_SPOT					 = 4
 };
 
+struct LIGHT {
+    char    name[MAX_CHAR];
+    vec4    color;
+    unsigned char type;
+    LIGHT(const char *n, const vec4 &c, const unsigned char t=~0) : color(c), type(t) {
+        memset(name, 0, sizeof(name));
+        strcpy(name, n);
+    }
+    virtual ~LIGHT() {}
+    LIGHT(const LIGHT &src) {
+        memset(name, 0, sizeof(name));
+        strcpy(name, src.name);
+        memcpy(&color, &src.color, sizeof(vec4));
+        type = src.type;
+    }
+    LIGHT &operator=(const LIGHT &rhs) {
+        if (this != &rhs) {
+            memset(name, 0, sizeof(name));
+            strcpy(name, rhs.name);
+            memcpy(&color, &rhs.color, sizeof(vec4));
+            type = rhs.type;
+        }
+        return *this;
+    }
+    virtual void push_to_shader(PROGRAM *program) {
+        /* A temp string to dynamically create the LIGHT property names. */
+        char tmp[MAX_CHAR] = {""};
+        /* Create the uniform name for the color of the lamp. */
+        sprintf(tmp, "LIGHT_FS.color");
+        /* Get the uniform location and send over the current lamp color. */
+        glUniform4fv(program->get_uniform_location(tmp),
+                     1,
+                     (float *)&this->color);
+    }
+};
 
-typedef struct
-{
-	char	name[ MAX_CHAR ];
+struct DirectionalLight : LIGHT {
+    vec3    direction;
+public:
+    DirectionalLight(const char *name,
+                    const vec4 &color,
+                    const float rotx,
+                    const float roty,
+                    const float rotz);
+    ~DirectionalLight() {}
+    DirectionalLight(const DirectionalLight &src) : LIGHT(name, color, type) {
+        memcpy(&direction, &src.direction, sizeof(vec3));
+    }
+    DirectionalLight &operator=(const DirectionalLight &rhs) {
+        if (this != &rhs) {
+            *dynamic_cast<LIGHT *>(this) = dynamic_cast<const LIGHT &>(rhs);
+            memcpy(&direction, &rhs.direction, sizeof(vec3));
+        }
+        return *this;
+    }
+    void get_direction_in_eye_space(mat4 *m, vec3 *direction);
+    void push_to_shader(PROGRAM *program);
+};
 
-	vec4	color;
+struct PointLight : LIGHT {
+    vec4    position;
+protected:
+    PointLight(const char *name, const vec4 &color, const vec3 &position, const unsigned char t);
+public:
+    PointLight(const char *name, const vec4 &color, const vec3 &position);
+    ~PointLight() {}
+    PointLight(const PointLight &src) : LIGHT(name, color, type) {
+        memcpy(&position, &src.position, sizeof(vec4));
+    }
+    PointLight &operator=(const PointLight &rhs) {
+        if (this != &rhs) {
+            *dynamic_cast<LIGHT *>(this) = dynamic_cast<const LIGHT &>(rhs);
+            memcpy(&position, &rhs.position, sizeof(vec4));
+        }
+        return *this;
+    }
+    void get_position_in_eye_space(mat4 *m, vec4 *position);
+    void push_to_shader(PROGRAM *program);
+};
 
-	vec3	direction;
-	
-	vec4	position;
+struct AttenuatedPointLight : PointLight {
+    float   linear_attenuation;
+    float   quadratic_attenuation;
+    float   distance;
+public:
+    AttenuatedPointLight(const char *name, const vec4 &color,
+                        const vec3 &position, const float distance,
+                        const float linear_attenuation,
+                        const float quadratic_attenuation);
+    ~AttenuatedPointLight() {}
+    AttenuatedPointLight(const AttenuatedPointLight &src) : PointLight(src) {
+        linear_attenuation = src.linear_attenuation;
+        quadratic_attenuation = src.quadratic_attenuation;
+        distance = src.distance;
+        type = src.type;
+    }
+    AttenuatedPointLight &operator=(const AttenuatedPointLight &rhs) {
+        if (this != &rhs) {
+            *dynamic_cast<PointLight *>(this) = dynamic_cast<const PointLight &>(rhs);
+            linear_attenuation = rhs.linear_attenuation;
+            quadratic_attenuation = rhs.quadratic_attenuation;
+            distance = rhs.distance;
+        }
+        return *this;
+    }
+    void push_to_shader(PROGRAM *program);
+};
 
-	float	linear_attenuation;
-	
-	float	quadratic_attenuation;
-	
-	float	distance;
-	
-	float	spot_fov;
+struct PointSphere : PointLight {
+    float   distance;
+public:
+    PointSphere(const char *name,
+                const vec4 &color,
+                const vec3 &position,
+                const float distance);
+    ~PointSphere() {}
+    PointSphere(const PointSphere &src) : PointLight(src) {
+        distance = src.distance;
+    }
+    PointSphere &operator=(const PointSphere &rhs) {
+        if (this != &rhs) {
+            *dynamic_cast<PointLight *>(this) = dynamic_cast<const PointLight &>(rhs);
+            distance = rhs.distance;
+        }
+        return *this;
+    }
+    void push_to_shader(PROGRAM *program);
+};
 
-	float	spot_cos_cutoff;
-
-	float	spot_blend;
-	
-	vec3	spot_direction;	
-
-	unsigned char type;
-	
-} LIGHT;
-
-
-LIGHT *LIGHT_create_directional( char *name, vec4 *color, float rotx, float roty, float rotz );
-
-LIGHT *LIGHT_create_point( char *name, vec4 *color, vec3 *position );
-
-LIGHT *LIGHT_create_point_with_attenuation( char *name, vec4 *color, vec3 *position, float distance, float linear_attenuation, float quadratic_attenuation );
-
-LIGHT *LIGHT_create_point_sphere( char *name, vec4 *color, vec3 *position, float distance );
-
-LIGHT *LIGHT_create_spot( char *name, vec4 *color, vec3 *position, float rotx, float roty, float rotz, float fov, float spot_blend );
-
-void LIGHT_get_direction_in_object_space( LIGHT *light, mat4 *m, vec3 *direction );
-
-void LIGHT_get_direction_in_eye_space( LIGHT *light, mat4 *m, vec3 *direction );
-
-void LIGHT_get_position_in_eye_space( LIGHT *light, mat4 *m, vec4 *position );
-
-LIGHT *LIGHT_free( LIGHT *light );
+struct SpotLight : PointLight {
+    float   spot_fov;
+    float   spot_cos_cutoff;
+    float   spot_blend;
+    vec3    spot_direction;
+public:
+    SpotLight(const char *name,
+             const vec4 &color,
+             const vec3 &position,
+             /* The XYZ rotation angle of the spot direction
+              * vector in degrees.
+              */
+             const float rotx,
+             const float roty,
+             const float rotz,
+             /* The field of view of the spot, also in degrees. */
+             const float fov,
+             /* The spot blend to smooth the edge of the spot.
+              * This value is between the range of 0 and 1, where
+              * 0 represents no smoothing.
+              */
+             const float spot_blend);
+    ~SpotLight() {}
+    SpotLight(const SpotLight &src) : PointLight(src) {
+        spot_cos_cutoff = src.spot_cos_cutoff;
+        spot_blend = src.spot_blend;
+        memcpy(&spot_direction, &src.spot_direction, sizeof(vec3));
+    }
+    SpotLight &operator=(const SpotLight &rhs) {
+        if (this != &rhs) {
+            *dynamic_cast<PointLight *>(this) = dynamic_cast<const PointLight &>(rhs);
+            spot_cos_cutoff = rhs.spot_cos_cutoff;
+            spot_blend = rhs.spot_blend;
+            memcpy(&spot_direction, &rhs.spot_direction, sizeof(vec3));
+        }
+        return *this;
+    }
+    void push_to_shader(PROGRAM *program);
+    void get_direction_in_object_space(mat4 *m, vec3 *direction);
+};
 
 #endif

@@ -28,6 +28,8 @@ as being the original software.
  * Source code modified by Chris Larsen to make the following data types into
  * proper C++ classes:
  * - FONT
+ * - LIGHT
+ * - MD5
  * - MEMORY
  * - NAVIGATION
  * - OBJ
@@ -155,27 +157,11 @@ void material_draw(void *ptr)
                         objmaterial->specular_exponent * 0.128f);
 
             uniform.constant = true;
-        } else if (name == "LIGHT_FS.color") {
-            // Lamp Data
-            glUniform4fv(uniform.location,
-                         1,
-                         (float *)&light->color);
-
-            uniform.constant = true;
-        } else if (name == "LIGHT_VS.direction") {
-            vec3 direction;
-
-            LIGHT_get_direction_in_eye_space(light,
-                                             &gfx.modelview_matrix[gfx.modelview_matrix_index - 1],
-                                             &direction);
-            
-            glUniform3fv(uniform.location,
-                         1,
-                         (float *)&direction);
-            
-            uniform.constant = true;
         }
     }
+
+    // Lamp Data
+    light->push_to_shader(program);
 }
 
 
@@ -191,10 +177,10 @@ void templateAppInit(int width, int height)
 
     vec4 color = { 1.0f, 1.0f, 1.0f, 1.0f };
 
-    light = LIGHT_create_directional((char *)"point", &color, 45.0f, 0.0f, 0.0f);
-    
+    light = new DirectionalLight((char *)"point", color, 45.0f, 0.0f, 0.0f);
+
     /* Manually initialize a blank OBJ structure.  You do not need to
-     * use the OBJ_load function this time, because there's no geometry
+     * use the OBJ::load function this time, because there's no geometry
      * to load, only a material file.
      */
     obj = new OBJ;
@@ -222,7 +208,7 @@ void templateAppInit(int width, int height)
                           obj->program_path);
     }
 
-    /* Build the materials and associate the material_draw callback
+    /* Build the materials ans associate the material_draw callback
      * function to each of them to be able to set the uniform variables
      * of the shader program.
      */
@@ -237,36 +223,33 @@ void templateAppInit(int width, int height)
     }
 
     /* Load the MD5 mesh file from disk. */
-    md5 = MD5_load_mesh(MD5_MESH, true);
+    md5 = new MD5(MD5_MESH, 1);
 
     /* Convert the triangles to triangle strips. */
-    MD5_optimize(md5, 128);
+    md5->optimize(128);
 
-    /* Build the VBO and VAO and construct the normals and tangents for
+    /* Build the VBO and VA) and construct the normals and tangents for
      * each face of the meshes.
      */
-    MD5_build(md5);
+    md5->build();
 
     /* Loop while there are some mesh parts. */
-    for (int i=0; i!=md5->n_mesh; ++i) {
-        /* The current mesh pointer. */
-        MD5MESH *md5mesh = &md5->md5mesh[i];
-
+    for (auto md5mesh=md5->md5mesh.begin();
+         md5mesh!=md5->md5mesh.end(); ++md5mesh) {
         /* Query the OBJ material database to get the objmaterial
          * pointer for the current mesh part.  Note that for the MD5
          * format, each part name is considered as a shader that
          * corresponds to the same material entry name in the OBJ
          * material file.
          */
-        MD5_set_mesh_material(md5mesh,
-                              obj->get_material(md5mesh->shader,
-                                                false));
+        md5mesh->set_mesh_material(obj->get_material(md5mesh->shader,
+                                                     false));
     }
 
     /* Free the mesh data that used to build the mesh, because this data
      * is no longer required for drawing.
      */
-    MD5_free_mesh_data(md5);
+    md5->free_mesh_data();
 
     /* Disable the cull face to make sure that even backfaces will drawn
      * onscreen.
@@ -312,8 +295,8 @@ void templateAppDraw(void)
     GFX_rotate(rot_angle.z, 0.0f, 0.0f, 1.0f);
 
     /* Draw the model onscreen. */
-    MD5_draw(md5);
-    
+    md5->draw();
+
     GFX_pop_matrix();
 }
 
@@ -342,7 +325,9 @@ void templateAppToucheMoved(float x, float y, unsigned int tap_count)
 void templateAppExit(void) {
     delete obj;
     obj = NULL;
-    md5 = MD5_free(md5);
-    
-    light = LIGHT_free(light);
+    delete md5;
+    md5 = NULL;
+
+    delete light;
+    light = NULL;
 }
