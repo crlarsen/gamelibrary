@@ -106,9 +106,10 @@ typedef struct
 struct MD5MESH {
     char		shader[ MAX_CHAR ];
 
-    unsigned int	n_vertex;
-
-    MD5VERTEX		*md5vertex;
+//    unsigned int	n_vertex;
+//
+//    MD5VERTEX		*md5vertex;
+    std::vector<MD5VERTEX>  md5vertex;
 
     unsigned int	vbo;
 
@@ -126,13 +127,11 @@ struct MD5MESH {
 
     unsigned short	n_indice;
 
-    unsigned short      *indice;
+    std::vector<unsigned short> indice;
 
     unsigned int	vbo_indice;
 
-    unsigned int	n_weight;
-
-    MD5WEIGHT		*md5weight;
+    std::vector<MD5WEIGHT>  md5weight;
 
     unsigned int	vao;
 
