@@ -24,6 +24,8 @@ as being the original software.
  * Source code modified by Chris Larsen to make the following data types into
  * proper C++ classes:
  * - FONT
+ * - LIGHT
+ * - MD5
  * - MEMORY
  * - NAVIGATION
  * - OBJ
@@ -45,215 +47,186 @@ as being the original software.
 
 enum
 {
-	MD5_METHOD_FRAME = 0,
-	MD5_METHOD_LERP  = 1,
-	MD5_METHOD_SLERP = 2
+    MD5_METHOD_FRAME = 0,
+    MD5_METHOD_LERP  = 1,
+    MD5_METHOD_SLERP = 2
 };
 
 
 typedef struct
 {
-	char			name[ MAX_CHAR ];
-	
-	int				parent;
-	
-	vec3			location;
-	
-	vec4			rotation;
-  
+    char			name[ MAX_CHAR ];
+
+    int				parent;
+
+    vec3			location;
+
+    vec4			rotation;
+
 } MD5JOINT;
 
 
 typedef struct
 {
-	vec2			uv;
-	
-	vec3			normal;
-	
-	vec3			tangent;
-	
-	unsigned int	start;
-	
-	unsigned int	count;
+    vec2			uv;
+
+    vec3			normal;
+
+    vec3			tangent;
+
+    unsigned int	start;
+
+    unsigned int	count;
 
 } MD5VERTEX;
 
 
 typedef struct
 {
-	unsigned short indice[ 3 ];
-
+    unsigned short indice[ 3 ];
+    
 } MD5TRIANGLE;
 
 
 typedef struct
 {
-	int		joint;
+    int		joint;
 
-	float	bias;
+    float	bias;
 
-	vec3	location;
-	
-	vec3	normal;
-	
-	vec3	tangent;
-	
+    vec3	location;
+
+    vec3	normal;
+
+    vec3	tangent;
+    
 } MD5WEIGHT;
 
 
-typedef struct
-{
-	char			shader[ MAX_CHAR ];
-	
-	unsigned int	n_vertex;
+struct MD5MESH {
+    char		shader[ MAX_CHAR ];
 
-	MD5VERTEX		*md5vertex;
+    unsigned int	n_vertex;
 
-	unsigned int	vbo;
+    MD5VERTEX		*md5vertex;
 
-	unsigned int	size;
+    unsigned int	vbo;
 
-	unsigned int	stride;
+    unsigned int	size;
 
-	unsigned int	offset[ 4 ];
+    unsigned int	stride;
 
-	unsigned char	*vertex_data;	
-			
-	unsigned int	n_triangle;
+    unsigned int	offset[ 4 ];
 
-	MD5TRIANGLE		*md5triangle;
+    unsigned char	*vertex_data;
 
-	unsigned int	mode;
+    unsigned int	n_triangle;
 
-	unsigned short	n_indice;
-	
-	unsigned short  *indice;
+    MD5TRIANGLE		*md5triangle;
 
-	unsigned int	vbo_indice;
+    unsigned int	mode;
 
-	unsigned int	n_weight;
+    unsigned short	n_indice;
 
-	MD5WEIGHT		*md5weight;
-	
-	unsigned int	vao;
-	
-	unsigned char	visible;
-	
-	OBJMATERIAL		*objmaterial;
-	
-} MD5MESH;
+    unsigned short      *indice;
 
+    unsigned int	vbo_indice;
 
-typedef struct
-{
-	char			name[ MAX_CHAR ];
-	
-	unsigned int	n_frame;
-	
-	MD5JOINT		**frame;
-	
-	MD5JOINT		*pose;
-	
-	int				curr_frame;
-	
-	int				next_frame;
-	
-	unsigned char	state;
-	
-	unsigned char	method;
-	
-	unsigned char	loop;
-	
-	float			frame_time;
-	
-	float			fps;
+    unsigned int	n_weight;
 
-} MD5ACTION;
+    MD5WEIGHT		*md5weight;
 
+    unsigned int	vao;
 
-typedef struct
-{
-	char			name[ MAX_CHAR ];
+    bool                visible;
 
-	unsigned char	visible;
-	
-	unsigned int	n_joint;
+    OBJMATERIAL		*objmaterial;
+public:
+    void set_mesh_attributes();
+    void set_mesh_visibility(const bool visible);
+    void set_mesh_material(OBJMATERIAL *objmaterial);
+    void build_vbo();
+};
 
-	MD5JOINT		*bind_pose;
+struct MD5ACTION {
+    char			name[ MAX_CHAR ];
 
-	unsigned int	n_mesh;
+    std::vector<MD5JOINT*>   frame;
 
-	MD5MESH			*md5mesh;
-	
-	unsigned int	n_action;
-	 
-	MD5ACTION		*md5action;	
-	
-	vec3			location;
-	
-	vec3			rotation;
-	
-	vec3			scale;
-	
-	vec3			min;
-	
-	vec3			max;
-	
-	vec3			dimension;
-	
-	float			radius;	
-	
-	float			distance;
-	
-	btRigidBody		*btrigidbody;
-	
-} MD5;
+    MD5JOINT		*pose;
 
+    int			curr_frame;
 
-MD5 *MD5_load_mesh( char *filename, const bool relative_path );
+    int			next_frame;
 
-int MD5_load_action( MD5 *md5, char *name, char *filename, const bool relative_path );
+    unsigned char	state;
 
-MD5 *MD5_free( MD5 *md5 );
+    unsigned char	method;
 
-void MD5_free_mesh_data( MD5 *md5 );
+    bool                loop;
 
-MD5ACTION *MD5_get_action( MD5 *md5, char *name, unsigned char exact_name );
+    float		frame_time;
 
-MD5MESH *MD5_get_mesh( MD5 *md5, char *name, unsigned char exact_name );
+    float		fps;
+public:
+    void action_play(const unsigned char frame_interpolation_method,
+                     const bool loop);
+    void action_pause();
+    void action_stop();
+    void set_action_fps(float fps);
+};
 
-void MD5_action_play( MD5ACTION *md5action, unsigned char frame_interpolation_method, unsigned char loop );
+struct MD5 {
+    char		name[ MAX_CHAR ];
 
-void MD5_action_pause( MD5ACTION *md5action );
+    bool                visible;
 
-void MD5_action_stop( MD5ACTION *md5action );
+    std::vector<MD5JOINT>    bind_pose;
 
-void MD5_set_action_fps( MD5ACTION *md5action, float fps );
+    std::vector<MD5MESH>     md5mesh;
 
-void MD5_set_mesh_attributes( MD5MESH *md5mesh );
+    std::vector<MD5ACTION>   md5action;
 
-void MD5_set_mesh_visibility( MD5MESH *md5mesh, unsigned char visible );
+    vec3		location;
 
-void MD5_set_mesh_material( MD5MESH *md5mesh, OBJMATERIAL *objmaterial );
+    vec3		rotation;
 
-void MD5_optimize( MD5 *md5, unsigned int vertex_cache_size );
+    vec3		scale;
 
-void MD5_build_vbo( MD5 *md5, unsigned int mesh_index );
+    vec3		min;
 
-void MD5_build_bind_pose_weighted_normals_tangents( MD5 *md5 );
+    vec3		max;
 
-void MD5_set_pose( MD5 *md5, MD5JOINT *pose );
+    vec3		dimension;
 
-void MD5_blend_pose( MD5 *md5, MD5JOINT *final_pose, MD5JOINT *pose0, MD5JOINT *pose1, unsigned char joint_interpolation_method, float blend );
+    float		radius;
 
-void MD5_add_pose( MD5 *md5, MD5JOINT *final_pose, MD5ACTION *action0, MD5ACTION *action1, unsigned char joint_interpolation_method, float action_weight );
+    float		distance;
 
-void MD5_build( MD5 *md5 );
-
-void MD5_build2( MD5 *md5 );
-
-unsigned char MD5_draw_action( MD5 *md5, float time_step );
-
-void MD5_draw( MD5 *md5 );
+    btRigidBody		*btrigidbody;
+protected:
+    void update_bound_mesh();
+public:
+    MD5(char *filename, const bool relative_path);
+    ~MD5();
+    int load_action(char *name, char *filename, const bool relative_path);
+    void free_mesh_data();
+    MD5ACTION *get_action(char *name, const bool exact_name);
+    MD5MESH *get_mesh(char *name, const bool exact_name);
+    void optimize(unsigned int vertex_cache_size);
+    void build_vbo(unsigned int mesh_index);    // CRL
+    void build_bind_pose_weighted_normals_tangents();
+    void set_pose(MD5JOINT *pose);
+    void blend_pose(MD5JOINT *final_pose, MD5JOINT *pose0, MD5JOINT *pose1,
+                    unsigned char joint_interpolation_method, float blend);
+    void add_pose(MD5JOINT *final_pose, MD5ACTION *action0,
+                  MD5ACTION *action1,
+                  unsigned char joint_interpolation_method,
+                  float action_weight);
+    void build();
+    void build2();
+    bool draw_action(float time_step);
+    void draw();
+};
 
 #endif
