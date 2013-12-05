@@ -123,6 +123,8 @@ MD5::MD5(char *filename, const bool relative_path)
 
             line = strtok(NULL, "\n");
 
+            unsigned int    n_triangle;
+
             while (line[0] != '}') {
                 if (sscanf(line, " shader \"%[^\"]", this->md5mesh[mesh_index].shader) == 1) {
                     goto next_mesh_line;
@@ -139,11 +141,10 @@ MD5::MD5(char *filename, const bool relative_path)
                     memcpy(&this->md5mesh[mesh_index].md5vertex[int_val],
                            &md5vertex,
                            sizeof(MD5VERTEX));
-                } else if (sscanf(line, " numtris %d", &this->md5mesh[mesh_index].n_triangle) == 1) {
-                    this->md5mesh[mesh_index].n_indice = this->md5mesh[mesh_index].n_triangle * 3;
+                } else if (sscanf(line, " numtris %d", &n_triangle) == 1) {
+                    this->md5mesh[mesh_index].n_indice = n_triangle * 3;
 
-                    this->md5mesh[mesh_index].md5triangle = (MD5TRIANGLE *) calloc(this->md5mesh[mesh_index].n_triangle,
-                                                                                   sizeof(MD5TRIANGLE));
+                    this->md5mesh[mesh_index].md5triangle.resize(n_triangle);
                 } else if (sscanf(line,
                                   " tri %d %hu %hu %hu",
                                   &int_val,
@@ -323,7 +324,8 @@ MD5::~MD5()
 
         if (md5mesh->vertex_data) free(md5mesh->vertex_data);
 
-        if (md5mesh->md5triangle) free(md5mesh->md5triangle);
+//        if (md5mesh->md5triangle) free(md5mesh->md5triangle);
+        md5mesh->md5triangle.clear();
 
         if (md5mesh->md5weight) free(md5mesh->md5weight);
 
@@ -364,10 +366,11 @@ void MD5::free_mesh_data()
             md5mesh->indice = NULL;
         }
 
-        if (md5mesh->md5triangle) {
-            free(md5mesh->md5triangle);
-            md5mesh->md5triangle = NULL;
-        }
+//        if (md5mesh->md5triangle) {
+//            free(md5mesh->md5triangle);
+//            md5mesh->md5triangle = NULL;
+//        }
+        md5mesh->md5triangle.clear();
     }
 }
 
@@ -632,7 +635,7 @@ void MD5::build_bind_pose_weighted_normals_tangents()
                    sizeof(vec3));
         }
 
-        for (int j=0; j != md5mesh->n_triangle; ++j) {
+        for (int j=0; j != md5mesh->md5triangle.size(); ++j) {
             auto indice = md5mesh->md5triangle[j].indice;
 
             vec3    v1,

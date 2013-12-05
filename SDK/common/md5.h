@@ -120,9 +120,7 @@ struct MD5MESH {
 
     unsigned char	*vertex_data;
 
-    unsigned int	n_triangle;
-
-    MD5TRIANGLE		*md5triangle;
+    std::vector<MD5TRIANGLE>    md5triangle;
 
     unsigned int	mode;
 
