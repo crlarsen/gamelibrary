@@ -66,61 +66,120 @@ enum LampType {
     LampSpot                 = 4
 };
 
-typedef struct {
+struct LAMP {
     char    name[MAX_CHAR];
     vec4    color;
-    vec3    direction;
     unsigned char type;
-} LAMP;
+    LAMP(const char *n, const vec4 &c, const unsigned char t=~0) : color(c), type(t) {
+        memset(name, 0, sizeof(name));
+        strcpy(name, n);
+    }
+    ~LAMP() {}
+    LAMP(const LAMP &src) {
+        memset(name, 0, sizeof(name));
+        strcpy(name, src.name);
+        memcpy(&color, &src.color, sizeof(vec4));
+        type = src.type;
+    }
+    LAMP &operator=(const LAMP &rhs) {
+        if (this != &rhs) {
+            memset(name, 0, sizeof(name));
+            strcpy(name, rhs.name);
+            memcpy(&color, &rhs.color, sizeof(vec4));
+            type = rhs.type;
+        }
+        return *this;
+    }
+    virtual void push_to_shader(PROGRAM *program) {
+        /* A temp string to dynamically create the LAMP property names. */
+        char tmp[MAX_CHAR] = {""};
+        /* Create the uniform name for the color of the lamp. */
+        sprintf(tmp, "LAMP_FS.color");
+        /* Get the uniform location and send over the current lamp color. */
+        glUniform4fv(program->get_uniform_location(tmp),
+                     1,
+                     (float *)&this->color);
+    }
+};
 
 LAMP *lamp = NULL;
 
-LAMP *LAMP_create_directional(char *name,
-                              vec4 *color,
-                              float rotx,
-                              float roty,
-                              float rotz)
+struct DirectionalLamp : LAMP {
+    vec3    direction;
+public:
+    DirectionalLamp(const char *name,
+                    const vec4 &color,
+                    const float rotx,
+                    const float roty,
+                    const float rotz);
+    ~DirectionalLamp() {}
+    DirectionalLamp(const DirectionalLamp &src) : LAMP(name, color, type) {
+        memcpy(&direction, &src.direction, sizeof(vec3));
+    }
+    DirectionalLamp &operator=(const DirectionalLamp &rhs) {
+        if (this != &rhs) {
+            *dynamic_cast<LAMP *>(this) = dynamic_cast<const LAMP &>(rhs);
+            memcpy(&direction, &rhs.direction, sizeof(vec3));
+        }
+        return *this;
+    }
+    void get_direction_in_eye_space(mat4 *m, vec3 *direction);
+    void push_to_shader(PROGRAM *program) {
+        this->LAMP::push_to_shader(program);
+
+        /* A temp string to dynamically create the LAMP property names. */
+        char tmp[MAX_CHAR] = {""};
+        /* Temp variable to hold the direction in eye space. */
+        vec3 direction;
+        /* Create the lamp direction property name. */
+        sprintf(tmp, "LAMP_VS.direction");
+        /* Call the function that you created in the previous step to
+         * convert the current world space direction vector of the lamp
+         * to eye space.  Note that at this point, the current model view
+         * matrix stack is pushed because you are currently drawing the
+         * object.  In order to calculate the right direction vector of
+         * the lamp, what you are interested in is gaining access to the
+         * camera model view matrix.  To do this, all you have to do is
+         * request the previous model view matrix, because you push it
+         * once in the templateAppDraw function.
+         */
+        this->get_direction_in_eye_space(&gfx.modelview_matrix[gfx.modelview_matrix_index - 1],
+                                         &direction);
+
+        glUniform3fv(program->get_uniform_location(tmp),
+                     1,
+                     (float *)&direction);
+    }
+};
+
+DirectionalLamp::DirectionalLamp(const char *name,
+                                 const vec4 &color,
+                                 const float rotx,
+                                 const float roty,
+                                 const float rotz) : LAMP(name, color, LampDirectional)
 {
     /* Declare the up axis vector to be static, because it won't change. */
     vec3 up_axis = { 0.0f, 0.0f, 1.0f };
-    /* Allocate memory for a new LAMP. */
-    LAMP *lamp = (LAMP *) calloc(1, sizeof(LAMP));
-    /* Assign the name received in parameter to the structure, because it is
-     * always nice to have an internal name for each structure.
-     */
-    strcpy(lamp->name, name);
-    /* Assign the color to the lamp. */
-    memcpy(&lamp->color, color, sizeof(vec4));
-    /* Set the type of the lamp as 0 for directional. */
-    lamp->type = LampDirectional;
     /* Use the following helper function (which can be found in utils.cpp)
      * to rotate the up axis by the XYZ rotation angle received as parameters.
      * I think it's a lot easier to deal with angles when it comes to direction
      * vectors.
      */
-    create_direction_vector(&lamp->direction, &up_axis, rotx, roty, rotz);
-    /* Return the new lamp pointer. */
-    return lamp;
+    create_direction_vector(&this->direction, &up_axis, rotx, roty, rotz);
 }
 
-void LAMP_get_direction_in_eye_space(LAMP *lamp, mat4 *m, vec3 *direction)
+void DirectionalLamp::get_direction_in_eye_space(mat4 *m, vec3 *direction)
 {
     /* Multiply the current lamp direction by the view matrix received in
      * parameter to be able to calculate the lamp direction in eye space.
      */
     vec3_multiply_mat4(direction,
-                       &lamp->direction,
+                       &this->direction,
                        m);
     /* Invert the vector, because in eye space, the direction is simply the
      * inverted vector.
      */
     vec3_invert(direction, direction);
-}
-
-LAMP *LAMP_free(LAMP *lamp)
-{
-    free(lamp);
-    return NULL;
 }
 
 void program_bind_attrib_location(void *ptr) {
@@ -206,41 +265,7 @@ void program_draw(void *ptr)
         }
     }
 
-    /* A temp string to dynamically create the LAMP property names. */
-    char tmp[MAX_CHAR] = {""};
-    /* Create the uniform name for the color of the lamp. */
-    sprintf(tmp, "LAMP_FS.color");
-    /* Get the uniform location and send over the current lamp color. */
-    glUniform4fv(program->get_uniform_location(tmp),
-                 1,
-                 (float *)&lamp->color);
-
-    /* Check if the lamp type is directional.  If yes, you need to send
-     * over the normalized light direction vector in eye space.
-     */
-    if (lamp->type == LampDirectional) {
-        /* Temp variable to hold the direction in eye space. */
-        vec3 direction;
-        /* Create the lamp direction property name. */
-        sprintf(tmp, "LAMP_VS.direction");
-        /* Call the function that you created in the previous step to
-         * convert the current world space direction vector of the lamp
-         * to eye space.  Note that at this point, the current model view
-         * matrix stack is pushed because you are currently drawing the
-         * object.  In order to calculate the right direction vector of
-         * the lamp, what you are interested in is gaining access to the
-         * camera model view matrix.  To do this, all you have to do is
-         * request the previous model view matrix, because you push it
-         * once in the templateAppDraw function.
-         */
-        LAMP_get_direction_in_eye_space(lamp,
-                                        &gfx.modelview_matrix[gfx.modelview_matrix_index - 1],
-                                        &direction);
-        
-        glUniform3fv(program->get_uniform_location(tmp),
-                     1,
-                     (float *)&direction);
-    }
+    lamp->push_to_shader(program);
 }
 
 
@@ -288,11 +313,11 @@ void templateAppInit(int width, int height)
 
     vec4 color = { 1.0f, 1.0f, 1.0f, 1.0f };
 
-    lamp = LAMP_create_directional((char *)"sun",   // Internal name of lamp
-                                   &color,          // The lamp color.
-                                   -25.0f,          // The XYZ rotation angle in degrees
-                                   0.0f,          // that will be used to create the
-                                   -45.0f);         // direction vector.
+    lamp = new DirectionalLamp((char *)"sun",   // Internal name of lamp
+                               color,           // The lamp color.
+                               -25.0f,          // The XYZ rotation angle in degrees
+                               0.0f,            // that will be used to create the
+                               -45.0f);         // direction vector.
 }
 
 
@@ -338,7 +363,8 @@ void templateAppDraw(void)
 
 
 void templateAppExit(void) {
-    lamp = LAMP_free(lamp);
+    delete lamp;
+    lamp = NULL;
 
     delete obj;
 }
