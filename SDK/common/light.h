@@ -66,15 +66,15 @@ struct LIGHT {
     LIGHT(const LIGHT &src) {
         memset(name, 0, sizeof(name));
         strcpy(name, src.name);
-        memcpy(&color, &src.color, sizeof(vec4));
-        type = src.type;
+        color = src.color;
+        type  = src.type;
     }
     LIGHT &operator=(const LIGHT &rhs) {
         if (this != &rhs) {
             memset(name, 0, sizeof(name));
             strcpy(name, rhs.name);
-            memcpy(&color, &rhs.color, sizeof(vec4));
-            type = rhs.type;
+            color = rhs.color;
+            type  = rhs.type;
         }
         return *this;
     }
@@ -99,17 +99,18 @@ public:
                     const float roty,
                     const float rotz);
     ~DirectionalLight() {}
-    DirectionalLight(const DirectionalLight &src) : LIGHT(name, color, type) {
-        memcpy(&direction, &src.direction, sizeof(vec3));
+    DirectionalLight(const DirectionalLight &src) :
+        direction(src.direction), LIGHT(name, color, type) {
     }
     DirectionalLight &operator=(const DirectionalLight &rhs) {
         if (this != &rhs) {
             *dynamic_cast<LIGHT *>(this) = dynamic_cast<const LIGHT &>(rhs);
-            memcpy(&direction, &rhs.direction, sizeof(vec3));
+            direction = rhs.direction;
         }
         return *this;
     }
     void get_direction_in_eye_space(mat4 *m, vec3 *direction);
+    vec3 get_direction_in_eye_space(mat4 *m);
     void push_to_shader(PROGRAM *program);
 };
 
@@ -120,13 +121,13 @@ protected:
 public:
     PointLight(const char *name, const vec4 &color, const vec3 &position);
     ~PointLight() {}
-    PointLight(const PointLight &src) : LIGHT(name, color, type) {
-        memcpy(&position, &src.position, sizeof(vec4));
+    PointLight(const PointLight &src) :
+        position(src.position), LIGHT(name, color, type) {
     }
     PointLight &operator=(const PointLight &rhs) {
         if (this != &rhs) {
             *dynamic_cast<LIGHT *>(this) = dynamic_cast<const LIGHT &>(rhs);
-            memcpy(&position, &rhs.position, sizeof(vec4));
+            position = rhs.position;
         }
         return *this;
     }
@@ -206,17 +207,18 @@ public:
               */
              const float spot_blend);
     ~SpotLight() {}
-    SpotLight(const SpotLight &src) : PointLight(src) {
-        spot_cos_cutoff = src.spot_cos_cutoff;
-        spot_blend = src.spot_blend;
-        memcpy(&spot_direction, &src.spot_direction, sizeof(vec3));
+    SpotLight(const SpotLight &src) :
+        spot_fov(src.spot_fov), spot_cos_cutoff(src.spot_cos_cutoff),
+        spot_blend(src.spot_blend),
+        spot_direction(src.spot_direction), PointLight(src) {
     }
     SpotLight &operator=(const SpotLight &rhs) {
         if (this != &rhs) {
             *dynamic_cast<PointLight *>(this) = dynamic_cast<const PointLight &>(rhs);
+            spot_fov        = rhs.spot_fov;
             spot_cos_cutoff = rhs.spot_cos_cutoff;
-            spot_blend = rhs.spot_blend;
-            memcpy(&spot_direction, &rhs.spot_direction, sizeof(vec3));
+            spot_blend      = rhs.spot_blend;
+            spot_direction  = rhs.spot_direction;
         }
         return *this;
     }

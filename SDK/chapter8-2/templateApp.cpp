@@ -482,7 +482,9 @@ void templateAppDraw(void) {
 
         objmesh->btrigidbody->getWorldTransform().getOpenGLMatrix((float *)&mat);
 
-        memcpy(&objmesh->location, (vec3 *)&mat.m[3], sizeof(vec3));
+        objmesh->location.x = mat.m[3].x;
+        objmesh->location.y = mat.m[3].y;
+        objmesh->location.z = mat.m[3].z;
 
         GFX_multiply_matrix(&mat);
 

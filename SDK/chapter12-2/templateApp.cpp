@@ -337,7 +337,7 @@ void templateAppDraw(void)
      * to be updated and the VBOs have to be refreshed.
      */
     if (md5->draw_action(1.0f/60.0f))
-        md5->set_pose(idle->pose);
+        md5->set_pose(&idle->pose[0]);
 
     /* Draw the model onscreen. */
     md5->draw();

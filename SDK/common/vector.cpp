@@ -188,54 +188,36 @@ void vec3_to_recast( vec3 *v )
 				  v->z,
 			     -v->y };
 	
-	memcpy( v, &tmp, sizeof( vec3 ) );
+    *v = tmp;
 }
 
 
 void recast_to_vec3( vec3 *v )
 {
-	vec3 tmp = {  v->x,
-			     -v->z,
-			      v->y };
-	
-	memcpy( v, &tmp, sizeof( vec3 ) );
-}
+    vec3    tmp = { v->x,
+                   -v->z,
+                    v->y };
 
-
-void vec4_add( vec4 *dst, vec4 *v0, vec4 *v1 )
-{
-	dst->x = v0->x + v1->x;
-	dst->y = v0->y + v1->y;
-	dst->z = v0->z + v1->z;
-	dst->w = v0->w;// + v1->w;
-}
-
-
-void vec4_diff( vec4 *dst, vec4 *v0, vec4 *v1 )
-{
-	dst->x = v0->x - v1->x;
-	dst->y = v0->y - v1->y;
-	dst->z = v0->z - v1->z;
-	dst->w = v0->w;// - v1->w;
+    *v = tmp;
 }
 
 
 void vec4_build_w( vec4 * v )
 {
-	float l = 1.0f - ( v->x * v->x ) -
-					 ( v->y * v->y ) -
-					 ( v->z * v->z );
+    float l = 1.0f - ( v->x * v->x ) -
+                     ( v->y * v->y ) -
+                     ( v->z * v->z );
 
-	v->w = ( l < 0.0f ) ? 0.0f : -sqrtf( l );
+    v->w = ( l < 0.0f ) ? 0.0f : -sqrtf( l );
 }
 
 
 float vec4_dot( vec4 *v )
 {
-	return ( v->x * v->x ) + 
-		   ( v->y * v->y ) + 
-		   ( v->z * v->z ) + 
-		   ( v->w * v->w );
+    return ( v->x * v->x ) +
+           ( v->y * v->y ) +
+           ( v->z * v->z ) +
+           ( v->w * v->w );
 }
 
 
@@ -319,10 +301,7 @@ void vec4_lerp( vec4 *dst, vec4 *v0, vec4 *v1, float t )
 		  k0,
 		  k1;
 
-	vec4 tmp = { v1->x,
-				 v1->y,
-				 v1->z,
-				 v1->w };
+	vec4 tmp(*v1);
 	
 	if( t == 1.0f )
 	{
@@ -383,11 +362,8 @@ void vec4_slerp( vec4 *dst, vec4 *v0, vec4 *v1, float t )
 		  k0,
 		  k1;
 
-	vec4 tmp = { v1->x,
-				 v1->y,
-				 v1->z,
-				 v1->w };
-	
+        vec4 tmp(*v1);
+
 	if( t == 1.0f )
 	{
 		dst->x = v1->x;

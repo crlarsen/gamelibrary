@@ -90,15 +90,15 @@ enum TextureMap {
 #define MP_Shininess    ((char *)"SHININESS")
 
 struct OBJMATERIAL {
-    char                    name[MAX_CHAR];             // newmtl
+    char                    name[MAX_CHAR] = "";        // newmtl
 
-    vec4                    ambient;                    // Ka
+    vec4                    ambient = { 0, 0, 0, 0 };   // Ka
 
-    vec4                    diffuse;                    // Kd
+    vec4                    diffuse = { 0, 0, 0, 0 };   // Kd
 
-    vec4                    specular;                   // Ks
+    vec4                    specular = { 0, 0, 0, 0 };  // Ks
 
-    vec3                    transmission_filter;        // Tf
+    vec3                    transmission_filter = { 0, 0, 0 };// Tf
 
     int                     illumination_model;         // illum
 
@@ -227,11 +227,11 @@ enum VertexAttribute {  // Use with glBindAttribLocation()
 #define OFFSET_NO_TEXCOORD_NEEDED  (~0)
 
 struct OBJMESH {
-    char                            name[MAX_CHAR];     // o
+    char                            name[MAX_CHAR] = "";// o
 
     bool                            visible;
 
-    char                            group[MAX_CHAR];    // g
+    char                            group[MAX_CHAR] = "";// g
 
     std::vector<OBJVERTEXDATA>      objvertexdata;
 
@@ -239,17 +239,17 @@ struct OBJMESH {
 
     OBJMATERIAL                     *current_material;
 
-    vec3                            location;
+    vec3                            location = { 0, 0, 0 };
 
-    vec3                            rotation;
+    vec3                            rotation = { 0, 0, 0 };
 
-    vec3                            scale;
+    vec3                            scale = { 0, 0, 0 };
 
-    vec3                            min;
+    vec3                            min = { 0, 0, 0 };
 
-    vec3                            max;
+    vec3                            max = { 0, 0, 0 };
 
-    vec3                            dimension;
+    vec3                            dimension = { 0, 0, 0 };
 
     float                           radius;
 
@@ -261,7 +261,8 @@ struct OBJMESH {
 
     unsigned int                    size;
 
-    unsigned int                    offset[5];          // offsets for vector attributes
+    // offsets for vector attributes
+    unsigned int                    offset[5] = { ~0, ~0, ~0, ~0, ~0 };
 
     GLuint                          vao;
 
@@ -294,9 +295,9 @@ public:
 
 
 struct OBJ {
-    char                        texture_path[MAX_PATH];
+    char                        texture_path[MAX_PATH] = "";
 
-    char                        program_path[MAX_PATH];
+    char                        program_path[MAX_PATH] = "";
 
     std::vector<OBJMESH>        objmesh;
 

@@ -45,11 +45,8 @@
 
 void PROGRAM::init(char *name) {
     assert(name==NULL || strlen(name)<sizeof(this->name));
-    if (name==NULL) {
-        memset(this->name, 0, sizeof(this->name));
-    } else {
+    if (name)
         strcpy(this->name, name);
-    }
 }
 
 PROGRAM::PROGRAM(char *name) : vertex_shader(NULL),
@@ -68,6 +65,8 @@ PROGRAM::PROGRAM(char                       *name,
                  const bool                 debug_shader,
                  PROGRAMBINDATTRIBCALLBACK  *programbindattribcallback,
                  PROGRAMDRAWCALLBACK        *programdrawcallback) :
+    vertex_shader(NULL),
+    fragment_shader(NULL),
     pid(0),
     programdrawcallback(programdrawcallback),
     programbindattribcallback(programbindattribcallback)

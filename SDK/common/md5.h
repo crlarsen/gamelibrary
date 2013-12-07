@@ -45,8 +45,7 @@ as being the original software.
 #define MD5_H
 
 
-enum
-{
+enum MD5Method {
     MD5_METHOD_FRAME = 0,
     MD5_METHOD_LERP  = 1,
     MD5_METHOD_SLERP = 2
@@ -66,30 +65,56 @@ typedef struct
 } MD5JOINT;
 
 
-typedef struct
-{
-    vec2			uv;
+struct MD5VERTEX {
+    vec2		uv;
 
-    vec3			normal;
+    vec3		normal;
 
-    vec3			tangent;
+    vec3		tangent;
 
     unsigned int	start;
 
     unsigned int	count;
+    MD5VERTEX() : start(0), count(0) {
+        memset(&uv,      0, sizeof(uv));
+        memset(&normal,  0, sizeof(normal));
+        memset(&tangent, 0, sizeof(tangent));
+    }
+    ~MD5VERTEX() {}
+    MD5VERTEX(const MD5VERTEX &src) :
+        uv(src.uv), normal(src.normal), tangent(src.tangent),
+        start(src.start), count(src.count) {}
+    MD5VERTEX &operator=(const MD5VERTEX &rhs) {
+        if (this != &rhs) {
+            uv      = rhs.uv;
+            normal  = rhs.normal;
+            tangent = rhs.tangent;
+            start   = rhs.start;
+            count   = rhs.count;
+        }
+        return *this;
+    }
+};
 
-} MD5VERTEX;
 
-
-typedef struct
-{
+struct MD5TRIANGLE {
     unsigned short indice[ 3 ];
-    
-} MD5TRIANGLE;
+    MD5TRIANGLE() {
+        memset(indice, 0, sizeof(indice));
+    }
+    ~MD5TRIANGLE() {}
+    MD5TRIANGLE(const MD5TRIANGLE &src) {
+        memcpy(indice, src.indice, sizeof(indice));
+    }
+    MD5TRIANGLE &operator=(const MD5TRIANGLE &rhs) {
+        if (this != &rhs)
+            memcpy(indice, rhs.indice, sizeof(indice));
+        return *this;
+    }
+};
 
 
-typedef struct
-{
+struct MD5WEIGHT {
     int		joint;
 
     float	bias;
@@ -99,12 +124,31 @@ typedef struct
     vec3	normal;
 
     vec3	tangent;
-    
-} MD5WEIGHT;
+
+    MD5WEIGHT() : joint(0), bias(0) {
+        memset(&location, 0, sizeof(location));
+        memset(&normal,   0, sizeof(normal));
+        memset(&tangent,  0, sizeof(tangent));
+    }
+    ~MD5WEIGHT() {}
+    MD5WEIGHT(const MD5WEIGHT &src) :
+        joint(src.joint), bias(src.bias), location(src.location),
+        normal(src.normal), tangent(src.tangent) {}
+    MD5WEIGHT &operator=(const MD5WEIGHT &rhs) {
+        if (this != &rhs) {
+            joint    = rhs.joint;
+            bias     = rhs.bias;
+            location = rhs.location;
+            normal   = rhs.normal;
+            tangent  = rhs.tangent;
+        }
+        return *this;
+    }
+};
 
 
 struct MD5MESH {
-    char		shader[ MAX_CHAR ];
+    char		shader[ MAX_CHAR ] = "";
 
     std::vector<MD5VERTEX>  md5vertex;
 
@@ -114,7 +158,7 @@ struct MD5MESH {
 
     unsigned int	stride;
 
-    unsigned int	offset[ 4 ];
+    unsigned int	offset[ 4 ] = { 0, 0, 0, 0 };
 
     unsigned char	*vertex_data;
 
@@ -136,6 +180,30 @@ struct MD5MESH {
 
     OBJMATERIAL		*objmaterial;
 public:
+    MD5MESH(const char *name=NULL);
+    ~MD5MESH() {}
+    MD5MESH(const MD5MESH &src);
+    MD5MESH &operator=(const MD5MESH &rhs) {
+        if (this != &rhs) {
+            strcpy(shader, rhs.shader);
+            md5vertex   = rhs.md5vertex;
+            vbo         = rhs.vbo;
+            size        = rhs.size;
+            stride      = rhs.stride;
+            memcpy(offset, rhs.offset, sizeof(offset));
+            vertex_data = rhs.vertex_data;
+            md5triangle = rhs.md5triangle;
+            mode        = rhs.mode;
+            n_indice    = rhs.n_indice;
+            indice      = rhs.indice;
+            vbo_indice  = rhs.vbo_indice;
+            md5weight   = rhs.md5weight;
+            vao         = rhs.vao;
+            visible     = rhs.visible;
+            objmaterial = rhs.objmaterial;
+        }
+        return *this;
+    }
     void set_mesh_attributes();
     void set_mesh_visibility(const bool visible);
     void set_mesh_material(OBJMATERIAL *objmaterial);
@@ -143,11 +211,11 @@ public:
 };
 
 struct MD5ACTION {
-    char			name[ MAX_CHAR ];
+    char			name[ MAX_CHAR ] = "";
 
     std::vector<MD5JOINT*>   frame;
 
-    MD5JOINT		*pose;
+    std::vector<MD5JOINT>   pose;
 
     int			curr_frame;
 
@@ -155,7 +223,7 @@ struct MD5ACTION {
 
     unsigned char	state;
 
-    unsigned char	method;
+    MD5Method           method;
 
     bool                loop;
 
@@ -163,7 +231,8 @@ struct MD5ACTION {
 
     float		fps;
 public:
-    void action_play(const unsigned char frame_interpolation_method,
+    MD5ACTION(const char *name=NULL);
+    void action_play(const MD5Method frame_interpolation_method,
                      const bool loop);
     void action_pause();
     void action_stop();
@@ -171,7 +240,7 @@ public:
 };
 
 struct MD5 {
-    char		name[ MAX_CHAR ];
+    char		name[ MAX_CHAR ] = "";
 
     bool                visible;
 
@@ -181,17 +250,17 @@ struct MD5 {
 
     std::vector<MD5ACTION>   md5action;
 
-    vec3		location;
+    vec3		location = { 0, 0, 0 };
 
-    vec3		rotation;
+    vec3		rotation = { 0, 0, 0 };
 
-    vec3		scale;
+    vec3		scale = { 1, 1, 1 };
 
-    vec3		min;
+    vec3		min = { 0, 0, 0 };
 
-    vec3		max;
+    vec3		max = { 0, 0, 0 };
 
-    vec3		dimension;
+    vec3		dimension = { 0, 0, 0 };
 
     float		radius;
 

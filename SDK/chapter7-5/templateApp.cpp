@@ -208,9 +208,9 @@ void templateAppInit(int width, int height) {
     /* Copy the initial location of the ball to the eye variable and to the
      * center variable.  This way, you have an initial location where the camera is
      * going to start looking the program starts. */
-    memcpy(&eye, &player->location, sizeof(vec3));
-		
-    memcpy(&center, &player->location, sizeof(vec3));
+    eye = player->location;
+
+    center = player->location;
     /* Give a little offset on the Y axis to make sure that the scene can be
      * covered by the camera eye position (well at least mostly).
      */
@@ -290,7 +290,9 @@ void templateAppDraw(void) {
 
         objmesh->btrigidbody->getWorldTransform().getOpenGLMatrix((float *)&mat);
 
-        memcpy(&objmesh->location, (vec3 *)&mat.m[3], sizeof(vec3));
+        objmesh->location.x = mat.m[3].x;
+        objmesh->location.y = mat.m[3].y;
+        objmesh->location.z = mat.m[3].z;
 
         GFX_multiply_matrix(&mat);
 

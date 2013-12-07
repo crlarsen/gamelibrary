@@ -262,6 +262,22 @@ void DirectionalLight::get_direction_in_eye_space(mat4 *m, vec3 *direction)
     vec3_invert(direction, direction);
 }
 
+vec3 DirectionalLight::get_direction_in_eye_space(mat4 *m)
+{
+    vec3    direction;
+    /* Multiply the current lamp direction by the view matrix received in
+     * parameter to be able to calculate the lamp direction in eye space.
+     */
+    vec3_multiply_mat4(&direction,
+                       &this->direction,
+                       m);
+    /* Invert the vector, because in eye space, the direction is simply the
+     * inverted vector.
+     */
+    vec3_invert(&direction, &direction);
+
+    return direction;
+}
 
 
 /* This function is basically very easy.  In the same way that you

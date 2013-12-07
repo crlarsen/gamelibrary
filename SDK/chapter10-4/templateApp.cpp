@@ -78,15 +78,15 @@ struct LAMP {
     LAMP(const LAMP &src) {
         memset(name, 0, sizeof(name));
         strcpy(name, src.name);
-        memcpy(&color, &src.color, sizeof(vec4));
-        type = src.type;
+        color = src.color;
+        type  = src.type;
     }
     LAMP &operator=(const LAMP &rhs) {
         if (this != &rhs) {
             memset(name, 0, sizeof(name));
             strcpy(name, rhs.name);
-            memcpy(&color, &rhs.color, sizeof(vec4));
-            type = rhs.type;
+            color = rhs.color;
+            type  = rhs.type;
         }
         return *this;
     }
@@ -114,12 +114,12 @@ public:
                     const float rotz);
     ~DirectionalLamp() {}
     DirectionalLamp(const DirectionalLamp &src) : LAMP(name, color, type) {
-        memcpy(&direction, &src.direction, sizeof(vec3));
+        direction = src.direction;
     }
     DirectionalLamp &operator=(const DirectionalLamp &rhs) {
         if (this != &rhs) {
             *dynamic_cast<LAMP *>(this) = dynamic_cast<const LAMP &>(rhs);
-            memcpy(&direction, &rhs.direction, sizeof(vec3));
+            direction = rhs.direction;
         }
         return *this;
     }
@@ -190,12 +190,12 @@ public:
     PointLamp(const char *name, const vec4 &color, const vec3 &position);
     ~PointLamp() {}
     PointLamp(const PointLamp &src) : LAMP(name, color, type) {
-        memcpy(&position, &src.position, sizeof(vec4));
+        position = src.position;
     }
     PointLamp &operator=(const PointLamp &rhs) {
         if (this != &rhs) {
             *dynamic_cast<LAMP *>(this) = dynamic_cast<const LAMP &>(rhs);
-            memcpy(&position, &rhs.position, sizeof(vec4));
+            position = rhs.position;
         }
         return *this;
     }
@@ -269,17 +269,16 @@ public:
                         const float quadratic_attenuation);
     ~AttenuatedPointLamp() {}
     AttenuatedPointLamp(const AttenuatedPointLamp &src) : PointLamp(src) {
-        linear_attenuation = src.linear_attenuation;
+        linear_attenuation    = src.linear_attenuation;
         quadratic_attenuation = src.quadratic_attenuation;
-        distance = src.distance;
-        type = src.type;
+        distance              = src.distance;
     }
     AttenuatedPointLamp &operator=(const AttenuatedPointLamp &rhs) {
         if (this != &rhs) {
             *dynamic_cast<PointLamp *>(this) = dynamic_cast<const PointLamp &>(rhs);
-            linear_attenuation = rhs.linear_attenuation;
+            linear_attenuation    = rhs.linear_attenuation;
             quadratic_attenuation = rhs.quadratic_attenuation;
-            distance = rhs.distance;
+            distance              = rhs.distance;
         }
         return *this;
     }

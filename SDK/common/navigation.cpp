@@ -50,15 +50,8 @@ NAVIGATION::NAVIGATION(char *name) :
     program(NULL)
 {
     assert(name==NULL || strlen(name)<sizeof(this->name));
-    if (name == NULL) {
-        memset(this->name, 0, sizeof(this->name));
-    } else {
+    if (name)
         strcpy(this->name, name);
-    }
-
-    this->tolerance.x = 1.0f;
-    this->tolerance.y = 2.0f;
-    this->tolerance.z = 1.0f;
 }
 
 
@@ -79,8 +72,8 @@ bool NAVIGATION::build(OBJMESH *objmesh)
 
     int *indices = NULL;
 
-    vec3 *vertex_array = (vec3 *) malloc(objmesh->objvertexdata.size() * sizeof(vec3)),
-    *vertex_start = vertex_array;
+    vec3    *vertex_array = (vec3 *) malloc(objmesh->objvertexdata.size() * sizeof(vec3)),
+            *vertex_start = vertex_array;
 
     rcHeightfield *rcheightfield;
 
@@ -95,9 +88,8 @@ bool NAVIGATION::build(OBJMESH *objmesh)
     
     for (auto objvertexdata=objmesh->objvertexdata.begin();
          objvertexdata != objmesh->objvertexdata.end(); ++objvertexdata) {
-        memcpy(vertex_array,
-               &objmesh->parent->indexed_vertex[objvertexdata->vertex_index],
-               sizeof(vec3));
+        *vertex_array =
+            objmesh->parent->indexed_vertex[objvertexdata->vertex_index];
 
         vec3_to_recast(vertex_array);
 
@@ -331,13 +323,8 @@ bool NAVIGATION::build(OBJMESH *objmesh)
 
 bool NAVIGATION::get_path(NAVIGATIONPATH *navigationpath, NAVIGATIONPATHDATA *navigationpathdata)
 {
-    vec3    start_location = { navigationpath->start_location.x,
-                               navigationpath->start_location.y,
-                               navigationpath->start_location.z },
-
-            end_location = { navigationpath->end_location.x,
-                             navigationpath->end_location.y,
-                             navigationpath->end_location.z };
+    vec3    &start_location = navigationpath->start_location,
+            &end_location   = navigationpath->end_location;
 
     vec3_to_recast(&start_location);
 
@@ -371,7 +358,7 @@ bool NAVIGATION::get_path(NAVIGATIONPATH *navigationpath, NAVIGATIONPATHDATA *na
                                                 (float *)&end_location,
                                                 (float *)&closest_end);
         } else {
-            memcpy(&closest_end, &navigationpath->end_location, sizeof(vec3));
+            closest_end = navigationpath->end_location;
         }
 
 
@@ -384,10 +371,8 @@ bool NAVIGATION::get_path(NAVIGATIONPATH *navigationpath, NAVIGATIONPATHDATA *na
                                                                                  navigationpathdata->path_poly_array,
                                                                                  NAVIGATION_MAX_POLY);
         
-        memcpy(&navigationpathdata->path_point_array[navigationpathdata->path_point_count],
-               &end_location,
-               sizeof(vec3));
-        
+        navigationpathdata->path_point_array[navigationpathdata->path_point_count] = end_location;
+
         
         if (navigationpathdata->path_point_count) {
             for (int i=0; i != navigationpathdata->path_point_count + 1; ++i)

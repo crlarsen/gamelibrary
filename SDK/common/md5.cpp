@@ -44,31 +44,14 @@ as being the original software.
 #include "gfx.h"
 
 
-MD5::MD5(char *filename, const bool relative_path)
+MD5::MD5(char *filename, const bool relative_path) :
+    visible(true), radius(0.0f), distance(1.0f), btrigidbody(NULL)
 {
     MEMORY  *m = new MEMORY(filename, relative_path);
 
     if (!m) return;
 
-    memset(name, 0, sizeof(name));
-
-    memset(&location, 0, sizeof(vec3));
-    memset(&rotation, 0, sizeof(vec3));
-    memset(&min, 0, sizeof(vec3));
-    memset(&max, 0, sizeof(vec3));
-    memset(&dimension, 0, sizeof(vec3));
-
-    radius = 0.0;
-
-    btrigidbody = NULL;
-
     get_file_name(filename, this->name);
-
-    this->distance =
-    this->scale.x  =
-    this->scale.y  =
-    this->scale.z  = 1.0f;
-    this->visible  = true;
 
     char *line = strtok((char *)m->buffer, "\n");
 
@@ -84,12 +67,6 @@ MD5::MD5(char *filename, const bool relative_path)
             this->bind_pose.resize(n_joint);
         } else if (sscanf(line, "numMeshes %d", &n_mesh) == 1) {
             this->md5mesh.resize(n_mesh);
-
-            for (auto md5mesh=this->md5mesh.begin();
-                 md5mesh != this->md5mesh.end(); ++md5mesh) {
-                md5mesh->mode = GL_TRIANGLES;
-                md5mesh->visible = true;
-            }
         } else if (!strncmp(line, "joints {", 8)) {
             unsigned int i = 0;
 
@@ -118,7 +95,7 @@ MD5::MD5(char *filename, const bool relative_path)
 
             MD5TRIANGLE md5triangle;
 
-            MD5WEIGHT md5weight;
+            static MD5WEIGHT md5weight;
 
             line = strtok(NULL, "\n");
 
@@ -140,9 +117,7 @@ MD5::MD5(char *filename, const bool relative_path)
                                   &md5vertex.uv.y,
                                   &md5vertex.start,
                                   &md5vertex.count) == 5) {
-                    memcpy(&this->md5mesh[mesh_index].md5vertex[int_val],
-                           &md5vertex,
-                           sizeof(MD5VERTEX));
+                    this->md5mesh[mesh_index].md5vertex[int_val] = md5vertex;
                 } else if (sscanf(line, " numtris %d", &n_triangle) == 1) {
                     this->md5mesh[mesh_index].n_indice = n_triangle * 3;
 
@@ -153,9 +128,7 @@ MD5::MD5(char *filename, const bool relative_path)
                                   &md5triangle.indice[2],
                                   &md5triangle.indice[1],
                                   &md5triangle.indice[0]) == 4) {
-                    memcpy(&this->md5mesh[mesh_index].md5triangle[int_val],
-                           &md5triangle,
-                           sizeof(MD5TRIANGLE));
+                    this->md5mesh[mesh_index].md5triangle[int_val] = md5triangle;
                 } else if (sscanf(line, " numweights %d", &n_weight) == 1) {
                     this->md5mesh[mesh_index].md5weight.resize(n_weight);
                 } else if (sscanf(line,
@@ -166,11 +139,10 @@ MD5::MD5(char *filename, const bool relative_path)
                                   &md5weight.location.x,
                                   &md5weight.location.y,
                                   &md5weight.location.z) == 6) {
-                    memcpy(&this->md5mesh[mesh_index].md5weight[int_val],
-                           &md5weight,
-                           sizeof(MD5WEIGHT));
+                    this->md5mesh[mesh_index].md5weight[int_val] = md5weight;
+
                 }
-                
+
             next_mesh_line:
                 line = strtok(NULL, "\n");
             }
@@ -206,16 +178,9 @@ int MD5::load_action(char *name, char *filename, const bool relative_path)
 
     MD5ACTION *md5action;
 
-    this->md5action.resize(this->md5action.size()+1);
+    this->md5action.push_back(MD5ACTION(name));
 
-    md5action = &this->md5action[this->md5action.size() - 1];
-
-    memset(md5action, 0, sizeof(MD5ACTION));
-
-    strcpy(md5action->name, name);
-
-    md5action->curr_frame = 0;
-    md5action->next_frame = 1;
+    md5action = &this->md5action.back();
 
 
     char *line = strtok((char *)m->buffer, "\n");
@@ -237,8 +202,7 @@ int MD5::load_action(char *name, char *filename, const bool relative_path)
         } else if (sscanf(line, "numJoints %d", &int_val) == 1) {
             if (this->bind_pose.size() != int_val) goto cleanup;
 
-            md5action->pose = (MD5JOINT *) malloc(this->bind_pose.size() *
-                                                  sizeof(MD5JOINT));
+            md5action->pose.resize(this->bind_pose.size());
 
             for (int i=0; i != this->bind_pose.size(); ++i) {
                 strcpy(md5action->pose[i].name, this->bind_pose[i].name);
@@ -307,7 +271,7 @@ int MD5::load_action(char *name, char *filename, const bool relative_path)
 cleanup:
     
     
-    this->md5action.resize(this->md5action.size()-1);
+    this->md5action.resize(this->md5action.size() - 1);
     delete m;
     
     return -1;
@@ -349,7 +313,7 @@ MD5::~MD5()
 
         if (md5action->frame.size()) md5action->frame.resize(0);
         
-        if (md5action->pose) free(md5action->pose);
+        md5action->pose.clear();
     }
     
     this->md5action.resize(0);
@@ -370,11 +334,13 @@ void MD5::free_mesh_data()
 
 MD5ACTION *MD5::get_action(char *name, const bool exact_name)
 {
-    for (int i=0; i != this->md5action.size(); ++i) {
-        if (exact_name) {
+    if (exact_name) {
+        for (int i=0; i != this->md5action.size(); ++i) {
             if (!strcmp(this->md5action[i].name, name))
                 return &this->md5action[i];
-        } else {
+        }
+    } else {
+        for (int i=0; i != this->md5action.size(); ++i) {
             if (strstr(this->md5action[i].name, name))
                 return &this->md5action[i];
         }
@@ -386,12 +352,15 @@ MD5ACTION *MD5::get_action(char *name, const bool exact_name)
 
 MD5MESH *MD5::get_mesh(char *name, const bool exact_name)
 {
-    for (auto md5mesh=this->md5mesh.begin();
-         md5mesh != this->md5mesh.end(); ++md5mesh) {
-        if (exact_name) {
+    if (exact_name) {
+        for (auto md5mesh=this->md5mesh.begin();
+             md5mesh != this->md5mesh.end(); ++md5mesh) {
             if (!strcmp(md5mesh->shader, name))
                 return &(*md5mesh);
-        } else {
+        }
+    } else {
+        for (auto md5mesh=this->md5mesh.begin();
+             md5mesh != this->md5mesh.end(); ++md5mesh) {
             if (strstr(md5mesh->shader, name))
                 return &(*md5mesh);
         }
@@ -401,8 +370,16 @@ MD5MESH *MD5::get_mesh(char *name, const bool exact_name)
 }
 
 
+MD5ACTION::MD5ACTION(const char *name) : curr_frame(0), next_frame(1),
+                                         state(STOP), method(MD5_METHOD_FRAME),
+                                         loop(false), frame_time(0), fps(0)
+{
+    assert(name==NULL || strlen(name)<sizeof(this->name));
+    if (name)
+        strcpy(this->name, name);
+}
 
-void MD5ACTION::action_play(const unsigned char frame_interpolation_method,
+void MD5ACTION::action_play(const MD5Method frame_interpolation_method,
                             const bool loop)
 {
     this->method = frame_interpolation_method;
@@ -436,6 +413,27 @@ void MD5ACTION::set_action_fps(float fps)
     this->fps = 1.0f / fps;
 }
 
+MD5MESH::MD5MESH(const char *name) :
+    vbo(0), size(0), stride(0), vertex_data(NULL),
+    mode(GL_TRIANGLES), n_indice(0), vbo_indice(0),
+    vao(0), visible(true), objmaterial(NULL)
+{
+    assert(name==NULL || strlen(name)<sizeof(shader));
+    if (name)
+        strcpy(shader, name);
+}
+
+MD5MESH::MD5MESH(const MD5MESH &src) :
+    md5vertex(src.md5vertex), vbo(src.vbo), size(src.size),
+    stride(src.stride),vertex_data(src.vertex_data),
+    md5triangle(src.md5triangle), mode(src.mode), n_indice(src.n_indice),
+    indice(src.indice), vbo_indice(src.vbo_indice), md5weight(src.md5weight),
+    vao(src.vao), visible(src.visible), objmaterial(src.objmaterial)
+{
+    strcpy(shader, src.shader);
+
+    memcpy(offset, src.offset, sizeof(offset));
+}
 
 void MD5MESH::set_mesh_attributes()
 {
@@ -547,11 +545,11 @@ void MD5::build_vbo(unsigned int mesh_index)
 
     md5mesh->offset[1] = md5mesh->md5vertex.size() * sizeof(vec3);
 
-    md5mesh->offset[2] =   md5mesh->offset[1] +
-    (md5mesh->md5vertex.size() * sizeof(vec3));
+    md5mesh->offset[2] = md5mesh->offset[1] +
+                         (md5mesh->md5vertex.size() * sizeof(vec3));
 
-    md5mesh->offset[3] =   md5mesh->offset[2] +
-    (md5mesh->md5vertex.size() * sizeof(vec2));
+    md5mesh->offset[3] = md5mesh->offset[2] +
+                         (md5mesh->md5vertex.size() * sizeof(vec2));
 
 
     glGenBuffers(1, &md5mesh->vbo);
@@ -614,19 +612,16 @@ void MD5MESH::build_vbo()
 
 void MD5::build_bind_pose_weighted_normals_tangents()
 {
+    static vec3 zero = {0, 0, 0 };
+
     for (auto md5mesh=this->md5mesh.begin(); md5mesh != this->md5mesh.end(); ++md5mesh) {
 
         vec3 *vertex_array = (vec3 *)md5mesh->vertex_data;
 
         for (auto md5vertex=md5mesh->md5vertex.begin();
              md5vertex!=md5mesh->md5vertex.end(); ++md5vertex) {
-            memset(&md5vertex->normal,
-                   0,
-                   sizeof(vec3));
-
-            memset(&md5vertex->tangent,
-                   0,
-                   sizeof(vec3));
+            md5vertex->normal  =
+            md5vertex->tangent = zero;
         }
 
         for (int j=0; j != md5mesh->md5triangle.size(); ++j) {
@@ -651,17 +646,9 @@ void MD5::build_bind_pose_weighted_normals_tangents()
 
             // Flat normals
             /*
-             memcpy(&md5mesh->md5vertex[md5triangle->indice[0]].normal,
-             &normal,
-             sizeof(vec3));
-
-             memcpy(&md5mesh->md5vertex[md5triangle->indice[1]].normal,
-             &normal,
-             sizeof(vec3));
-
-             memcpy(&md5mesh->md5vertex[md5triangle->indice[2]].normal,
-             &normal,
-             sizeof(vec3));
+             md5mesh->md5vertex[md5triangle->indice[0]].normal =
+             md5mesh->md5vertex[md5triangle->indice[1]].normal =
+             md5mesh->md5vertex[md5triangle->indice[2]].normal = normal;
              */
 
             // Smooth normals
@@ -723,16 +710,10 @@ void MD5::build_bind_pose_weighted_normals_tangents()
             vec3_normalize(&tangent, &tangent);
         }
 
-
         for (auto md5weight=md5mesh->md5weight.begin();
              md5weight!=md5mesh->md5weight.end(); ++md5weight) {
-            memset(&md5weight->normal,
-                   0,
-                   sizeof(vec3));
-
-            memset(&md5weight->tangent,
-                   0,
-                   sizeof(vec3));
+            md5weight->normal  =
+            md5weight->tangent = zero;
         }
 
 
@@ -744,18 +725,10 @@ void MD5::build_bind_pose_weighted_normals_tangents()
 
                 MD5JOINT *md5joint = &this->bind_pose[md5weight->joint];
 
-                vec3 normal = { md5vertex->normal.x,
-                    md5vertex->normal.y,
-                    md5vertex->normal.z },
-
-                tangent = { md5vertex->tangent.x,
-                    md5vertex->tangent.y,
-                    md5vertex->tangent.z };
+                vec3    normal(md5vertex->normal),
+                        tangent(md5vertex->tangent);
                 
-                vec4 rotation = { md5joint->rotation.x,
-                    md5joint->rotation.y,
-                    md5joint->rotation.z,
-                    md5joint->rotation.w };
+                vec4    rotation(md5joint->rotation);
                 
                 
                 vec4_conjugate(&rotation, &rotation);
@@ -811,9 +784,9 @@ void MD5::set_pose(MD5JOINT *pose)
             MD5VERTEX *md5vertex = &md5mesh->md5vertex[j];
 
             for (int k=0; k != md5vertex->count; ++k) {
-                vec3 location = { 0.0f, 0.0f, 0.0f },
-                normal   = { 0.0f, 0.0f, 0.0f },
-                tangent  = { 0.0f, 0.0f, 0.0f };
+                vec3    location = { 0.0f, 0.0f, 0.0f },
+                        normal   = { 0.0f, 0.0f, 0.0f },
+                        tangent  = { 0.0f, 0.0f, 0.0f };
 
 
                 MD5WEIGHT *md5weight = &md5mesh->md5weight[md5vertex->start + k];
@@ -845,8 +818,7 @@ void MD5::set_pose(MD5JOINT *pose)
                 tangent_array[j].z += tangent.z * md5weight->bias;
             }
             
-            uv_array[j].x = md5vertex->uv.x;
-            uv_array[j].y = md5vertex->uv.y;
+            uv_array[j] = md5vertex->uv;
         }
         
         
@@ -933,11 +905,9 @@ void MD5::add_pose(MD5JOINT *final_pose, MD5ACTION *action0,
                     break;
                 }
             }
-        }
-        else
-        {
-            memcpy(&final_pose[i].location, &action0->pose[i].location, sizeof(vec3));
-            memcpy(&final_pose[i].rotation, &action0->pose[i].rotation, sizeof(vec4));
+        } else {
+            final_pose[i].location = action0->pose[i].location;
+            final_pose[i].rotation = action0->pose[i].rotation;
         }
     }
 }
@@ -1041,7 +1011,7 @@ bool MD5::draw_action(float time_step)
                 case MD5_METHOD_FRAME:
                 {
                     if (md5action->frame_time >= md5action->fps) {
-                        memcpy(md5action->pose,
+                        memcpy(&md5action->pose[0],
                                md5action->frame[md5action->curr_frame],
                                this->bind_pose.size() * sizeof(MD5JOINT));
 
@@ -1075,7 +1045,7 @@ bool MD5::draw_action(float time_step)
                 {
                     float t = CLAMP(md5action->frame_time / md5action->fps, 0.0f, 1.0f);
 
-                    this->blend_pose(md5action->pose,
+                    this->blend_pose(&md5action->pose[0],
                                      md5action->frame[md5action->curr_frame],
                                      md5action->frame[md5action->next_frame],
                                      md5action->method,

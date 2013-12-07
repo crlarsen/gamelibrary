@@ -223,7 +223,7 @@ void templateAppInit(int width, int height)
     }
 
     /* Load the MD5 mesh file from disk. */
-    md5 = new MD5(MD5_MESH, 1);
+    md5 = new MD5(MD5_MESH, true);
 
     /* Convert the triangles to triangle strips. */
     md5->optimize(128);

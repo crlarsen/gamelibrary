@@ -159,11 +159,11 @@ void templateAppInit(int width, int height)
         /* Get the current vertex data index. */
         index = objmesh->objvertexdata[i].vertex_index;
         /* Append the vertex position to the vertex data array. */
-        memcpy(vertex_array, &obj->indexed_vertex[index], sizeof(vec3));
+        *reinterpret_cast<vec3*>(vertex_array) = obj->indexed_vertex[index];
         /* Increment the current memory position to move on to the next insertion point. */
         vertex_array += sizeof(vec3);
         /* Insert the vertex normal at the current position. */
-        memcpy(vertex_array, &obj->indexed_normal[index], sizeof(vec3));
+        *reinterpret_cast<vec3*>(vertex_array) = obj->indexed_normal[index];
         /* Move on to the next insertion point. */
         vertex_array += sizeof(vec3);
     }

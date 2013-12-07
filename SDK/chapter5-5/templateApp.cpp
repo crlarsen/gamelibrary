@@ -135,7 +135,6 @@ void material_draw_callback(void *ptr)
 }
 
 void templateAppInit(int width, int height) {
-
     atexit(templateAppExit);
 
     GFX_start();

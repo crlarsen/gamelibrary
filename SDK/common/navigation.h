@@ -121,11 +121,11 @@ typedef struct
 
 
 struct NAVIGATION {
-    char                    name[MAX_CHAR];
+    char                    name[MAX_CHAR] = "";
 
     NAVIGATIONCONFIGURATION navigationconfiguration;
 
-    vec3                    tolerance;
+    vec3                    tolerance = { 1, 2, 1 };
 
     unsigned char           *triangle_flags;
 
@@ -133,7 +133,7 @@ struct NAVIGATION {
     
     PROGRAM                 *program;
 public:
-    NAVIGATION(char *name);
+    NAVIGATION(char *name=NULL);
     ~NAVIGATION();
     bool build(OBJMESH *objmesh);
     bool get_path(NAVIGATIONPATH *navigationpath, NAVIGATIONPATHDATA *navigationpathdata);

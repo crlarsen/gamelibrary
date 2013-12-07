@@ -67,7 +67,7 @@ struct FONT {
 public:
     FONT(char *name);
     ~FONT();
-    bool load(char *filename, bool relative_path, float font_size,
+    bool load(char *filename, const bool relative_path, float font_size,
               unsigned int texture_width, unsigned int texture_height,
               int first_character, int count_character);
     void print(float x, float y, char *text, vec4 *color);

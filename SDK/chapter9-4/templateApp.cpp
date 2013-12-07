@@ -400,7 +400,7 @@ void load_level(void)
 
     player->btrigidbody->setFriction(10.0f);
 
-    memcpy(&eye, &player->location, sizeof(vec3));
+    eye = player->location;
     
     for (auto texture=obj->texture.begin();
          texture!=obj->texture.end(); ++texture) {
@@ -774,7 +774,9 @@ void templateAppDraw(void) {
 
                 objmesh->btrigidbody->getWorldTransform().getOpenGLMatrix((float *)&mat);
 
-                memcpy(&objmesh->location, (vec3 *)&mat.m[3], sizeof(vec3));
+                objmesh->location.x = mat.m[3].x;
+                objmesh->location.y = mat.m[3].y;
+                objmesh->location.z = mat.m[3].z;
 
                 GFX_multiply_matrix(&mat);
             } else {

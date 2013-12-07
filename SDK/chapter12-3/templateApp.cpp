@@ -394,9 +394,9 @@ void templateAppDraw(void)
     md5->blend_pose(/* The final skeleton. */
                     final_pose,
                     /* The first action to use for blending. */
-                    idle->pose,
+                    &idle->pose[0],
                     /* The second action to use for blending. */
-                    walk->pose,
+                    &walk->pose[0],
                     /* The method to use to blend the two skeletons
                      * together based on the blend factor passed to the
                      * function.  Note that joint's position will always

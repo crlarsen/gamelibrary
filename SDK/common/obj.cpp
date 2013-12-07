@@ -75,15 +75,7 @@ OBJMESH::OBJMESH(OBJ *parent) : name(""), visible(false), group(""),
                                 distance(0.0f), vbo(0), stride(0),
                                 size(0), vao(0), btrigidbody(NULL),
                                 use_smooth_normals(false), parent(parent)
-{
-    memset(&location, 0, sizeof(vec3));
-    memset(&rotation, 0, sizeof(vec3));
-    memset(&scale, 0, sizeof(vec3));
-    memset(&min, 0, sizeof(vec3));
-    memset(&max, 0, sizeof(vec3));
-    memset(&dimension, 0, sizeof(vec3));
-    memset(offset, ~0, sizeof(offset));
-}
+{}
 
 OBJMESH::OBJMESH(char *name, bool visible, char *group, float scale_x,
                  float scale_y, float scale_z, float distance,
@@ -94,29 +86,16 @@ OBJMESH::OBJMESH(char *name, bool visible, char *group, float scale_x,
     parent(parent)
 {
     assert(name==NULL || strlen(name) < sizeof(this->name));
-    if (name) {
+    if (name)
         strcpy(this->name, name);
-    } else {
-        memset(this->name, 0, sizeof(this->name));
-    }
 
     assert(strlen(group) < sizeof(this->group));
-    if (group) {
+    if (group)
         strcpy(this->group, group);
-    } else {
-        memset(this->group, 0, sizeof(this->group));
-    }
 
     scale.x = scale_x;
     scale.y = scale_y;
     scale.z = scale_z;
-
-    memset(&location, 0, sizeof(vec3));
-    memset(&rotation, 0, sizeof(vec3));
-    memset(&min, 0, sizeof(vec3));
-    memset(&max, 0, sizeof(vec3));
-    memset(&dimension, 0, sizeof(vec3));
-    memset(offset, ~0, sizeof(offset));
 }
 
 OBJMESH::~OBJMESH()
@@ -130,6 +109,12 @@ OBJMESH::OBJMESH(const OBJMESH &src) :
     objvertexdata(src.objvertexdata),
     objtrianglelist(src.objtrianglelist),
     current_material(src.current_material),
+    location(src.location),
+    rotation(src.rotation),
+    scale(src.scale),
+    min(src.min),
+    max(src.max),
+    dimension(src.dimension),
     radius(src.radius),
     distance(src.distance),
     vbo(src.vbo),
@@ -142,13 +127,6 @@ OBJMESH::OBJMESH(const OBJMESH &src) :
 {
     strcpy(name, src.name);
     strcpy(group, src.group);
-
-    memcpy(&location, &src.location, sizeof(vec3));
-    memcpy(&rotation, &src.rotation, sizeof(vec3));
-    memcpy(&scale, &src.scale, sizeof(vec3));
-    memcpy(&min, &src.min, sizeof(vec3));
-    memcpy(&max, &src.max, sizeof(vec3));
-    memcpy(&dimension, &src.dimension, sizeof(vec3));
 
     memcpy(offset, src.offset, sizeof(offset));
 }
@@ -165,12 +143,12 @@ OBJMESH &OBJMESH::operator=(const OBJMESH &rhs)
         objtrianglelist = rhs.objtrianglelist;
 
         current_material = rhs.current_material;
-        memcpy(&location, &rhs.location, sizeof(vec3));
-        memcpy(&rotation, &rhs.rotation, sizeof(vec3));
-        memcpy(&scale, &rhs.scale, sizeof(vec3));
-        memcpy(&min, &rhs.min, sizeof(vec3));
-        memcpy(&max, &rhs.max, sizeof(vec3));
-        memcpy(&dimension, &rhs.dimension, sizeof(vec3));
+        location  = rhs.location;
+        rotation  = rhs.rotation;
+        scale     = rhs.scale;
+        min       = rhs.min;
+        max       = rhs.max;
+        dimension = rhs.dimension;
 
         radius = rhs.radius;
         distance = rhs.distance;
@@ -438,16 +416,18 @@ void OBJMESH::update_bounds()
 
     // Bounding sphere radius
     this->radius = this->dimension.x > this->dimension.y ?
-    this->dimension.x:
-    this->dimension.y;
+                   this->dimension.x:
+                   this->dimension.y;
 
     this->radius = this->radius > this->dimension.z ?
-    this->radius * 0.5f:
-    this->dimension.z * 0.5f;
+                   this->radius * 0.5f:
+                   this->dimension.z * 0.5f;
 
     /*
      objmesh->radius = vec3_dist(&objmesh->min,
      &objmesh->max) * 0.5f;
+     CRL
+     objmesh->radius = (objmesh->max - objmesh->min).length() * 0.5f;
      */
 }
 
@@ -470,15 +450,13 @@ void OBJMESH::build_vbo()
     this->size = this->objvertexdata.size() * this->stride;
 
     unsigned char *vertex_array = (unsigned char *) malloc(this->size),
-    *vertex_start = vertex_array;
+                  *vertex_start = vertex_array;
 
     for (auto objvertexdata=this->objvertexdata.begin();
          objvertexdata!=this->objvertexdata.end(); ++objvertexdata) {
         index = objvertexdata->vertex_index;
 
-        memcpy(vertex_array,
-               &this->parent->indexed_vertex[index],
-               sizeof(vec3));
+        *reinterpret_cast<vec3*>(vertex_array) = this->parent->indexed_vertex[index];
 
         // Center the pivot
         vec3_diff((vec3 *)vertex_array,
@@ -488,30 +466,24 @@ void OBJMESH::build_vbo()
         vertex_array += sizeof(vec3);
 
 
-        memcpy(vertex_array,
-               &this->parent->indexed_normal[index],
-               sizeof(vec3));
+        *reinterpret_cast<vec3*>(vertex_array) = this->parent->indexed_normal[index];
 
         vertex_array += sizeof(vec3);
 
 
-        memcpy(vertex_array,
-               &this->parent->indexed_fnormal[index],
-               sizeof(vec3));
+        *reinterpret_cast<vec3*>(vertex_array) = this->parent->indexed_fnormal[index];
 
         vertex_array += sizeof(vec3);
 
 
         if (this->objvertexdata[0].uv_index != -1) {
-            memcpy(vertex_array,
-                   &this->parent->indexed_uv[objvertexdata->uv_index],
-                   sizeof(vec2));
+            *reinterpret_cast<vec2*>(vertex_array) =
+                this->parent->indexed_uv[objvertexdata->uv_index];
 
             vertex_array += sizeof(vec2);
 
-            memcpy(vertex_array,
-                   &this->parent->indexed_tangent[index],
-                   sizeof(vec3));
+            *reinterpret_cast<vec3*>(vertex_array) =
+                this->parent->indexed_tangent[index];
 
             vertex_array += sizeof(vec3);
         }
@@ -790,16 +762,8 @@ OBJMATERIAL::OBJMATERIAL(char *name, OBJ *parent) : parent(parent),
     program(NULL), materialdrawcallback(NULL)
 {
     assert(name==NULL || (strlen(name)<sizeof(this->name)));
-    if (name == NULL) {
-        memset(this->name, 0, sizeof(this->name));
-    } else {
+    if (name)
         strcpy(this->name, name);
-    }
-
-    memset(&this->ambient, 0, sizeof(vec4));
-    memset(&this->diffuse, 0, sizeof(vec4));
-    memset(&this->specular, 0, sizeof(vec4));
-    memset(&this->transmission_filter, 0, sizeof(vec3));
 }
 
 OBJMATERIAL::~OBJMATERIAL()
@@ -808,6 +772,10 @@ OBJMATERIAL::~OBJMATERIAL()
 }
 
 OBJMATERIAL::OBJMATERIAL(const OBJMATERIAL &src) :
+    ambient(src.ambient),
+    diffuse(src.diffuse),
+    specular(src.specular),
+    transmission_filter(src.transmission_filter),
     illumination_model(src.illumination_model),
     dissolve(src.dissolve),
     specular_exponent(src.specular_exponent),
@@ -823,10 +791,6 @@ OBJMATERIAL::OBJMATERIAL(const OBJMATERIAL &src) :
     parent(src.parent)
 {
     strcpy(name, src.name);
-    memcpy(&ambient, &src.ambient, sizeof(vec4));
-    memcpy(&diffuse, &src.diffuse, sizeof(vec4));
-    memcpy(&specular, &src.specular, sizeof(vec4));
-    memcpy(&transmission_filter, &src.transmission_filter, sizeof(vec3));
     strcpy(map_ambient, src.map_ambient);
     strcpy(map_diffuse, src.map_diffuse);
     strcpy(map_specular, src.map_specular);
@@ -839,29 +803,29 @@ OBJMATERIAL &OBJMATERIAL::operator=(const OBJMATERIAL &rhs)
 {
     if (this != &rhs) {
         strcpy(name, rhs.name);
-        memcpy(&ambient, &rhs.ambient, sizeof(vec4));
-        memcpy(&diffuse, &rhs.diffuse, sizeof(vec4));
-        memcpy(&specular, &rhs.specular, sizeof(vec4));
-        memcpy(&transmission_filter, &rhs.transmission_filter, sizeof(vec3));
-        illumination_model = rhs.illumination_model;
-        dissolve = rhs.dissolve;
-        specular_exponent = rhs.specular_exponent;
-        optical_density = rhs.optical_density;
+        ambient              = rhs.ambient;
+        diffuse              = rhs.diffuse;
+        specular             = rhs.specular;
+        transmission_filter  = rhs.transmission_filter;
+        illumination_model   = rhs.illumination_model;
+        dissolve             = rhs.dissolve;
+        specular_exponent    = rhs.specular_exponent;
+        optical_density      = rhs.optical_density;
         strcpy(map_ambient, rhs.map_ambient);
         strcpy(map_diffuse, rhs.map_diffuse);
         strcpy(map_specular, rhs.map_specular);
         strcpy(map_translucency, rhs.map_translucency);
         strcpy(map_disp, rhs.map_disp);
         strcpy(map_bump, rhs.map_bump);
-        texture_ambient = rhs.texture_ambient;
-        texture_diffuse = rhs.texture_diffuse;
-        texture_specular= rhs.texture_specular;
+        texture_ambient      = rhs.texture_ambient;
+        texture_diffuse      = rhs.texture_diffuse;
+        texture_specular     = rhs.texture_specular;
         texture_translucency = rhs.texture_translucency;
-        texture_disp = rhs.texture_disp;
-        texture_bump = rhs.texture_bump;
-        program = rhs.program;
+        texture_disp         = rhs.texture_disp;
+        texture_bump         = rhs.texture_bump;
+        program              = rhs.program;
         materialdrawcallback = rhs.materialdrawcallback;
-        parent = rhs.parent;
+        parent               = rhs.parent;
     }
     return *this;
 }
@@ -1028,13 +992,21 @@ bool OBJ::load_mtl(char *filename, const bool relative_path)
 
             objmaterial = &this->objmaterial.back();
         } else if (sscanf(line, "Ka %f %f %f", &v.x, &v.y, &v.z) == 3) {
-            memcpy(&objmaterial->ambient, &v, sizeof(vec3));
+            objmaterial->ambient.x = v.x;
+            objmaterial->ambient.y = v.y;
+            objmaterial->ambient.z = v.z;
         } else if (sscanf(line, "Kd %f %f %f", &v.x, &v.y, &v.z) == 3) {
-            memcpy(&objmaterial->diffuse, &v, sizeof(vec3));
+            objmaterial->diffuse.x = v.x;
+            objmaterial->diffuse.y = v.y;
+            objmaterial->diffuse.z = v.z;
         } else if (sscanf(line, "Ks %f %f %f", &v.x, &v.y, &v.z) == 3) {
-            memcpy(&objmaterial->specular, &v, sizeof(vec3));
+            objmaterial->specular.x = v.x;
+            objmaterial->specular.y = v.y;
+            objmaterial->specular.z = v.z;
         } else if (sscanf(line, "Tf %f %f %f", &v.x, &v.y, &v.z) == 3) {
-            memcpy(&objmaterial->transmission_filter, &v, sizeof(vec3));
+            objmaterial->transmission_filter.x = v.x;
+            objmaterial->transmission_filter.y = v.y;
+            objmaterial->transmission_filter.z = v.z;
         } else if (sscanf(line, "illum %f", &v.x) == 1) {
             objmaterial->illumination_model = (int)v.x;
         } else if (sscanf(line, "d %f", &v.x) == 1) {
@@ -1121,9 +1093,6 @@ bool OBJ::load_mtl(char *filename, const bool relative_path)
 
 OBJ::OBJ(char *filename, const bool relative_path)
 {
-    memset(this->texture_path, 0, sizeof(this->texture_path));
-    memset(this->program_path, 0, sizeof(this->program_path));
-
     if (filename == NULL) return;
 
     MEMORY *o = new MEMORY(filename, relative_path);
@@ -1231,43 +1200,27 @@ OBJ::OBJ(char *filename, const bool relative_path)
                 objtrianglelist->objtriangleindex.push_back(OBJTRIANGLEINDEX(vertex_index, uv_index));
             } else if (sscanf(line, "v %f %f %f", &v.x, &v.y, &v.z) == 3) {
                 // Vertex
-                this->indexed_vertex.resize(this->indexed_vertex.size() + 1);
+                this->indexed_vertex.push_back(v);
 
-                memcpy(&this->indexed_vertex.back(),
-                       &v,
-                       sizeof(vec3));
-
+                static vec3 zero = { 0, 0, 0 };
 
                 // Normal
-                this->indexed_normal.resize(this->indexed_normal.size() + 1);
+                this->indexed_normal.push_back(zero);
 
-                this->indexed_fnormal.resize(this->indexed_fnormal.size() + 1);
-
-                memset(&this->indexed_normal.back(),
-                       0,
-                       sizeof(vec3));
-
-                memset(&this->indexed_fnormal.back(),
-                       0,
-                       sizeof(vec3));
+                this->indexed_fnormal.push_back(zero);
 
                 // Tangent
-                this->indexed_tangent.resize(this->indexed_tangent.size() + 1);
-
-                memset(&this->indexed_tangent.back(),
-                       0,
-                       sizeof(vec3));
+                this->indexed_tangent.push_back(zero);
             } else if (sscanf(line, "vn %f %f %f", &v.x, &v.y, &v.z) == 3) {
                 // Drop the normals.
                 goto next_obj_line;
 
             } else if (sscanf(line, "vt %f %f", &v.x, &v.y) == 2) {
-                this->indexed_uv.resize(this->indexed_uv.size() + 1);
-                v.y = 1.0f - v.y;
-
-                memcpy(&this->indexed_uv.back(),
-                       &v,
-                       sizeof(vec2));
+                vec2    uv = { v.x, 1.0f - v.y };
+                this->indexed_uv.push_back(uv);
+                // CRL -- When we add more classes we can use the following
+                // code:
+                // this->indexed_uv.push_back(vec2(v.x, 1.0f-v.y));
             } else if (line[0] == 'v' && line[1] == 'n') {
                 goto next_obj_line;
             } else if (sscanf(line, "usemtl %s", str) == 1) {
@@ -1331,17 +1284,9 @@ OBJ::OBJ(char *filename, const bool relative_path)
 
 
                 // Face normals
-                memcpy(&this->indexed_fnormal[objtriangleindex->vertex_index[0]],
-                       &normal,
-                       sizeof(vec3));
-
-                memcpy(&this->indexed_fnormal[objtriangleindex->vertex_index[1]],
-                       &normal,
-                       sizeof(vec3));
-
-                memcpy(&this->indexed_fnormal[objtriangleindex->vertex_index[2]],
-                       &normal,
-                       sizeof(vec3));
+                this->indexed_fnormal[objtriangleindex->vertex_index[0]] =
+                this->indexed_fnormal[objtriangleindex->vertex_index[1]] =
+                this->indexed_fnormal[objtriangleindex->vertex_index[2]] = normal;
 
 
                 // Smooth normals

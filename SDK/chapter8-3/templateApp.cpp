@@ -293,12 +293,12 @@ void templateAppInit(int width, int height) {
     }
 
 
-	for (auto objmaterial=obj->objmaterial.begin();
+    for (auto objmaterial=obj->objmaterial.begin();
          objmaterial!=obj->objmaterial.end(); ++objmaterial) {
-		objmaterial->build(NULL);
+        objmaterial->build(NULL);
     }
 
-	program = new PROGRAM((char *)"default",
+    program = new PROGRAM((char *)"default",
                           VERTEX_SHADER,
                           FRAGMENT_SHADER,
                           true,
@@ -553,7 +553,9 @@ void templateAppDraw(void) {
 
         objmesh->btrigidbody->getWorldTransform().getOpenGLMatrix((float *)&mat);
 
-        memcpy(&objmesh->location, (vec3 *)&mat.m[3], sizeof(vec3));
+        objmesh->location.x = mat.m[3].x;
+        objmesh->location.y = mat.m[3].y;
+        objmesh->location.z = mat.m[3].z;
 
         GFX_multiply_matrix(&mat);
 

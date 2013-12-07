@@ -317,7 +317,9 @@ void templateAppDraw(void) {
          * to make sure the latest location will be used by the clipping
          * method (if any).
          */
-        memcpy(&objmesh->location, (vec3 *)&mat.m[3], sizeof(vec3));
+        objmesh->location.x = mat.m[3].x;
+        objmesh->location.y = mat.m[3].y;
+        objmesh->location.z = mat.m[3].z;
         /* Multiply the matrix by the current modelview matrix. */
         GFX_multiply_matrix(&mat);
 

@@ -71,7 +71,7 @@ typedef void(PROGRAMBINDATTRIBCALLBACK(void *));
 
 
 struct PROGRAM {
-    char                                name[MAX_CHAR];
+    char                                name[MAX_CHAR] = "";
 
     SHADER                              *vertex_shader;
 
