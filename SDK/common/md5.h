@@ -54,32 +54,28 @@ enum MD5Method {
 
 typedef struct
 {
-    char			name[ MAX_CHAR ];
+    char			name[ MAX_CHAR ] = "";
 
     int				parent;
 
-    vec3			location;
+    vec3			location = { 0, 0, 0 };
 
-    vec4			rotation;
+    vec4			rotation = { 0, 0, 0, 1 };
 
 } MD5JOINT;
 
 
 struct MD5VERTEX {
-    vec2		uv;
+    vec2		uv = { 0, 0 };
 
-    vec3		normal;
+    vec3		normal = { 0, 0, 0 };
 
-    vec3		tangent;
+    vec3		tangent = { 0, 0, 0 };
 
     unsigned int	start;
 
     unsigned int	count;
-    MD5VERTEX() : start(0), count(0) {
-        memset(&uv,      0, sizeof(uv));
-        memset(&normal,  0, sizeof(normal));
-        memset(&tangent, 0, sizeof(tangent));
-    }
+    MD5VERTEX() : start(0), count(0) {}
     ~MD5VERTEX() {}
     MD5VERTEX(const MD5VERTEX &src) :
         uv(src.uv), normal(src.normal), tangent(src.tangent),
@@ -98,10 +94,12 @@ struct MD5VERTEX {
 
 
 struct MD5TRIANGLE {
-    unsigned short indice[ 3 ];
-    MD5TRIANGLE() {
-        memset(indice, 0, sizeof(indice));
-    }
+    // CRL -- When this code is converted to C++ 11 consider replacing
+    // this
+    unsigned short indice[ 3 ] = { 0, 0, 0 };
+    // with
+    // std::array<unsigned short, 3>   indice = { 0, 0, 0 };
+    MD5TRIANGLE() {}
     ~MD5TRIANGLE() {}
     MD5TRIANGLE(const MD5TRIANGLE &src) {
         memcpy(indice, src.indice, sizeof(indice));
@@ -181,7 +179,19 @@ struct MD5MESH {
     OBJMATERIAL		*objmaterial;
 public:
     MD5MESH(const char *name=NULL);
-    ~MD5MESH() {}
+    ~MD5MESH() {
+        if (this->vertex_data)
+            free(this->vertex_data);
+
+        if (this->vbo)
+            glDeleteBuffers(1, &this->vbo);
+
+        if (this->vbo_indice)
+            glDeleteBuffers(1, &this->vbo_indice);
+
+        if (this->vao)
+            glDeleteVertexArraysOES(1, &this->vao);
+    }
     MD5MESH(const MD5MESH &src);
     MD5MESH &operator=(const MD5MESH &rhs) {
         if (this != &rhs) {
@@ -191,6 +201,8 @@ public:
             size        = rhs.size;
             stride      = rhs.stride;
             memcpy(offset, rhs.offset, sizeof(offset));
+            if (vertex_data) free(vertex_data);
+            vertex_data = (unsigned char *) calloc(1, size);
             vertex_data = rhs.vertex_data;
             md5triangle = rhs.md5triangle;
             mode        = rhs.mode;
@@ -208,12 +220,13 @@ public:
     void set_mesh_visibility(const bool visible);
     void set_mesh_material(OBJMATERIAL *objmaterial);
     void build_vbo();
+    void build_vao();
 };
 
 struct MD5ACTION {
     char			name[ MAX_CHAR ] = "";
 
-    std::vector<MD5JOINT*>   frame;
+    std::vector<std::vector<MD5JOINT> >   frame;
 
     std::vector<MD5JOINT>   pose;
 
@@ -271,21 +284,24 @@ protected:
     void update_bound_mesh();
 public:
     MD5(char *filename, const bool relative_path);
-    ~MD5();
+    ~MD5() {}
     int load_action(char *name, char *filename, const bool relative_path);
     void free_mesh_data();
     MD5ACTION *get_action(char *name, const bool exact_name);
     MD5MESH *get_mesh(char *name, const bool exact_name);
     void optimize(unsigned int vertex_cache_size);
-    void build_vbo(unsigned int mesh_index);    // CRL
     void build_bind_pose_weighted_normals_tangents();
-    void set_pose(MD5JOINT *pose);
-    void blend_pose(MD5JOINT *final_pose, MD5JOINT *pose0, MD5JOINT *pose1,
-                    unsigned char joint_interpolation_method, float blend);
-    void add_pose(MD5JOINT *final_pose, MD5ACTION *action0,
-                  MD5ACTION *action1,
-                  unsigned char joint_interpolation_method,
-                  float action_weight);
+    void set_pose(std::vector<MD5JOINT> &pose);
+    void blend_pose(std::vector<MD5JOINT> &final_pose,
+                    const std::vector<MD5JOINT> &pose0,
+                    const std::vector<MD5JOINT> &pose1,
+                    const MD5Method joint_interpolation_method,
+                    const float blend);
+    void add_pose(std::vector<MD5JOINT> &final_pose,
+                  const MD5ACTION &action0,
+                  const MD5ACTION &action1,
+                  const MD5Method joint_interpolation_method,
+                  const float action_weight);
     void build();
     void build2();
     bool draw_action(float time_step);

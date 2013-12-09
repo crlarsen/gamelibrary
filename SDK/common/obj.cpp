@@ -449,8 +449,8 @@ void OBJMESH::build_vbo()
 
     this->size = this->objvertexdata.size() * this->stride;
 
-    unsigned char *vertex_array = (unsigned char *) malloc(this->size),
-                  *vertex_start = vertex_array;
+    unsigned char *vertex_start = (unsigned char *) malloc(this->size),
+                  *vertex_array = vertex_start;
 
     for (auto objvertexdata=this->objvertexdata.begin();
          objvertexdata!=this->objvertexdata.end(); ++objvertexdata) {

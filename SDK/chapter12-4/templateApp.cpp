@@ -73,7 +73,7 @@ MD5ACTION *walk = NULL;
 /* The joints array that will be used to hold the final pose of the
  * skeleton after the idle and walk actions are blended together.
  */
-MD5JOINT *final_pose = NULL;
+std::vector<MD5JOINT>   final_pose;
 
 TEMPLATEAPP templateApp = {
     templateAppInit,
@@ -194,7 +194,6 @@ void templateAppInit(int width, int height)
      * use the OBJ_load function this time, because there's no geometry
      * to load, only a material file.
      */
-    //    obj = (OBJ *) calloc(1, sizeof(OBJ));
     obj = new OBJ;
 
     /* Manually load the material file using the filename you defined at
@@ -303,7 +302,7 @@ void templateAppInit(int width, int height)
     /* Initialize a temporary skeleton to be able to store the final
      * pose after blending the idle and walk animation.
      */
-    final_pose = (MD5JOINT *) calloc(md5->bind_pose.size(), sizeof(MD5JOINT));
+    final_pose.resize(md5->bind_pose.size());
 
     /* Free the mesh data that used to build the mesh, because this data
      * is no longer required for drawing.
@@ -394,9 +393,9 @@ void templateAppDraw(void)
     md5->add_pose(/* The final skeleton. */
                   final_pose,
                   /* The first action to use for blending. */
-                  idle,
+                  *idle,
                   /* The second action to use for blending. */
-                  walk,
+                  *walk,
                   /* The method to use to blend the two skeletons
                    * together based on the blend factor passed to the
                    * function.  Note that joint's position will always
@@ -450,9 +449,11 @@ void templateAppToucheMoved(float x, float y, unsigned int tap_count)
 
 void templateAppExit(void)
 {
-    free(final_pose);
+    final_pose.clear();
+
     delete obj;
     obj = NULL;
+
     delete md5;
     md5 = NULL;
 

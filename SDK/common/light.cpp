@@ -90,7 +90,7 @@ void DirectionalLight::push_to_shader(PROGRAM *program) {
 PointLight::PointLight(const char *name, const vec4 &color, const vec3 &position) : LIGHT(name, color, LIGHT_POINT)
 {
     /* Assign the position received in parameter to the current lamp
-     * pointer.  In addition, make sure thatyou specify 1 as the W
+     * pointer.  In addition, make sure that you specify 1 as the W
      * component of the position, because you are going to need to
      * multiply it by the modelview matrix the same way as if you were
      * dealing with a vertex position in eye space.
@@ -102,7 +102,7 @@ PointLight::PointLight(const char *name, const vec4 &color, const vec3 &position
 PointLight::PointLight(const char *name, const vec4 &color, const vec3 &position, const unsigned char t) : LIGHT(name, color, t)
 {
     /* Assign the position received in parameter to the current lamp
-     * pointer.  In addition, make sure thatyou specify 1 as the W
+     * pointer.  In addition, make sure that you specify 1 as the W
      * component of the position, because you are going to need to
      * multiply it by the modelview matrix the same way as if you were
      * dealing with a vertex position in eye space.

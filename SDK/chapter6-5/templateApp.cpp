@@ -485,7 +485,7 @@ void templateAppDraw(void) {
          * That way, even if Momo is going off screen, you will stop tracking it.
          */
         center.x =
-        eye.x = CLAMP(eye.x, -2.0f, 3.5f);
+        eye.x    = CLAMP(eye.x, -2.0f, 3.5f);
     }
 
     GFX_look_at(&eye, &center, &up);

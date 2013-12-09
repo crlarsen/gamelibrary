@@ -221,7 +221,7 @@ public:
 PointLamp::PointLamp(const char *name, const vec4 &color, const vec3 &position) : LAMP(name, color, LampPoint)
 {
     /* Assign the position received in parameter to the current lamp
-     * pointer.  In addition, make sure thatyou specify 1 as the W
+     * pointer.  In addition, make sure that you specify 1 as the W
      * component of the position, because you are going to need to
      * multiply it by the modelview matrix the same way as if you were
      * dealing with a vertex position in eye space.
@@ -233,7 +233,7 @@ PointLamp::PointLamp(const char *name, const vec4 &color, const vec3 &position) 
 PointLamp::PointLamp(const char *name, const vec4 &color, const vec3 &position, const unsigned char t) : LAMP(name, color, t)
 {
     /* Assign the position received in parameter to the current lamp
-     * pointer.  In addition, make sure thatyou specify 1 as the W
+     * pointer.  In addition, make sure that you specify 1 as the W
      * component of the position, because you are going to need to
      * multiply it by the modelview matrix the same way as if you were
      * dealing with a vertex position in eye space.

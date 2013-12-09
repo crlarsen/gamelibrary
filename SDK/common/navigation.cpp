@@ -67,10 +67,9 @@ NAVIGATION::~NAVIGATION()
 	
 bool NAVIGATION::build(OBJMESH *objmesh)
 {
-    unsigned int    k = 0,
-                    triangle_count = 0;
+    unsigned int    triangle_count = 0;
 
-    int *indices = NULL;
+    std::vector<int>    indices;
 
     vec3    *vertex_array = (vec3 *) malloc(objmesh->objvertexdata.size() * sizeof(vec3)),
             *vertex_start = vertex_array;
@@ -96,19 +95,15 @@ bool NAVIGATION::build(OBJMESH *objmesh)
         ++vertex_array;
     }
 
-    
     for (auto objtrianglelist=objmesh->objtrianglelist.begin();
          objtrianglelist != objmesh->objtrianglelist.end(); ++objtrianglelist) {
 
         triangle_count += objtrianglelist->n_indice_array;
 
-        indices = (int *) realloc(indices, triangle_count * sizeof(int));
+        indices.reserve(triangle_count);
 
-        for (int j=0; j != objtrianglelist->n_indice_array; ++j) {
-            indices[k] = objtrianglelist->indice_array[j];
-            
-            ++k;
-        }
+        for (int j=0; j != objtrianglelist->n_indice_array; ++j)
+            indices.push_back(objtrianglelist->indice_array[j]);
     }
 
     triangle_count /= 3;
@@ -163,14 +158,14 @@ bool NAVIGATION::build(OBJMESH *objmesh)
     rcMarkWalkableTriangles(rcconfig.walkableSlopeAngle,
                             (float *)vertex_start,
                             objmesh->objvertexdata.size(),
-                            indices,
+                            &indices[0],
                             triangle_count,
                             this->triangle_flags);
     
     
     rcRasterizeTriangles((float *)vertex_start,
                          objmesh->objvertexdata.size(),
-                         indices,
+                         &indices[0],
                          this->triangle_flags,
                          triangle_count,
                          *rcheightfield,
@@ -181,8 +176,8 @@ bool NAVIGATION::build(OBJMESH *objmesh)
     this->triangle_flags = NULL;
     
     free(vertex_start);
-    free(indices);
-    
+    indices.clear();
+
     
     rcFilterLowHangingWalkableObstacles(rcconfig.walkableClimb,
                                         *rcheightfield);
@@ -300,7 +295,7 @@ bool NAVIGATION::build(OBJMESH *objmesh)
                             &nav_data_size);
         
         if (!nav_data) return false;
-        
+
         this->dtnavmesh = dtAllocNavMesh();
         
         this->dtnavmesh->init(nav_data,
@@ -313,10 +308,10 @@ bool NAVIGATION::build(OBJMESH *objmesh)
         
         rcFreePolyMeshDetail(rcpolymeshdetail);
         rcpolymeshdetail = NULL;
-        
+
         return true;
     }
-    
+
     return false;
 }
 

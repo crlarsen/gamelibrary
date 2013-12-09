@@ -251,7 +251,7 @@ void templateAppToucheBegan(float x, float y, unsigned int tap_count)
 
 void templateAppToucheMoved(float x, float y, unsigned int tap_count)
 {
-    /* Calculate the XY delta (thatyou will use as a direction vector)
+    /* Calculate the XY delta (that you will use as a direction vector)
      * for the current movement onscreen and clamp the range of both the movement
      * and the rotation since you don't want the movement to go wild because the
      * current delta unit is in pixels and the units inside your world are in

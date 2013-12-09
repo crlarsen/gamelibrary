@@ -75,7 +75,7 @@ MD5::MD5(char *filename, const bool relative_path) :
             while (line[0] != '}') {
                 if (sscanf(line,
                            "%s %d ( %f %f %f ) ( %f %f %f )",
-                           this->bind_pose[i].name,
+                            this->bind_pose[i].name,
                            &this->bind_pose[i].parent,
                            &this->bind_pose[i].location.x,
                            &this->bind_pose[i].location.y,
@@ -146,14 +146,26 @@ MD5::MD5(char *filename, const bool relative_path) :
             next_mesh_line:
                 line = strtok(NULL, "\n");
             }
-            
-            unsigned int s = this->md5mesh[mesh_index].n_indice * sizeof(unsigned short);
-            
-            this->md5mesh[mesh_index].indice.resize(this->md5mesh[mesh_index].n_indice);
 
-            memcpy(&this->md5mesh[mesh_index].indice[0],
-                   &this->md5mesh[mesh_index].md5triangle[0],
-                   s);
+            // The code doesn't need to resize indice to 0 (zero) because
+            // the constructor for MD5MESH already created it with 0
+            // elements.  Here the code uses reserve() to short circuit
+            // the need to do multiple reallocations, copies, and frees.
+            this->md5mesh[mesh_index].indice.reserve(this->md5mesh[mesh_index].n_indice);
+
+            auto    &md5mesh = this->md5mesh[mesh_index];
+            for (int j=0; j!=md5mesh.md5triangle.size(); ++j) {
+                // CRL -- When this code is converted to C++ 11 and
+                // md5triangle.indice is declared as "array<unsigned short,3>"
+                // investigate replacing this
+                md5mesh.indice.push_back(md5mesh.md5triangle[j].indice[0]);
+                md5mesh.indice.push_back(md5mesh.md5triangle[j].indice[1]);
+                md5mesh.indice.push_back(md5mesh.md5triangle[j].indice[2]);
+                // with
+                //md5mesh.indice.insert(md5mesh.indice.end(),
+                //                      md5mesh.md5triangle[j].begin(),
+                //                      md5mesh.md5triangle[j].end());
+            }
             
             ++mesh_index;
         }
@@ -193,24 +205,20 @@ int MD5::load_action(char *name, char *filename, const bool relative_path)
             if (int_val != 10) goto cleanup;
         } else if (sscanf(line, "numFrames %d", &n_frame) == 1) {
             md5action->frame.resize(n_frame);
-            //            md5action->frame.resize(0);
 
-            for (int i=0; i != n_frame; ++i) {
-                md5action->frame[i] = (MD5JOINT *) malloc(this->bind_pose.size() *
-                                                          sizeof(MD5JOINT));
-            }
+            for (int i=0; i != n_frame; ++i)
+                md5action->frame[i].resize(this->bind_pose.size());
         } else if (sscanf(line, "numJoints %d", &int_val) == 1) {
             if (this->bind_pose.size() != int_val) goto cleanup;
 
             md5action->pose.resize(this->bind_pose.size());
 
-            for (int i=0; i != this->bind_pose.size(); ++i) {
+            for (int i=0; i != this->bind_pose.size(); ++i)
                 strcpy(md5action->pose[i].name, this->bind_pose[i].name);
-            }
         } else if (sscanf(line, "frameRate %d", &int_val) == 1) {
             md5action->fps = 1.0f / (float)int_val;
         } else if (sscanf(line, "frame %d", &int_val)) {
-            MD5JOINT *md5joint = md5action->frame[int_val];
+            MD5JOINT *md5joint = &md5action->frame[int_val][0];
 
             line = strtok(NULL, "\n");
 
@@ -275,48 +283,6 @@ cleanup:
     delete m;
     
     return -1;
-}
-
-
-MD5::~MD5()
-{
-    this->free_mesh_data();
-
-    for (auto md5mesh=this->md5mesh.begin();
-         md5mesh != this->md5mesh.end(); ++md5mesh) {
-
-        md5mesh->md5vertex.clear();
-
-        if (md5mesh->vertex_data) free(md5mesh->vertex_data);
-
-        md5mesh->md5triangle.clear();
-
-        md5mesh->md5weight.clear();
-
-        if (md5mesh->vbo) glDeleteBuffers(1, &md5mesh->vbo);
-
-        if (md5mesh->vbo_indice) glDeleteBuffers(1, &md5mesh->vbo_indice);
-
-        if (md5mesh->vao) glDeleteVertexArraysOES(1, &md5mesh->vao);
-    }
-
-    this->md5mesh.resize(0);
-
-
-    for (auto md5action=this->md5action.begin();
-         md5action != this->md5action.end(); ++md5action) {
-
-        for (auto frame=md5action->frame.begin();
-             frame != md5action->frame.end(); ++frame) {
-            free(*frame);
-        }
-
-        if (md5action->frame.size()) md5action->frame.resize(0);
-        
-        md5action->pose.clear();
-    }
-    
-    this->md5action.resize(0);
 }
 
 
@@ -425,12 +391,15 @@ MD5MESH::MD5MESH(const char *name) :
 
 MD5MESH::MD5MESH(const MD5MESH &src) :
     md5vertex(src.md5vertex), vbo(src.vbo), size(src.size),
-    stride(src.stride),vertex_data(src.vertex_data),
-    md5triangle(src.md5triangle), mode(src.mode), n_indice(src.n_indice),
-    indice(src.indice), vbo_indice(src.vbo_indice), md5weight(src.md5weight),
-    vao(src.vao), visible(src.visible), objmaterial(src.objmaterial)
+    stride(src.stride), md5triangle(src.md5triangle), mode(src.mode),
+    n_indice(src.n_indice), indice(src.indice),
+    vbo_indice(src.vbo_indice), md5weight(src.md5weight), vao(src.vao),
+    visible(src.visible), objmaterial(src.objmaterial)
 {
     strcpy(shader, src.shader);
+
+    vertex_data = (unsigned char *) calloc(1, size);
+    memcpy(vertex_data, src.vertex_data, size);
 
     memcpy(offset, src.offset, sizeof(offset));
 }
@@ -530,48 +499,6 @@ void MD5::optimize(unsigned int vertex_cache_size)
 }
 
 
-void MD5::build_vbo(unsigned int mesh_index)
-{
-    MD5MESH *md5mesh = &this->md5mesh[mesh_index];
-
-    md5mesh->size = md5mesh->md5vertex.size() * (sizeof(vec3) +  // Vertex
-                                                 sizeof(vec3) +  // Normals
-                                                 sizeof(vec2) +  // Texcoord0
-                                                 sizeof(vec3));  // Tangent0
-
-    md5mesh->vertex_data = (unsigned char *) calloc(1, md5mesh->size);
-
-    md5mesh->offset[0] = 0;
-
-    md5mesh->offset[1] = md5mesh->md5vertex.size() * sizeof(vec3);
-
-    md5mesh->offset[2] = md5mesh->offset[1] +
-                         (md5mesh->md5vertex.size() * sizeof(vec3));
-
-    md5mesh->offset[3] = md5mesh->offset[2] +
-                         (md5mesh->md5vertex.size() * sizeof(vec2));
-
-
-    glGenBuffers(1, &md5mesh->vbo);
-
-    glBindBuffer(GL_ARRAY_BUFFER, md5mesh->vbo);
-
-    glBufferData(GL_ARRAY_BUFFER,
-                 md5mesh->size,
-                 md5mesh->vertex_data,
-                 GL_DYNAMIC_DRAW);
-
-
-    glGenBuffers(1, &md5mesh->vbo_indice);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, md5mesh->vbo_indice);
-
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER,
-                 md5mesh->n_indice * sizeof(unsigned short),
-                 &md5mesh->indice[0],
-                 GL_STATIC_DRAW);
-}
-
 void MD5MESH::build_vbo()
 {
     this->size = this->md5vertex.size() * (sizeof(vec3) +  // Vertex
@@ -610,11 +537,23 @@ void MD5MESH::build_vbo()
                  GL_STATIC_DRAW);
 }
 
+void MD5MESH::build_vao()
+{
+    glGenVertexArraysOES(1, &this->vao);
+
+    glBindVertexArrayOES(this->vao);
+
+    this->set_mesh_attributes();
+
+    glBindVertexArrayOES(0);
+}
+
 void MD5::build_bind_pose_weighted_normals_tangents()
 {
-    static vec3 zero = {0, 0, 0 };
+    static vec3 zero = { 0, 0, 0 };
 
-    for (auto md5mesh=this->md5mesh.begin(); md5mesh != this->md5mesh.end(); ++md5mesh) {
+    for (auto md5mesh=this->md5mesh.begin();
+         md5mesh != this->md5mesh.end(); ++md5mesh) {
 
         vec3 *vertex_array = (vec3 *)md5mesh->vertex_data;
 
@@ -624,8 +563,9 @@ void MD5::build_bind_pose_weighted_normals_tangents()
             md5vertex->tangent = zero;
         }
 
-        for (int j=0; j != md5mesh->md5triangle.size(); ++j) {
-            auto indice = md5mesh->md5triangle[j].indice;
+        for (auto md5triangle=md5mesh->md5triangle.begin();
+             md5triangle!=md5mesh->md5triangle.end(); ++md5triangle) {
+            auto &indice = md5triangle->indice;
 
             vec3    v1,
                     v2,
@@ -700,14 +640,12 @@ void MD5::build_bind_pose_weighted_normals_tangents()
         }
 
 
-        for (int j=0; j != md5mesh->md5vertex.size(); ++j) {
-            auto normal = md5mesh->md5vertex[j].normal;
-            auto tangent = md5mesh->md5vertex[j].tangent;
-
+        for (auto md5vertex=md5mesh->md5vertex.begin();
+             md5vertex!=md5mesh->md5vertex.end(); ++md5vertex) {
             // Average normals
-            vec3_normalize(&normal, &normal);
+            vec3_normalize(&md5vertex->normal, &md5vertex->normal);
 
-            vec3_normalize(&tangent, &tangent);
+            vec3_normalize(&md5vertex->tangent, &md5vertex->tangent);
         }
 
         for (auto md5weight=md5mesh->md5weight.begin();
@@ -766,17 +704,17 @@ void MD5::build_bind_pose_weighted_normals_tangents()
 }
 
 
-void MD5::set_pose(MD5JOINT *pose)
+void MD5::set_pose(std::vector<MD5JOINT> &pose)
 {
     for (auto md5mesh=this->md5mesh.begin(); md5mesh != this->md5mesh.end(); ++md5mesh) {
         vec3    *vertex_array  = (vec3 *)md5mesh->vertex_data,
                 *normal_array  = (vec3 *)&md5mesh->vertex_data[md5mesh->offset[1]],
                 *tangent_array = (vec3 *)&md5mesh->vertex_data[md5mesh->offset[3]];
 
-        vec2 *uv_array = (vec2 *)&md5mesh->vertex_data[md5mesh->offset[2]];
+        vec2    *uv_array      = (vec2 *)&md5mesh->vertex_data[md5mesh->offset[2]];
 
-        memset(vertex_array , 0, md5mesh->offset[1]);
-        memset(normal_array , 0, md5mesh->offset[1]);
+        memset(vertex_array,  0, md5mesh->offset[1]);
+        memset(normal_array,  0, md5mesh->offset[1]);
         memset(tangent_array, 0, md5mesh->offset[1]);
 
 
@@ -834,8 +772,11 @@ void MD5::set_pose(MD5JOINT *pose)
 }
 
 
-void MD5::blend_pose(MD5JOINT *final_pose, MD5JOINT *pose0, MD5JOINT *pose1,
-                     unsigned char joint_interpolation_method, float blend)
+void MD5::blend_pose(std::vector<MD5JOINT> &final_pose,
+                     const std::vector<MD5JOINT> &pose0,
+                     const std::vector<MD5JOINT> &pose1,
+                     const MD5Method joint_interpolation_method,
+                     const float blend)
 {
     for (int i=0; i != this->bind_pose.size(); ++i) {
         vec3_lerp(&final_pose[i].location,
@@ -861,7 +802,7 @@ void MD5::blend_pose(MD5JOINT *final_pose, MD5JOINT *pose0, MD5JOINT *pose1,
                            &pose0[i].rotation,
                            &pose1[i].rotation,
                            blend);
-                
+
                 break;
             }
         }
@@ -869,18 +810,19 @@ void MD5::blend_pose(MD5JOINT *final_pose, MD5JOINT *pose0, MD5JOINT *pose1,
 }
 
 
-void MD5::add_pose(MD5JOINT *final_pose, MD5ACTION *action0,
-                   MD5ACTION *action1,
-                   unsigned char joint_interpolation_method,
-                   float action_weight)
+void MD5::add_pose(std::vector<MD5JOINT> &final_pose,
+                   const MD5ACTION &action0,
+                   const MD5ACTION &action1,
+                   const MD5Method joint_interpolation_method,
+                   const float action_weight)
 {
     for (int i=0; i != this->bind_pose.size(); ++i) {
-        if (memcmp(&action1->frame[action1->curr_frame][i].location, &action1->frame[action1->next_frame][i].location, sizeof(vec3)) ||
-            memcmp(&action1->frame[action1->curr_frame][i].rotation, &action1->frame[action1->next_frame][i].rotation, sizeof(vec4)))
+        if (memcmp(&action1.frame[action1.curr_frame][i].location, &action1.frame[action1.next_frame][i].location, sizeof(vec3)) ||
+            memcmp(&action1.frame[action1.curr_frame][i].rotation, &action1.frame[action1.next_frame][i].rotation, sizeof(vec4)))
         {
             vec3_lerp(&final_pose[i].location,
-                      &action0->pose[i].location,
-                      &action1->pose[i].location,
+                      &action0.pose[i].location,
+                      &action1.pose[i].location,
                       action_weight);
 
             switch(joint_interpolation_method)
@@ -889,8 +831,8 @@ void MD5::add_pose(MD5JOINT *final_pose, MD5ACTION *action0,
                 case MD5_METHOD_LERP:
                 {
                     vec4_lerp(&final_pose[i].rotation,
-                              &action0->pose[i].rotation,
-                              &action1->pose[i].rotation,
+                              &action0.pose[i].rotation,
+                              &action1.pose[i].rotation,
                               action_weight);
                     break;
                 }
@@ -899,15 +841,15 @@ void MD5::add_pose(MD5JOINT *final_pose, MD5ACTION *action0,
                 case MD5_METHOD_SLERP:
                 {
                     vec4_slerp(&final_pose[i].rotation,
-                               &action0->pose[i].rotation,
-                               &action1->pose[i].rotation,
+                               &action0.pose[i].rotation,
+                               &action1.pose[i].rotation,
                                action_weight);
                     break;
                 }
             }
         } else {
-            final_pose[i].location = action0->pose[i].location;
-            final_pose[i].rotation = action0->pose[i].rotation;
+            final_pose[i].location = action0.pose[i].location;
+            final_pose[i].rotation = action0.pose[i].rotation;
         }
     }
 }
@@ -957,24 +899,17 @@ void MD5::update_bound_mesh()
 void MD5::build()
 {
     for (auto md5mesh=this->md5mesh.begin();
-         md5mesh != this->md5mesh.end(); ++md5mesh) {
-
+         md5mesh!=this->md5mesh.end(); ++md5mesh) {
         md5mesh->build_vbo();
-
-        glGenVertexArraysOES(1, &md5mesh->vao);
-
-        glBindVertexArrayOES(md5mesh->vao);
-
-        md5mesh->set_mesh_attributes();
-
-        glBindVertexArrayOES(0);
+        
+        md5mesh->build_vao();
     }
 
-    this->set_pose(&this->bind_pose[0]);
+    this->set_pose(this->bind_pose);
 
     this->build_bind_pose_weighted_normals_tangents();
     
-    this->set_pose(&this->bind_pose[0]);
+    this->set_pose(this->bind_pose);
     
     this->update_bound_mesh();
 }
@@ -986,11 +921,11 @@ void MD5::build2()
          md5mesh != this->md5mesh.end(); ++md5mesh)
         md5mesh->build_vbo();
 
-    this->set_pose(&this->bind_pose[0]);
+    this->set_pose(this->bind_pose);
 
     this->build_bind_pose_weighted_normals_tangents();
 
-    this->set_pose(&this->bind_pose[0]);
+    this->set_pose(this->bind_pose);
 
     this->update_bound_mesh();
 }
@@ -1011,9 +946,8 @@ bool MD5::draw_action(float time_step)
                 case MD5_METHOD_FRAME:
                 {
                     if (md5action->frame_time >= md5action->fps) {
-                        memcpy(&md5action->pose[0],
-                               md5action->frame[md5action->curr_frame],
-                               this->bind_pose.size() * sizeof(MD5JOINT));
+                        md5action->pose =
+                            md5action->frame[md5action->curr_frame];
 
                         ++md5action->curr_frame;
 
@@ -1045,7 +979,7 @@ bool MD5::draw_action(float time_step)
                 {
                     float t = CLAMP(md5action->frame_time / md5action->fps, 0.0f, 1.0f);
 
-                    this->blend_pose(&md5action->pose[0],
+                    this->blend_pose(md5action->pose,
                                      md5action->frame[md5action->curr_frame],
                                      md5action->frame[md5action->next_frame],
                                      md5action->method,

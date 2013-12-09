@@ -133,7 +133,7 @@ void vec3_invert( vec3 *dst, vec3 *v )
 }
 
 
-void vec3_lerp( vec3 *dst, vec3 *v0, vec3 *v1, float t )
+void vec3_lerp(vec3 *dst, const vec3 *v0, const vec3 *v1, const float t)
 {
 	if( t == 1.0f )
 	{
@@ -221,7 +221,7 @@ float vec4_dot( vec4 *v )
 }
 
 
-float vec4_dot_vec4( vec4 *v0, vec4 *v1 )
+float vec4_dot_vec4(const vec4 *v0, const vec4 *v1)
 {
 	return ( ( v0->x * v1->x ) +
 			 ( v0->y * v1->y ) +
@@ -295,7 +295,7 @@ void vec4_invert( vec4 *dst, vec4 *v )
 }
 
 
-void vec4_lerp( vec4 *dst, vec4 *v0, vec4 *v1, float t )
+void vec4_lerp(vec4 *dst, const vec4 *v0, const vec4 *v1, const float t)
 {
 	float dot = vec4_dot_vec4( v0, v1 ),
 		  k0,
@@ -356,9 +356,9 @@ void vec4_lerp( vec4 *dst, vec4 *v0, vec4 *v1, float t )
 }
 
 
-void vec4_slerp( vec4 *dst, vec4 *v0, vec4 *v1, float t )
+void vec4_slerp(vec4 *dst, const vec4 *v0, const vec4 *v1, const float t)
 {
-	float c = vec4_dot_vec4( v0, v1 ),
+	float c = vec4_dot_vec4(v0, v1),
 		  k0,
 		  k1;
 

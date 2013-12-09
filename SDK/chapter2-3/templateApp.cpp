@@ -182,7 +182,7 @@ void templateAppDraw( void )
 
 void templateAppExit( void )
 {
-	/* Code to run when the application exits, perfect location to free everything. */
+    /* Code to run when the application exits, perfect location to free everything. */
     printf("templateAppExit...\n");
 
     if(m) {
