@@ -1257,7 +1257,7 @@ OBJ::OBJ(char *filename, const bool relative_path)
 
                 normal = v1.crossProduct(v2);
 
-                vec3_normalize(&normal, &normal);
+                normal.safeNormalize();
 
 
                 // Face normals
@@ -1307,12 +1307,10 @@ OBJ::OBJ(char *filename, const bool relative_path)
             auto index = objvertexdata->vertex_index;
 
             // Average smooth normals.
-            vec3_normalize(&this->indexed_normal[index],
-                           &this->indexed_normal[index]);
+            this->indexed_normal[index].safeNormalize();
 
             if (objvertexdata->uv_index != -1) {
-                vec3_normalize(&this->indexed_tangent[index],
-                               &this->indexed_tangent[index]);
+                this->indexed_tangent[index].safeNormalize();
             }
         }
     }

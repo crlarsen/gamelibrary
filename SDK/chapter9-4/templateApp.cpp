@@ -738,7 +738,7 @@ void templateAppDraw(void) {
 
     direction = player->location - eye;
 
-    vec3_normalize(&direction, &direction);
+    direction.safeNormalize();
 
     AUDIO_set_listener(&eye, &direction, &up);
 
@@ -883,7 +883,7 @@ void templateAppAccelerometer(float x, float y, float z)
 {
     vec3 tmp(x, y, z);
 
-    vec3_normalize(&tmp, &tmp);
+    tmp.safeNormalize();
 
     accelerometer.x = tmp.x + 0.35f;
 

@@ -323,8 +323,7 @@ void templateAppToucheMoved(float x, float y, unsigned int tap_count)
 
     move_delta = move_location - touche;
 
-    vec3_normalize(&move_delta,
-                   &move_delta);
+    move_delta.safeNormalize();
 
     move_delta.z = CLAMP((move_location-touche).length() / 128.0f,
                          0.0f,

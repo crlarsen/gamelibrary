@@ -25,8 +25,6 @@ as being the original software.
 #ifndef VECTOR_H
 #define VECTOR_H
 
-float vec3_normalize( vec3 *dst, vec3 *v );
-
 void vec3_lerp(vec3 *dst, const vec3 *v0, const vec3 *v1, const float t);
 
 void vec3_lerp2( vec3 *dst, vec3 *v0, vec3 *v1, float t );

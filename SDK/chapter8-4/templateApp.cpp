@@ -405,8 +405,7 @@ void move_entity(OBJMESH *objmesh,
         direction =
             navigationpathdata->path_point_array[*next_point] - objmesh->location;
 
-        vec3_normalize(&direction,
-                       &direction);
+        direction.safeNormalize();
         /* Assign the direction vector to the linear velocity of the rigid
          * body pointer attached to the mesh multiplied by the speed passed
          * in the parameter to this function.

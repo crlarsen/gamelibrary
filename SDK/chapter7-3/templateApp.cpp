@@ -310,8 +310,7 @@ void templateAppToucheMoved(float x, float y, unsigned int tap_count)
         /* Normalize the delta to have a direction vector in the range of
          * -1 to 1.
          */
-        vec3_normalize(&move_delta,
-                       &move_delta);
+        move_delta.safeNormalize();
         /* Calculate the force (basically the distance from the starting
          * movement location to the current touch location) and divide it
          * by a factor in pixels.  This way, the closer to the starting point,

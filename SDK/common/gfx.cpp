@@ -502,11 +502,11 @@ void GFX_look_at( vec3 *eye, vec3 *center, vec3 *up )
 
     f = *center - *eye;
 
-	vec3_normalize( &f, &f );
+    f.safeNormalize();
 
     s = f.crossProduct(*up);
 
-	vec3_normalize( &s, &s );
+    s.safeNormalize();
 
     u = s.crossProduct(f);
 

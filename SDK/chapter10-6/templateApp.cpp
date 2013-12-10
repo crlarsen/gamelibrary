@@ -474,8 +474,7 @@ void SpotLamp::get_direction_in_object_space(mat4 *m, vec3 *direction)
                        &this->spot_direction,
                        m);
 
-    vec3_normalize(direction,
-                   direction);
+    direction->safeNormalize();
 
     *direction = -*direction;
 }

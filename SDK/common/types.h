@@ -251,15 +251,18 @@ struct vec3 {
     const vec3 normalize(void) const {
         return *this / length();
     }
-    void safeNormalize(const vec3 &rhs) {
+    float safeNormalize(const vec3 &rhs) {
         float   l = rhs.length();
         float   m = (l!=0.0f) ? (1.0f/l) : 0.0f;
         *this *= m;
+        return m;
     }
-    void safeNormalize() {
-        float   l = this->length();
+    float safeNormalize(const vec3 *rhs=NULL) {
+        const vec3  *use = rhs!=NULL ? rhs : this;
+        float   l = use->length();
         float   m = (l!=0.0f) ? (1.0f/l) : 0.0f;
         *this *= m;
+        return m;
     }
     const vec3 operator-(void) const {
         return vec3(-this->x, -this->y, -this->z);
@@ -421,15 +424,18 @@ struct vec4 {
     const vec4 normalize(void) const {
         return *this / length();
     }
-    void safeNormalize(const vec4 &rhs) {
+    float safeNormalize(const vec4 &rhs) {
         float   l = rhs.length();
         float   m = (l!=0.0f) ? (1.0f/l) : 0.0f;
         *this *= m;
+        return m;
     }
-    void safeNormalize() {
-        float   l = this->length();
+    float safeNormalize(const vec4 *rhs=NULL) {
+        const vec4  *use = rhs!=NULL ? rhs : this;
+        float   l = use->length();
         float   m = (l!=0.0f) ? (1.0f/l) : 0.0f;
         *this *= m;
+        return m;
     }
     const vec4 operator-(void) const {
         return vec4(-this->x, -this->y, -this->z, -this->w);
@@ -588,16 +594,18 @@ struct quat {
     const quat normalize(void) const {
         return *this / length();
     }
-    void safeNormalize(const quat &rhs) {
+    float safeNormalize(const quat &rhs) {
         float   l = rhs.length();
         float   m = (l!=0.0f) ? (1.0f/l) : 0.0f;
         *this *= m;
+        return m;
     }
-    void safeNormalize(const quat *rhs=NULL) {
+    float safeNormalize(const quat *rhs=NULL) {
         const quat  *use = rhs!=NULL ? rhs : this;
         float   l = use->length();
         float   m = (l!=0.0f) ? (1.0f/l) : 0.0f;
         *this *= m;
+        return m;
     }
     const quat operator-(void) const {
         return quat(-this->w, -this->x, -this->y, -this->z);

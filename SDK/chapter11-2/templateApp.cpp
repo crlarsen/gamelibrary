@@ -177,8 +177,7 @@ void program_draw(void *ptr)
 
     spotLight->spot_direction = center - vec3(spotLight->position, true);
 
-    vec3_normalize(&spotLight->spot_direction,
-                   &spotLight->spot_direction);
+    spotLight->spot_direction.safeNormalize();
     light->push_to_shader(program);
 }
 

@@ -577,7 +577,7 @@ void MD5::build_bind_pose_weighted_normals_tangents()
 
             normal = v1.crossProduct(v2);
 
-            vec3_normalize(&normal, &normal);
+            normal.safeNormalize();
 
             // Flat normals
             /*
@@ -617,9 +617,9 @@ void MD5::build_bind_pose_weighted_normals_tangents()
         for (auto md5vertex=md5mesh->md5vertex.begin();
              md5vertex!=md5mesh->md5vertex.end(); ++md5vertex) {
             // Average normals
-            vec3_normalize(&md5vertex->normal, &md5vertex->normal);
+            md5vertex->normal.safeNormalize();
 
-            vec3_normalize(&md5vertex->tangent, &md5vertex->tangent);
+            md5vertex->tangent.safeNormalize();
         }
 
         for (auto md5weight=md5mesh->md5weight.begin();
@@ -664,11 +664,9 @@ void MD5::build_bind_pose_weighted_normals_tangents()
         
         for (auto md5weight=md5mesh->md5weight.begin();
              md5weight!=md5mesh->md5weight.end(); ++md5weight) {
-            vec3_normalize(&md5weight->normal,
-                           &md5weight->normal);
+            md5weight->normal.safeNormalize();
             
-            vec3_normalize(&md5weight->tangent,
-                           &md5weight->tangent);
+            md5weight->tangent.safeNormalize();
         }
     }
 }

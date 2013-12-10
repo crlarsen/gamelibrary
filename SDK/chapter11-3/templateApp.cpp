@@ -190,8 +190,7 @@ void program_draw(void *ptr)
 
     light->spot_direction = center - vec3(light->position, true);
 
-    vec3_normalize(&light->spot_direction,
-                   &light->spot_direction);
+    light->spot_direction.safeNormalize();
     light->push_to_shader(program);
 }
 

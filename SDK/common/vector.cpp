@@ -24,23 +24,6 @@ as being the original software.
 #include "gfx.h"
 
 
-float vec3_normalize( vec3 *dst, vec3 *v )
-{
-	float l = v->length();
-	
-	if( l )
-	{
-		float m = 1.0f / l;
-
-		dst->x = v->x * m;
-		dst->y = v->y * m;
-		dst->z = v->z * m;
-	}
-	
-	return l;
-}
-
-
 void vec3_lerp(vec3 *dst, const vec3 *v0, const vec3 *v1, const float t)
 {
 	if( t == 1.0f )

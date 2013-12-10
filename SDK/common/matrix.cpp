@@ -215,7 +215,7 @@ void mat4_rotate( mat4 *dst, mat4 *m, vec4 *v )
 
     mat4_identity( &mat );
 
-    if( !v->w || !vec3_normalize( &t, &t ) ) return;
+    if( !v->w || !t.safeNormalize() ) return;
 
     xx = t.x * t.x;
     yy = t.y * t.y;
