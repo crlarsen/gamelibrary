@@ -149,7 +149,7 @@ void program_draw(void *ptr)
             uniform.constant = true;
         } else if (name == "MATERIAL.diffuse") {
             if (pass == 1) {
-                vec4 black = { 0.0f, 0.0f, 0.0f, 1.0f };
+                vec4 black(0.0f, 0.0f, 0.0f, 1.0f);
 
                 glUniform4fv(uniform.location,
                              1,
@@ -161,10 +161,10 @@ void program_draw(void *ptr)
             }
         } else if (name == "MATERIAL.specular") {
             if (pass == 2) {
-                vec4 black = { 0.0f, 0.0f, 0.0f, 1.0f };
+                vec4 black(0.0f, 0.0f, 0.0f, 1.0f);
                 /*
                  // Or your could use half of the original specular color like this (which also gives good results):
-                 = { objmesh->current_material->specular.x * 0.5f,
+                (objmesh->current_material->specular.x * 0.5f,
                  objmesh->current_material->specular.y * 0.5f,
                  objmesh->current_material->specular.z * 0.5f,
                  1.0f };
@@ -244,9 +244,9 @@ void templateAppInit(int width, int height) {
 		objmaterial->build(NULL);
     }
 
-    vec4 color = { 1.0f, 1.0f, 1.0f, 1.0f };
+    vec4 color(1.0f, 1.0f, 1.0f, 1.0f);
 
-    vec3 position = { 7.5f, 0.0f, 6.0f };
+    vec3 position(7.5f, 0.0f, 6.0f);
 
     light = new PointLight((char *)"point", color, position);
 
@@ -409,8 +409,7 @@ void fullscreen_pass(void)
         program->draw();
 
 
-        vec2 radius = { blur_radius / (float)colorbuffer_width,
-            0.0f };
+        vec2    radius(blur_radius / (float)colorbuffer_width, 0.0f);
 
         glUniform2fv(program->get_uniform_location((char *)"BLUR_RADIUS"),
                      1,

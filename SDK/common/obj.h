@@ -92,13 +92,13 @@ enum TextureMap {
 struct OBJMATERIAL {
     char                    name[MAX_CHAR] = "";        // newmtl
 
-    vec4                    ambient = { 0, 0, 0, 0 };   // Ka
+    vec4                    ambient;                    // Ka
 
-    vec4                    diffuse = { 0, 0, 0, 0 };   // Kd
+    vec4                    diffuse;                    // Kd
 
-    vec4                    specular = { 0, 0, 0, 0 };  // Ks
+    vec4                    specular;                   // Ks
 
-    vec3                    transmission_filter = { 0, 0, 0 };// Tf
+    vec3                    transmission_filter;        // Tf
 
     int                     illumination_model;         // illum
 
@@ -239,17 +239,17 @@ struct OBJMESH {
 
     OBJMATERIAL                     *current_material;
 
-    vec3                            location = { 0, 0, 0 };
+    vec3                            location;
 
-    vec3                            rotation = { 0, 0, 0 };
+    vec3                            rotation;
 
-    vec3                            scale = { 0, 0, 0 };
+    vec3                            scale;
 
-    vec3                            min = { 0, 0, 0 };
+    vec3                            min;
 
-    vec3                            max = { 0, 0, 0 };
+    vec3                            max;
 
-    vec3                            dimension = { 0, 0, 0 };
+    vec3                            dimension;
 
     float                           radius;
 

@@ -47,7 +47,8 @@ as being the original software.
 NAVIGATION::NAVIGATION(char *name) :
     triangle_flags(NULL),
     dtnavmesh(NULL),
-    program(NULL)
+    program(NULL),
+    tolerance(1,2,1)
 {
     assert(name==NULL || strlen(name)<sizeof(this->name));
     if (name)

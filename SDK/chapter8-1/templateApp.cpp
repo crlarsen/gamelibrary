@@ -57,12 +57,12 @@ OBJ *obj = NULL;
 PROGRAM *program = NULL;
 
 vec2    view_location,
-        view_delta = { 0.0f, 0.0f };
+        view_delta(0.0f, 0.0f);
 
 vec3    eye,
         next_eye,
-        center = { 0.0f, 0.0f, 0.0f },
-        up = { 0.0f, 0.0f, 1.0f };
+        center(0.0f, 0.0f, 0.0f),
+        up(0.0f, 0.0f, 1.0f);
 
 
 float rotx	= 45.0f,

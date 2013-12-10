@@ -59,12 +59,12 @@ PROGRAM *program = NULL;
 PROGRAM *path_point = NULL;
 
 vec2    view_location,
-        view_delta = { 0.0f, 0.0f };
+        view_delta(0.0f, 0.0f);
 
 vec3    eye,
         next_eye,
-        center = { 0.0f, 0.0f, 0.0f },
-        up = { 0.0f, 0.0f, 1.0f };
+        center(0.0f, 0.0f, 0.0f),
+        up(0.0f, 0.0f, 1.0f);
 
 
 float rotx	= 45.0f,
@@ -423,8 +423,8 @@ void move_entity(OBJMESH *objmesh,
     objmesh->location.z =
         navigationpathdata->path_point_array[*next_point].z = 0.0f;
     /* Calculate the distance between the mesh location and the way point. */
-    float distance = vec3_dist(&objmesh->location,
-                               &navigationpathdata->path_point_array[*next_point]);
+    float distance =
+        (objmesh->location - navigationpathdata->path_point_array[*next_point]).length();
     /* If the distance is less than 10cm, it means that the mesh is close
      * enough to its destination and the next index should be incremented to the
      * next way point.
@@ -444,9 +444,8 @@ void move_entity(OBJMESH *objmesh,
     if (*next_point != -1) {
         vec3 direction;
         /* Calculate the forward direction vector. */
-        vec3_diff(&direction,
-                  &navigationpathdata->path_point_array[*next_point],
-                  &objmesh->location);
+        direction =
+            navigationpathdata->path_point_array[*next_point] - objmesh->location;
 
         vec3_normalize(&direction,
                        &direction);
@@ -653,7 +652,7 @@ void templateAppDraw(void) {
     }
 
     if (navigationpathdata_player.path_point_count) {
-        vec3 color = { 0.0f, 0.0f, 1.0f };
+        vec3 color(0.0f, 0.0f, 1.0f);
 
         draw_navigation_points(&navigationpathdata_player, &color);
 
@@ -701,7 +700,7 @@ void templateAppDraw(void) {
         /* Specify the color to use to draw the points and the lines for
          * the enemy navigation path.
          */
-        vec3 color = { 1.0f, 0.0f, 0.0f };
+        vec3 color(1.0f, 0.0f, 0.0f);
         /* Use the same function to drive the player, but this time, send
          * over the enemy data.
          */
@@ -764,7 +763,7 @@ void templateAppDraw(void) {
         GFX_set_matrix_mode(MODELVIEW_MATRIX);
         GFX_load_identity();
         /* Start with a black color for the font. */
-        vec4 color = { 0.0f, 0.0f, 0.0f, 1.0f };
+        vec4 color(0.0f, 0.0f, 0.0f, 1.0f);
         /* The message that you want to display on screen. */
         char msg[MAX_CHAR] = {"GAME OVER!"};
 

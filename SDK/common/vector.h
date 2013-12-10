@@ -25,38 +25,13 @@ as being the original software.
 #ifndef VECTOR_H
 #define VECTOR_H
 
-void vec2_add( vec2 *dst, vec2 *v0, vec2 *v1 );
-
-void vec2_diff( vec2 *dst, vec2 *v0, vec2 *v1 );
-
-
-void vec3_add( vec3 *dst, vec3 *v0, vec3 *v1 );
-
-void vec3_diff( vec3 *dst, vec3 *v0, vec3 *v1 );
-
-void vec3_mul( vec3 *dst, vec3 *v0, vec3 *v1 );
-
-float vec3_dot( vec3 *v );
-
-float vec3_dot_vec3( vec3 *v0, vec3 *v1 );
-
-float vec3_length( vec3 *v );
-
 float vec3_normalize( vec3 *dst, vec3 *v );
-
-void vec3_cross( vec3 *dst, vec3 *v0, vec3 *v1 );
-
-float vec3_dist( vec3 *v0, vec3 *v1 );
-
-void vec3_mid( vec3 *dst, vec3 *v0, vec3 *v1 );
-
-void vec3_invert( vec3 *dst, vec3 *v );
 
 void vec3_lerp(vec3 *dst, const vec3 *v0, const vec3 *v1, const float t);
 
 void vec3_lerp2( vec3 *dst, vec3 *v0, vec3 *v1, float t );
 
-void vec3_rotate_vec4( vec3 *dst, vec3 *v0, vec4 *v1 );
+void vec3_rotate_quat(vec3 &dst, const vec3 &v0, const quat &v1);
 
 
 void vec3_to_recast( vec3 *v );
@@ -64,30 +39,16 @@ void vec3_to_recast( vec3 *v );
 void recast_to_vec3( vec3 *v );
 
 
-void vec4_add( vec4 *dst, vec4 *v0, vec4 *v1 );
+void quat_build_w(quat &v);
 
-void vec4_diff( vec4 *dst, vec4 *v0, vec4 *v1 );
+void quat_multiply_vec3(quat &dst, const quat &v0, const vec3 &v1);
 
-void vec4_build_w( vec4 *v );
+void quat_multiply_quat(quat &dst, const quat &v0, const quat &v1);
 
-float vec4_dot( vec4 *v );
+void quat_conjugate(quat &dst, const quat &v);
 
-float vec4_dot_vec4(const vec4 *v0, const vec4 *v1);
+void quat_lerp(quat &dst, const quat &v0, const quat &v1, const float t);
 
-float vec4_length( vec4 *v );
-
-float vec4_normalize( vec4 *dst, vec4 *v );
-
-void vec4_multiply_vec3( vec4 *dst, vec4 *v0, vec3 *v1 );
-
-void vec4_multiply_vec4( vec4 *dst, vec4 *v0, vec4 *v1 );
-
-void vec4_conjugate( vec4 *dst, vec4 *v );
-
-void vec4_invert( vec4 *dst, vec4 *v );
-
-void vec4_lerp(vec4 *dst, const vec4 *v0, const vec4 *v1, const float t);
-
-void vec4_slerp(vec4 *dst, const vec4 *v0, const vec4 *v1, const float t);
+void quat_slerp(quat &dst, const quat &v0, const quat &v1, const float t);
 
 #endif

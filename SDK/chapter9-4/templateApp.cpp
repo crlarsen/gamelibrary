@@ -54,7 +54,7 @@ OBJ *obj = NULL;
 
 vec3    eye,
         next_eye,
-        up = { 0.0f, 0.0f, 1.0f };
+        up(0.0f, 0.0f, 1.0f);
 
 OBJMESH *player = NULL;
 
@@ -71,8 +71,8 @@ float   rotx	 = 40.0f,
         rotz	 = 0.0f,
         distance = 5.0f;
 
-vec2 accelerometer = { 0.0f, 0.0f },
-     next_accelerometer = { 0.0f, 0.0f };
+vec2 accelerometer(0.0f, 0.0f),
+     next_accelerometer(0.0f, 0.0f);
 
 float ball_speed  = 6.7f,
       sensitivity = 3.0f;
@@ -226,7 +226,7 @@ void program_draw(void *ptr)
                                GL_FALSE,
                                (float *)GFX_get_modelview_projection_matrix());
         } else if(name == "TEXTUREMATRIX") {
-            static vec2 scroll = { 0.0f, 0.0f };
+            static vec2 scroll(0.0f, 0.0f);
 
             GFX_set_matrix_mode(TEXTURE_MATRIX);
 
@@ -665,7 +665,7 @@ void templateAppDraw(void) {
     
     rotz += next_accelerometer.y * sensitivity;
     
-    vec3    forward = { 0.0f, 1.0f, 0.0f },
+    vec3    forward(0.0f, 1.0f, 0.0f),
             direction;
 
     if (!game_state) {
@@ -736,7 +736,7 @@ void templateAppDraw(void) {
     eye.y = next_eye.y * 0.05f + eye.y * 0.95f;
     eye.z = next_eye.z * 0.05f + eye.z * 0.95f;
 
-    vec3_diff(&direction, &player->location, &eye);
+    direction = player->location - eye;
 
     vec3_normalize(&direction, &direction);
 
@@ -813,7 +813,7 @@ void templateAppDraw(void) {
 
     GFX_load_identity();
 
-    vec4 font_color = { 0.0f, 0.0f, 0.0f, 1.0f };
+    vec4 font_color(0.0f, 0.0f, 0.0f, 1.0f);
     
     char    gem_str  [MAX_CHAR] = {""},
             time_str [MAX_CHAR] = {""},
@@ -881,7 +881,7 @@ void templateAppToucheBegan(float x, float y, unsigned int tap_count)
 
 void templateAppAccelerometer(float x, float y, float z)
 {
-    vec3 tmp = { x, y, z };
+    vec3 tmp(x, y, z);
 
     vec3_normalize(&tmp, &tmp);
 

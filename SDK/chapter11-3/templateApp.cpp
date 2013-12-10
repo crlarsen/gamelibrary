@@ -62,8 +62,8 @@ int viewport_matrix[4];
 SpotLight *light = NULL;
 
 
-vec3    center  = { 0.0f, 0.0f, 0.0f },
-        up_axis = { 0.0f, 0.0f, 1.0f };
+vec3    center (0.0f, 0.0f, 0.0f),
+        up_axis(0.0f, 0.0f, 1.0f);
 
 
 mat4 projector_matrix;
@@ -188,7 +188,7 @@ void program_draw(void *ptr)
 
     rot_angle += 0.25f;
 
-    vec3_diff(&light->spot_direction, &center, (vec3 *)&light->position);
+    light->spot_direction = center - vec3(light->position, true);
 
     vec3_normalize(&light->spot_direction,
                    &light->spot_direction);
@@ -238,9 +238,9 @@ void templateAppInit(int width, int height)
         objmaterial->build(NULL);
     }
 
-    vec4 color = { 1.0f, 1.0f, 1.0f, 1.0f };
+    vec4 color(1.0f, 1.0f, 1.0f, 1.0f);
 
-    vec3 position = { 7.5f, 0.0f, 6.0f };
+    vec3 position(7.5f, 0.0f, 6.0f);
 
     light = new SpotLight((char *)"spot", color, position, 0.0f, 0.0f, 0.0f, 75.0f, 0.05f);
 

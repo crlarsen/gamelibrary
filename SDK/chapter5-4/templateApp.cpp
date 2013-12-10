@@ -51,9 +51,9 @@ OBJ *obj = NULL;
 
 bool    auto_rotate = false;
 
-vec2 touche = { 0.0f, 0.0f }; 
+vec2 touche(0.0f, 0.0f);
 
-vec3 rot_angle = { 0.0f, 0.0f, 0.0f };
+vec3 rot_angle(0.0f, 0.0f, 0.0f);
 
 
 TEMPLATEAPP templateApp = {
@@ -107,8 +107,8 @@ void material_draw_callback(void *ptr)
 
             glUniform1i(uniform.location, TM_Bump);
         } else if (name == "LIGHTPOSITION") {
-            vec3 position    = { 0.0f, -3.0f, 4.0f };
-            vec3 eyeposition = { 0.0f,  0.0f, 0.0f };
+            vec3 position   (0.0f, -3.0f, 4.0f);
+            vec3 eyeposition(0.0f,  0.0f, 0.0f);
             vec3_multiply_mat4(&eyeposition,
                                &position,
                                &gfx.modelview_matrix[gfx.modelview_matrix_index - 1]);
@@ -208,9 +208,9 @@ void templateAppDraw(void) {
     GFX_load_identity();
     {
 
-        vec3    e = { 0.0, -3.0f, 0.0f },
-                c = { 0.0f, 0.0f, 0.0f },
-                u = { 0.0f, 0.0f, 1.0f };
+        vec3    e(0.0, -3.0f, 0.0f),
+                c(0.0f, 0.0f, 0.0f),
+                u(0.0f, 0.0f, 1.0f);
 
         GFX_look_at(&e, &c, &u);
     }

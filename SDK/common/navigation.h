@@ -125,7 +125,7 @@ struct NAVIGATION {
 
     NAVIGATIONCONFIGURATION navigationconfiguration;
 
-    vec3                    tolerance = { 1, 2, 1 };
+    vec3                    tolerance;
 
     unsigned char           *triangle_flags;
 

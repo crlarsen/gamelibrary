@@ -52,30 +52,32 @@ enum MD5Method {
 };
 
 
-typedef struct
+struct MD5JOINT
 {
     char			name[ MAX_CHAR ] = "";
 
     int				parent;
 
-    vec3			location = { 0, 0, 0 };
+    vec3			location;
 
-    vec4			rotation = { 0, 0, 0, 1 };
+    quat			rotation;
 
-} MD5JOINT;
+    MD5JOINT() : parent(-1), location(0,0,0), rotation(1,0,0,0) {}
+};
 
 
 struct MD5VERTEX {
-    vec2		uv = { 0, 0 };
+    vec2		uv;
 
-    vec3		normal = { 0, 0, 0 };
+    vec3		normal;
 
-    vec3		tangent = { 0, 0, 0 };
+    vec3		tangent;
 
     unsigned int	start;
 
     unsigned int	count;
-    MD5VERTEX() : start(0), count(0) {}
+    MD5VERTEX() :
+        start(0), count(0), uv(0,0), normal(0,0,0), tangent(0,0,0) {}
     ~MD5VERTEX() {}
     MD5VERTEX(const MD5VERTEX &src) :
         uv(src.uv), normal(src.normal), tangent(src.tangent),
@@ -263,17 +265,17 @@ struct MD5 {
 
     std::vector<MD5ACTION>   md5action;
 
-    vec3		location = { 0, 0, 0 };
+    vec3		location;
 
-    vec3		rotation = { 0, 0, 0 };
+    vec3		rotation;
 
-    vec3		scale = { 1, 1, 1 };
+    vec3		scale;
 
-    vec3		min = { 0, 0, 0 };
+    vec3		min;
 
-    vec3		max = { 0, 0, 0 };
+    vec3		max;
 
-    vec3		dimension = { 0, 0, 0 };
+    vec3		dimension;
 
     float		radius;
 

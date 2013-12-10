@@ -159,7 +159,7 @@ DirectionalLamp::DirectionalLamp(const char *name,
                                  const float rotz) : LAMP(name, color, LampDirectional)
 {
     /* Declare the up axis vector to be static, because it won't change. */
-    vec3 up_axis = { 0.0f, 0.0f, 1.0f };
+    vec3 up_axis(0.0f, 0.0f, 1.0f);
     /* Use the following helper function (which can be found in utils.cpp)
      * to rotate the up axis by the XYZ rotation angle received as parameters.
      * I think it's a lot easier to deal with angles when it comes to direction
@@ -179,7 +179,7 @@ void DirectionalLamp::get_direction_in_eye_space(mat4 *m, vec3 *direction)
     /* Invert the vector, because in eye space, the direction is simply the
      * inverted vector.
      */
-    vec3_invert(direction, direction);
+    *direction = -*direction;
 }
 
 void program_bind_attrib_location(void *ptr) {
@@ -311,7 +311,7 @@ void templateAppInit(int width, int height)
         objmaterial->build(NULL);
     }
 
-    vec4 color = { 1.0f, 1.0f, 1.0f, 1.0f };
+    vec4 color(1.0f, 1.0f, 1.0f, 1.0f);
 
     lamp = new DirectionalLamp((char *)"sun",   // Internal name of lamp
                                color,           // The lamp color.

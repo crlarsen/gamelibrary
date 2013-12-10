@@ -315,9 +315,9 @@ void templateAppDraw(void) {
     GFX_load_identity();
 
 
-    vec3    e = { 0.0f, -8.0f, 7.5f },
-            c = { 0.0f,  2.0f, 0.0f },
-            u = { 0.0f,  0.0f, 1.0f };
+    vec3    e(0.0f, -8.0f, 7.5f),
+            c(0.0f,  2.0f, 0.0f),
+            u(0.0f,  0.0f, 1.0f);
 
     GFX_look_at(&e, &c, &u);
     

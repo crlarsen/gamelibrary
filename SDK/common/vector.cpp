@@ -24,67 +24,9 @@ as being the original software.
 #include "gfx.h"
 
 
-void vec2_add( vec2 *dst, vec2 *v0, vec2 *v1 )
-{
-	dst->x = v0->x + v1->x;
-	dst->y = v0->y + v1->y;
-}
-
-
-void vec2_diff( vec2 *dst, vec2 *v0, vec2 *v1 )
-{
-	dst->x = v0->x - v1->x;
-	dst->y = v0->y - v1->y;
-}
-
-
-void vec3_add( vec3 *dst, vec3 *v0, vec3 *v1 )
-{
-	dst->x = v0->x + v1->x;
-	dst->y = v0->y + v1->y;
-	dst->z = v0->z + v1->z;
-}
-
-
-void vec3_diff( vec3 *dst, vec3 *v0, vec3 *v1 )
-{
-	dst->x = v0->x - v1->x;
-	dst->y = v0->y - v1->y;
-	dst->z = v0->z - v1->z;
-}
-
-
-void vec3_mul( vec3 *dst, vec3 *v0, vec3 *v1 )
-{
-	dst->x = v0->x * v1->x;
-	dst->y = v0->y * v1->y;
-	dst->z = v0->z * v1->z;
-}
-
-
-float vec3_dot( vec3 *v )
-{
-	return ( v->x * v->x ) +
-		   ( v->y * v->y ) +
-		   ( v->z * v->z );
-}
-
-
-float vec3_dot_vec3( vec3 *v0, vec3 *v1 )
-{
-	return ( v0->x * v1->x ) +
-		   ( v0->y * v1->y ) +
-		   ( v0->z * v1->z );
-}
-
-
-float vec3_length( vec3 *v )
-{ return sqrtf( vec3_dot( v ) ); }
-
-
 float vec3_normalize( vec3 *dst, vec3 *v )
 {
-	float l = vec3_length( v );
+	float l = v->length();
 	
 	if( l )
 	{
@@ -96,40 +38,6 @@ float vec3_normalize( vec3 *dst, vec3 *v )
 	}
 	
 	return l;
-}
-
-
-void vec3_cross( vec3 *dst, vec3 *v0, vec3 *v1 )
-{
-	dst->x = ( v0->y * v1->z ) - ( v1->y * v0->z );
-	dst->y = ( v0->z * v1->x ) - ( v1->z * v0->x );
-	dst->z = ( v0->x * v1->y ) - ( v1->x * v0->y );
-}
-
-
-float vec3_dist( vec3 *v0, vec3 *v1 )
-{
-	vec3 v;
-	
-	vec3_diff( &v, v0, v1 );
-	
-	return vec3_length( &v );
-}
-
-
-void vec3_mid( vec3 *dst, vec3 *v0, vec3 *v1 )
-{
-	dst->x = ( v0->x + v1->x ) * 0.5f;
-	dst->y = ( v0->y + v1->y ) * 0.5f;
-	dst->z = ( v0->z + v1->z ) * 0.5f;
-}
-
-
-void vec3_invert( vec3 *dst, vec3 *v )
-{
-	dst->x = -v->x;
-	dst->y = -v->y;
-	dst->z = -v->z;
 }
 
 
@@ -166,27 +74,25 @@ void vec3_lerp2( vec3 *dst, vec3 *v0, vec3 *v1, float t )
 }
 
 
-void vec3_rotate_vec4( vec3 *dst, vec3 *v0, vec4 *v1 )
+void vec3_rotate_quat(vec3 &dst, const vec3 &v0, const quat &v1)
 {
-	vec4 i, t, f;
+    quat i, t, f;
 
-	vec4_conjugate( &i, v1 );
-	
-	vec4_normalize( &i, &i );
-	
-	vec4_multiply_vec3( &t, v1, v0 );
-	
-	vec4_multiply_vec4( &f, &t, &i );
-	
-	memcpy( dst, &f, sizeof( vec3 ) );
+    quat_conjugate(i, v1);
+
+    i.safeNormalize();
+
+    quat_multiply_vec3(t, v1, v0);
+
+    quat_multiply_quat(f, t, i);
+
+    memcpy(&dst, &f.x, sizeof(vec3));
 }
 
 
 void vec3_to_recast( vec3 *v )
 {
-	vec3 tmp = {  v->x,
-				  v->z,
-			     -v->y };
+	vec3 tmp(v->x, v->z, -v->y);
 	
     *v = tmp;
 }
@@ -194,130 +100,75 @@ void vec3_to_recast( vec3 *v )
 
 void recast_to_vec3( vec3 *v )
 {
-    vec3    tmp = { v->x,
-                   -v->z,
-                    v->y };
+    vec3    tmp(v->x, -v->z, v->y);
 
     *v = tmp;
 }
 
 
-void vec4_build_w( vec4 * v )
+void quat_build_w(quat &v)
 {
-    float l = 1.0f - ( v->x * v->x ) -
-                     ( v->y * v->y ) -
-                     ( v->z * v->z );
+    float l = 1.0f - ( v.x * v.x ) -
+                     ( v.y * v.y ) -
+                     ( v.z * v.z );
 
-    v->w = ( l < 0.0f ) ? 0.0f : -sqrtf( l );
+    v.w = ( l < 0.0f ) ? 0.0f : -sqrtf( l );
 }
 
 
-float vec4_dot( vec4 *v )
+void quat_multiply_vec3(quat &dst, const quat &v0, const vec3 &v1)
 {
-    return ( v->x * v->x ) +
-           ( v->y * v->y ) +
-           ( v->z * v->z ) +
-           ( v->w * v->w );
-}
+    quat v;
 
+    v.x =  ( v0.w * v1.x ) + ( v0.y * v1.z ) - ( v0.z * v1.y );
+    v.y =  ( v0.w * v1.y ) + ( v0.z * v1.x ) - ( v0.x * v1.z );
+    v.z =  ( v0.w * v1.z ) + ( v0.x * v1.y ) - ( v0.y * v1.x );
+    v.w = -( v0.x * v1.x ) - ( v0.y * v1.y ) - ( v0.z * v1.z );
 
-float vec4_dot_vec4(const vec4 *v0, const vec4 *v1)
-{
-	return ( ( v0->x * v1->x ) +
-			 ( v0->y * v1->y ) +
-			 ( v0->z * v1->z ) + 
-			 ( v0->w * v1->w ) );
-}
-
-
-float vec4_length( vec4 *v )
-{
-	return sqrtf( vec4_dot( v ) );
-}
-
-
-float vec4_normalize( vec4 *dst, vec4 *v )
-{
-	float l = vec4_length( v ),
-		  m = l ? 1.0f / l: 0.0f;
-
-	dst->x = v->x * m;
-	dst->y = v->y * m;
-	dst->z = v->z * m;
-	dst->w = v->w * m;
-	
-	return l;
-}
-
-
-void vec4_multiply_vec3( vec4 *dst, vec4 *v0, vec3 *v1 )
-{
-	vec4 v;
-
-	v.x =  ( v0->w * v1->x ) + ( v0->y * v1->z ) - ( v0->z * v1->y );
-	v.y =  ( v0->w * v1->y ) + ( v0->z * v1->x ) - ( v0->x * v1->z );
-	v.z =  ( v0->w * v1->z ) + ( v0->x * v1->y ) - ( v0->y * v1->x );
-	v.w = -( v0->x * v1->x ) - ( v0->y * v1->y ) - ( v0->z * v1->z );
-
-	memcpy( dst, &v, sizeof( vec4 ) );	
+    dst = v;
 }
 
 
 
-void vec4_multiply_vec4( vec4 *dst, vec4 *v0, vec4 *v1 )
+void quat_multiply_quat(quat &dst, const quat &v0, const quat &v1)
 {
-	vec4 v;
+    quat v;
 
-	v.x = ( v0->x * v1->w ) + ( v0->w * v1->x ) + ( v0->y * v1->z ) - ( v0->z * v1->y );
-	v.y = ( v0->y * v1->w ) + ( v0->w * v1->y ) + ( v0->z * v1->x ) - ( v0->x * v1->z );
-	v.z = ( v0->z * v1->w ) + ( v0->w * v1->z ) + ( v0->x * v1->y ) - ( v0->y * v1->x );
-	v.w = ( v0->w * v1->w ) - ( v0->x * v1->x ) - ( v0->y * v1->y ) - ( v0->z * v1->z );
+    v.x = (v0.x * v1.w) + (v0.w * v1.x) + (v0.y * v1.z) - (v0.z * v1.y);
+    v.y = (v0.y * v1.w) + (v0.w * v1.y) + (v0.z * v1.x) - (v0.x * v1.z);
+    v.z = (v0.z * v1.w) + (v0.w * v1.z) + (v0.x * v1.y) - (v0.y * v1.x);
+    v.w = (v0.w * v1.w) - (v0.x * v1.x) - (v0.y * v1.y) - (v0.z * v1.z);
 
-	memcpy( dst, &v, sizeof( vec4 ) );
+    dst = v;
 }
 
 
-void vec4_conjugate( vec4 *dst, vec4 *v )
+void quat_conjugate(quat &dst, const quat &v)
 {
-	dst->x = -v->x;
-	dst->y = -v->y;
-	dst->z = -v->z;
-	dst->w =  v->w;
+	dst.x = -v.x;
+	dst.y = -v.y;
+	dst.z = -v.z;
+	dst.w =  v.w;
 }
 
 
-void vec4_invert( vec4 *dst, vec4 *v )
+void quat_lerp(quat &dst, const quat &v0, const quat &v1, const float t)
 {
-	dst->x = -v->x;
-	dst->y = -v->y;
-	dst->z = -v->z;
-	dst->w = -v->w;
-}
-
-
-void vec4_lerp(vec4 *dst, const vec4 *v0, const vec4 *v1, const float t)
-{
-	float dot = vec4_dot_vec4( v0, v1 ),
+	float dot = v0.dotProduct(v1),
 		  k0,
 		  k1;
 
-	vec4 tmp(*v1);
+	quat tmp(v1);
 	
 	if( t == 1.0f )
 	{
-		dst->x = v1->x;
-		dst->y = v1->y;
-		dst->z = v1->z;
-		dst->w = v1->w;
+            dst = v1;
 		
 		return;
 	}
 	else if( t == 0.0f )
 	{
-		dst->x = v0->x;
-		dst->y = v0->y;
-		dst->z = v0->z;
-		dst->w = v0->w;
+            dst = v0;
 	
 		return;
 	}
@@ -325,10 +176,7 @@ void vec4_lerp(vec4 *dst, const vec4 *v0, const vec4 *v1, const float t)
 	
 	if( dot < 0.0f )
 	{
-		tmp.x = -tmp.x;
-		tmp.y = -tmp.y;
-		tmp.z = -tmp.z;
-		tmp.w = -tmp.w;
+            tmp = -tmp;
 		
 		dot = -dot;
 	}
@@ -349,69 +197,53 @@ void vec4_lerp(vec4 *dst, const vec4 *v0, const vec4 *v1, const float t)
 		k1 = sinf( t * o ) * o1;
 	}
 	
-	dst->x = ( k0 * v0->x ) + ( k1 * tmp.x );
-	dst->y = ( k0 * v0->y ) + ( k1 * tmp.y );
-	dst->z = ( k0 * v0->z ) + ( k1 * tmp.z );		
-	dst->w = ( k0 * v0->w ) + ( k1 * tmp.w );
+	dst.x = ( k0 * v0.x ) + ( k1 * tmp.x );
+	dst.y = ( k0 * v0.y ) + ( k1 * tmp.y );
+	dst.z = ( k0 * v0.z ) + ( k1 * tmp.z );		
+	dst.w = ( k0 * v0.w ) + ( k1 * tmp.w );
 }
 
 
-void vec4_slerp(vec4 *dst, const vec4 *v0, const vec4 *v1, const float t)
+void quat_slerp(quat &dst, const quat &v0, const quat &v1, const float t)
 {
-	float c = vec4_dot_vec4(v0, v1),
-		  k0,
-		  k1;
+    float c = v0.dotProduct(v1),
+    k0,
+    k1;
 
-        vec4 tmp(*v1);
+    quat tmp(v1);
 
-	if( t == 1.0f )
-	{
-		dst->x = v1->x;
-		dst->y = v1->y;
-		dst->z = v1->z;
-		dst->w = v1->w;
-		
-		return;
-	}
-	else if( t == 0.0f )
-	{
-		dst->x = v0->x;
-		dst->y = v0->y;
-		dst->z = v0->z;
-		dst->w = v0->w;
-	
-		return;
-	}	
-	
-	
-	if( c < 0.0f )
-	{
-		tmp.x = -tmp.x;
-		tmp.y = -tmp.y;
-		tmp.z = -tmp.z;
-		tmp.w = -tmp.w;
-		
-		c = -c;
-	}
+    if( t == 1.0f ) {
+        dst = v1;
+
+        return;
+    } else if( t == 0.0f ) {
+        dst = v0;
+
+        return;
+    }
 
 
-	if( c > 0.999999f )
-	{
-		k0 = 1.0f - t;
-		k1 = t;
-	}
-	else
-	{
-		float s  = sqrtf( 1.0f - ( c * c ) ),
-			  o  = atan2f( s, c ),
-			  o1 = 1.0f / s;
+    if( c < 0.0f ) {
+        tmp = -tmp;
 
-		k0 = sinf( ( 1.0f - t ) * o ) * o1;
-		k1 = sinf( t * o ) * o1;
-	}
-	
-	dst->x = ( k0 * v0->x ) + ( k1 * tmp.x );
-	dst->y = ( k0 * v0->y ) + ( k1 * tmp.y );
-	dst->z = ( k0 * v0->z ) + ( k1 * tmp.z );		
-	dst->w = ( k0 * v0->w ) + ( k1 * tmp.w );
+        c = -c;
+    }
+
+
+    if( c > 0.999999f ) {
+        k0 = 1.0f - t;
+        k1 = t;
+    } else {
+        float   s  = sqrtf( 1.0f - ( c * c ) ),
+                o  = atan2f( s, c ),
+                o1 = 1.0f / s;
+
+        k0 = sinf( ( 1.0f - t ) * o ) * o1;
+        k1 = sinf( t * o ) * o1;
+    }
+
+    dst.x = ( k0 * v0.x ) + ( k1 * tmp.x );
+    dst.y = ( k0 * v0.y ) + ( k1 * tmp.y );
+    dst.z = ( k0 * v0.z ) + ( k1 * tmp.z );		
+    dst.w = ( k0 * v0.w ) + ( k1 * tmp.w );
 }

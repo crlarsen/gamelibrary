@@ -164,7 +164,7 @@ DirectionalLamp::DirectionalLamp(const char *name,
                                  const float rotz) : LAMP(name, color, LampDirectional)
 {
     /* Declare the up axis vector to be static, because it won't change. */
-    vec3 up_axis = { 0.0f, 0.0f, 1.0f };
+    vec3 up_axis(0.0f, 0.0f, 1.0f);
     /* Use the following helper function (which can be found in utils.cpp)
      * to rotate the up axis by the XYZ rotation angle received as parameters.
      * I think it's a lot easier to deal with angles when it comes to direction
@@ -184,7 +184,7 @@ void DirectionalLamp::get_direction_in_eye_space(mat4 *m, vec3 *direction)
     /* Invert the vector, because in eye space, the direction is simply the
      * inverted vector.
      */
-    vec3_invert(direction, direction);
+    *direction = -*direction;
 }
 
 struct PointLamp : LAMP {
@@ -231,8 +231,7 @@ PointLamp::PointLamp(const char *name, const vec4 &color, const vec3 &position) 
      * multiply it by the modelview matrix the same way as if you were
      * dealing with a vertex position in eye space.
      */
-    memcpy(&this->position, &position, sizeof(vec3));
-    this->position.w = 1.0f;
+    this->position = vec4(position, 1.0f);
 }
 
 PointLamp::PointLamp(const char *name, const vec4 &color, const vec3 &position, const unsigned char t) : LAMP(name, color, t)
@@ -243,8 +242,7 @@ PointLamp::PointLamp(const char *name, const vec4 &color, const vec3 &position, 
      * multiply it by the modelview matrix the same way as if you were
      * dealing with a vertex position in eye space.
      */
-    memcpy(&this->position, &position, sizeof(vec3));
-    this->position.w = 1.0f;
+    this->position = vec4(position, 1.0f);
 }
 
 /* This function is basically very easy.  In the same way that you
@@ -447,7 +445,7 @@ SpotLamp::SpotLamp(const char *name,
                     * 0 represents no smoothing.
                     */
                    const float spot_blend) : PointLamp(name, color, position, LampSpot) {
-    static vec3 up_axis = { 0.0f, 0.0f, 1.0f };
+    static vec3 up_axis(0.0f, 0.0f, 1.0f);
     /* Calculate the spot cosine cut off. */
     this->spot_cos_cutoff = cosf((fov * 0.5f) * DEG_TO_RAD);
     /* Clamp the spot blend to make sure that there won't be a division by 0
@@ -479,8 +477,7 @@ void SpotLamp::get_direction_in_object_space(mat4 *m, vec3 *direction)
     vec3_normalize(direction,
                    direction);
 
-    vec3_invert(direction,
-                direction);
+    *direction = -*direction;
 }
 
 void program_bind_attrib_location(void *ptr) {
@@ -618,7 +615,7 @@ void templateAppInit(int width, int height)
         objmaterial->build(NULL);
     }
     
-    vec4 color = { 1.0f, 1.0f, 1.0f, 1.0f };
+    vec4 color(1.0f, 1.0f, 1.0f, 1.0f);
     
 //    lamp = new DirectionalLamp((char *)"sun",    // Internal name of lamp
 //                               color, // The lamp color.
@@ -626,7 +623,7 @@ void templateAppInit(int width, int height)
 //                                   0.0f,  // that will be used to create the
 //                                   -45.0f);// direction vector.
     /* The 3D position in world space of the point light. */
-    vec3 position = { 3.5f, 3.0f, 6.0f };
+    vec3 position(3.5f, 3.0f, 6.0f);
 //    /* Create a new LAMP pointer and declare it as a simple point light. */
 //    lamp = new PointLamp((char *)"point", color, position);
 //    /* The linear and quadratic attenuation are values that range from 0

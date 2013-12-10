@@ -51,9 +51,9 @@ OBJ *obj = NULL;
 
 bool    auto_rotate = false;
 
-vec2 touche = { 0.0f, 0.0f }; 
+vec2 touche(0.0f, 0.0f);
 
-vec3 rot_angle = { 0.0f, 0.0f, 0.0f };
+vec3 rot_angle(0.0f, 0.0f, 0.0f);
 
 
 TEMPLATEAPP templateApp = {
@@ -178,9 +178,9 @@ void templateAppDraw(void) {
     GFX_load_identity();
     {
 
-        vec3    e = { 0.0, -3.0f, 0.0f },
-                c = { 0.0f, 0.0f, 0.0f },
-                u = { 0.0f, 0.0f, 1.0f };
+        vec3    e(0.0, -3.0f, 0.0f),
+                c(0.0f, 0.0f, 0.0f),
+                u(0.0f, 0.0f, 1.0f);
 
         GFX_look_at(&e, &c, &u);
     }

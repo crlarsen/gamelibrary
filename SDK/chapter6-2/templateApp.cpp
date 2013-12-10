@@ -132,9 +132,9 @@ void add_rigid_body(OBJMESH *objmesh, float mass)
     /* Declare 3 vectors to be able to hold the rotation of the mesh on
      * the XYZ axis.
      */
-    vec4 rotx = { 1.0f, 0.0f, 0.0f, objmesh->rotation.x },
-         roty = { 0.0f, 1.0f, 0.0f, objmesh->rotation.y },
-         rotz = { 0.0f, 0.0f, 1.0f, objmesh->rotation.z };
+    vec4 rotx(1.0f, 0.0f, 0.0f, objmesh->rotation.x),
+         roty(0.0f, 1.0f, 0.0f, objmesh->rotation.y),
+         rotz(0.0f, 0.0f, 1.0f, objmesh->rotation.z);
 
     /* Set up the identity matrix to makesure the matrix is clean. */
     mat4_identity(&mat);
@@ -372,9 +372,9 @@ void templateAppDraw(void) {
     GFX_set_matrix_mode(MODELVIEW_MATRIX);
     GFX_load_identity();
     {
-        vec3    e = { 10.4f, -9.8f, 5.5f },
-                c = { -3.4f,  2.8f, 0.0f },
-                u = {  0.0f,  0.0f, 1.0f };
+        vec3    e(10.4f, -9.8f, 5.5f),
+                c(-3.4f,  2.8f, 0.0f),
+                u( 0.0f,  0.0f, 1.0f);
 
         GFX_look_at(&e, &c, &u);
     }

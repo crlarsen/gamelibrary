@@ -284,7 +284,7 @@ void GFX_multiply_matrix( mat4 *m )
 
 void GFX_translate( float x, float y, float z )
 {
-    vec3 v = { x, y, z };
+    vec3 v(x, y, z);
 	
     switch( gfx.matrix_mode )
     {
@@ -316,7 +316,7 @@ void GFX_rotate( float angle, float x, float y, float z )
 {
 	if( !angle ) return;
 	
-	vec4 v = { x, y, z, angle };
+	vec4 v(x, y, z, angle);
 	
 	switch( gfx.matrix_mode )
 	{
@@ -346,9 +346,9 @@ void GFX_rotate( float angle, float x, float y, float z )
 
 void GFX_scale( float x, float y, float z )
 {
-    static vec3 scale = { 1.0f, 1.0f, 1.0f };
+    static vec3 scale(1.0f, 1.0f, 1.0f);
 
-    vec3 v = { x, y, z };
+    vec3 v(x, y, z);
 
     if( !memcmp( &v, &scale, sizeof( vec3 ) ) ) return;
 
@@ -500,15 +500,15 @@ void GFX_look_at( vec3 *eye, vec3 *center, vec3 *up )
 
 	mat4_identity( &mat );
 
-	vec3_diff( &f, center, eye );
+    f = *center - *eye;
 
 	vec3_normalize( &f, &f );
 
-	vec3_cross( &s, &f, up );
+    s = f.crossProduct(*up);
 
 	vec3_normalize( &s, &s );
 
-	vec3_cross( &u, &s, &f );
+    u = s.crossProduct(f);
 
 	mat.m[ 0 ].x = s.x;
 	mat.m[ 1 ].x = s.y;

@@ -62,7 +62,7 @@ float screen_size = 0.0f;
 vec2    view_location,
         view_delta;
 	 
-vec3    move_location = { 0.0f, 0.0f, 0.0f },
+vec3    move_location(0.0f, 0.0f, 0.0f),
         move_delta;
 
 OBJMESH *camera = NULL;
@@ -363,18 +363,14 @@ void templateAppToucheMoved(float x, float y, unsigned int tap_count)
         view_location.x = x;
         view_location.y = y;
     } else if (y < (screen_size * 0.5f)) {
-        vec3 touche = { x,
-            y,
-            0.0f };
+        vec3 touche(x, y, 0.0f);
 
-        vec3_diff(&move_delta,
-                  &touche,
-                  &move_location);
+        move_delta = touche - move_location;
 
         vec3_normalize(&move_delta,
                        &move_delta);
 
-        move_delta.z = CLAMP(vec3_dist(&move_location, &touche) / 128.0f,
+        move_delta.z = CLAMP((move_location-touche).length() / 128.0f,
                              0.0f,
                              1.0f);
     } else {

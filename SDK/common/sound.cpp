@@ -191,7 +191,7 @@ SOUNDBUFFER::~SOUNDBUFFER()
 
 SOUND::SOUND(char *name, SOUNDBUFFER *soundbuffer)
 {
-    vec3 tmp = { 0.0f, 0.0f, 0.0f };
+    vec3 tmp(0.0f, 0.0f, 0.0f);
 
     memset(this, 0, sizeof(SOUND));
 

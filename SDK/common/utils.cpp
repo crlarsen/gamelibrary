@@ -355,13 +355,12 @@ float sphere_distance_in_frustum( vec4  *frustum, vec3  *location, float radius 
 
     // CRL -- We can do the following in more places in this file, i.e.,
     // expand the location to (one of) its equivalent value(s) in
-    // homogeneous space, and use the vec4_dot_vec4() method to make the
-    // code (IMHO) more readable.  I'll do this in earnest later when I
-    // have more tools in place.
-    vec4 loc = { location->x, location->y, location->z, 1.0f };
+    // homogeneous space, and use the dotProduct() method to make the
+    // code (IMHO) more readable.
+    vec4 loc(*location, 1.0f);
 	
     for (int i=0; i!=6; ++i) {
-        d = vec4_dot_vec4(&frustum[i], &loc);
+        d = frustum[i].dotProduct(loc);
 
         if (d < -radius)
             return 0.0f;
@@ -650,7 +649,7 @@ void create_direction_vector( vec3 *dst, vec3 *up_axis, float rotx, float roty, 
 
     mat4_rotate( &m, &m, &rotation );
     
-    vec3_invert( up_axis, up_axis );
+    *up_axis = -*up_axis;
     
     vec3_multiply_mat4( dst, up_axis, &m );
 }

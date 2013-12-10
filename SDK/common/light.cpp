@@ -51,7 +51,7 @@ DirectionalLight::DirectionalLight(const char *name,
                                    const float rotz) : LIGHT(name, color, /* type = */ LIGHT_DIRECTIONAL)
 {
     /* Declare the up axis vector to be static, because it won't change. */
-    vec3 up_axis = { 0.0f, 0.0f, 1.0f };
+    vec3 up_axis(0.0f, 0.0f, 1.0f);
     /* Use the following helper function (which can be found in utils.cpp)
      * to rotate the up axis by the XYZ rotation angle received as parameters.
      * I think it's a lot easier to deal with angles when it comes to direction
@@ -95,8 +95,7 @@ PointLight::PointLight(const char *name, const vec4 &color, const vec3 &position
      * multiply it by the modelview matrix the same way as if you were
      * dealing with a vertex position in eye space.
      */
-    memcpy(&this->position, &position, sizeof(vec3));
-    this->position.w = 1.0f;
+    this->position = vec4(position, 1.0f);
 }
 
 PointLight::PointLight(const char *name, const vec4 &color, const vec3 &position, const unsigned char t) : LIGHT(name, color, t)
@@ -107,8 +106,7 @@ PointLight::PointLight(const char *name, const vec4 &color, const vec3 &position
      * multiply it by the modelview matrix the same way as if you were
      * dealing with a vertex position in eye space.
      */
-    memcpy(&this->position, &position, sizeof(vec3));
-    this->position.w = 1.0f;
+    this->position = vec4(position, 1.0f);
 }
 
 void PointLight::push_to_shader(PROGRAM *program) {
@@ -201,7 +199,7 @@ SpotLight::SpotLight(const char *name,
                       * 0 represents no smoothing.
                       */
                      const float spot_blend) : PointLight(name, color, position, LIGHT_SPOT) {
-    static vec3 up_axis = { 0.0f, 0.0f, 1.0f };
+    static vec3 up_axis(0.0f, 0.0f, 1.0f);
     this->spot_fov = fov;
     /* Calculate the spot cosine cut off. */
     this->spot_cos_cutoff = cosf((fov * 0.5f) * DEG_TO_RAD);
@@ -259,7 +257,7 @@ void DirectionalLight::get_direction_in_eye_space(mat4 *m, vec3 *direction)
     /* Invert the vector, because in eye space, the direction is simply the
      * inverted vector.
      */
-    vec3_invert(direction, direction);
+    *direction = -*direction;
 }
 
 vec3 DirectionalLight::get_direction_in_eye_space(mat4 *m)
@@ -274,7 +272,7 @@ vec3 DirectionalLight::get_direction_in_eye_space(mat4 *m)
     /* Invert the vector, because in eye space, the direction is simply the
      * inverted vector.
      */
-    vec3_invert(&direction, &direction);
+    direction = -direction;
 
     return direction;
 }
@@ -311,6 +309,5 @@ void SpotLight::get_direction_in_object_space(mat4 *m, vec3 *direction)
     vec3_normalize(direction,
                    direction);
 
-    vec3_invert(direction,
-                direction);
+    *direction = -*direction;
 }

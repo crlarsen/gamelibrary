@@ -59,7 +59,7 @@ TEMPLATEAPP templateApp = {
     templateAppToucheEnded
 };
 
-vec2 start_pos = { 0.0f, 0.0f };
+vec2 start_pos(0.0f, 0.0f);
 
 /* Index of the current Momo.  Since the momo objects are name respectively
  * momo1, momo2, and so on, keeking an index enables you to easily retrieve
@@ -76,9 +76,9 @@ bool            restart_game = false,   // Flag to restart the game.
                 momo_launch  = false;   // Flag to let momo be thrown.
 unsigned char   banana       = 0;       // Banana counter.
 
-vec3    eye    = { 3.5f, -10.8f, 5.3f },
-        center = { 3.5f,  -9.8f, 5.3f },
-        up     = { 0.0f,   0.0f, 1.0f };
+vec3    eye   (3.5f, -10.8f, 5.3f),
+        center(3.5f,  -9.8f, 5.3f),
+        up    (0.0f,   0.0f, 1.0f);
 
 
 btSoftBodyRigidBodyCollisionConfiguration *collisionconfiguration = NULL;

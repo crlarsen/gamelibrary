@@ -267,9 +267,9 @@ void templateAppDraw(void)
     GFX_set_matrix_mode(MODELVIEW_MATRIX);
     GFX_load_identity();
     {
-        vec3 e = { 0.0f, -4.0f, 0.0f },
-             c = { 0.0f,  0.0f, 0.0f },
-             u = { 0.0f,  0.0f, 1.0f };
+        vec3 e(0.0f, -4.0f, 0.0f),
+             c(0.0f,  0.0f, 0.0f),
+             u(0.0f,  0.0f, 1.0f);
         GFX_look_at( &e, &c, &u );
     }
 

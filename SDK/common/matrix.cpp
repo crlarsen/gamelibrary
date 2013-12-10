@@ -211,7 +211,7 @@ void mat4_rotate( mat4 *dst, mat4 *m, vec4 *v )
 
     mat4 mat;
 
-    vec3 t = { v->x, v->y, v->z };
+    vec3 t(*v, true);
 
     mat4_identity( &mat );
 

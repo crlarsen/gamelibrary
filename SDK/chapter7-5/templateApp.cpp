@@ -58,7 +58,7 @@ vec3    move_location,
 /* The variables that you are going to plug into the GFX_look_at function. */
 vec3    eye,
         center,
-        up = { 0.0, 0.0, 1.0f };
+        up(0.0, 0.0, 1.0f);
 /* Global OBJMESH to remember the player object pointer. */
 OBJMESH *player = NULL;
 
@@ -319,18 +319,14 @@ void templateAppToucheBegan(float x, float y, unsigned int tap_count)
 
 void templateAppToucheMoved(float x, float y, unsigned int tap_count)
 {
-    vec3 touche = { x,
-                    y,
-                    0.0f };
+    vec3 touche(x, y, 0.0f);
 
-    vec3_diff(&move_delta,
-              &move_location,
-              &touche);
+    move_delta = move_location - touche;
 
     vec3_normalize(&move_delta,
                    &move_delta);
 
-    move_delta.z = CLAMP(vec3_dist(&move_location, &touche) / 128.0f,
+    move_delta.z = CLAMP((move_location-touche).length() / 128.0f,
                          0.0f,
                          1.0f);
 }

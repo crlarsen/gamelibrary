@@ -121,9 +121,9 @@ void templateAppDraw( void )
     GFX_load_identity();
 
     /* The eye position in world coordinates. */
-    vec3    e = { 0.0f, -3.0f, 0.0f }, /* The position in world space where the eye is looking. */
-            c = { 0.0f,  0.0f, 0.0f },  /* Use the positive Z axis as the up vector. */
-            u = { 0.0f,  0.0f, 1.0f };
+    vec3    e(0.0f, -3.0f, 0.0f), /* The position in world space where the eye is looking. */
+            c(0.0f,  0.0f, 0.0f),  /* Use the positive Z axis as the up vector. */
+            u(0.0f,  0.0f, 1.0f);
     GFX_look_at(&e, &c, &u);
 
     static float y = 0.0f;

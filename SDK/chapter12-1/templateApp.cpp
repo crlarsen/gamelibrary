@@ -77,9 +77,9 @@ int viewport_matrix[4];
 LIGHT *light = NULL;
 
 
-vec2 touche = { 0.0f, 0.0f }; 
+vec2 touche(0.0f, 0.0f);
 
-vec3 rot_angle = { 0.0f, 0.0f, 0.0f };
+vec3 rot_angle(0.0f, 0.0f, 0.0f);
 
 unsigned char auto_rotate = 0; 
 
@@ -175,7 +175,7 @@ void templateAppInit(int width, int height)
 
     glGetIntegerv(GL_VIEWPORT, viewport_matrix);
 
-    vec4 color = { 1.0f, 1.0f, 1.0f, 1.0f };
+    vec4 color(1.0f, 1.0f, 1.0f, 1.0f);
 
     light = new DirectionalLight((char *)"point", color, 45.0f, 0.0f, 0.0f);
 

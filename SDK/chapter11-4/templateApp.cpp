@@ -189,9 +189,9 @@ void templateAppInit(int width, int height)
         objmaterial->build(NULL);
     }
 
-    vec4 color = { 1.0f, 1.0f, 1.0f, 1.0f };
+    vec4 color(1.0f, 1.0f, 1.0f, 1.0f);
 
-    vec3 position = { 0.0f, 0.0f, 5.0f };
+    vec3 position(0.0f, 0.0f, 5.0f);
 
     light = new PointLight((char *)"point", color, position);
 

@@ -45,7 +45,9 @@ as being the original software.
 
 
 MD5::MD5(char *filename, const bool relative_path) :
-    visible(true), radius(0.0f), distance(1.0f), btrigidbody(NULL)
+    visible(true), location(0,0,0), rotation(0,0,0), scale(1,1,1),
+    min(FLT_MAX,FLT_MAX,FLT_MAX), max(-FLT_MAX,-FLT_MAX,-FLT_MAX),
+    dimension(0,0,0), radius(0.0f), distance(1.0f), btrigidbody(NULL)
 {
     MEMORY  *m = new MEMORY(filename, relative_path);
 
@@ -83,7 +85,7 @@ MD5::MD5(char *filename, const bool relative_path) :
                            &this->bind_pose[i].rotation.x,
                            &this->bind_pose[i].rotation.y,
                            &this->bind_pose[i].rotation.z) == 8) {
-                    vec4_build_w(&this->bind_pose[i].rotation);
+                    quat_build_w(this->bind_pose[i].rotation);
 
                     ++i;
                 }
@@ -218,7 +220,7 @@ int MD5::load_action(char *name, char *filename, const bool relative_path)
         } else if (sscanf(line, "frameRate %d", &int_val) == 1) {
             md5action->fps = 1.0f / (float)int_val;
         } else if (sscanf(line, "frame %d", &int_val)) {
-            MD5JOINT *md5joint = &md5action->frame[int_val][0];
+            auto &md5joint = md5action->frame[int_val];
 
             line = strtok(NULL, "\n");
 
@@ -233,7 +235,7 @@ int MD5::load_action(char *name, char *filename, const bool relative_path)
                            &md5joint[i].rotation.z) == 6) {
                     strcpy(md5joint[i].name, this->bind_pose[i].name);
 
-                    vec4_build_w(&md5joint[i].rotation);
+                    quat_build_w(md5joint[i].rotation);
                 }
 
                 line = strtok(NULL, "\n");
@@ -242,26 +244,23 @@ int MD5::load_action(char *name, char *filename, const bool relative_path)
 
             vec3 location;
 
-            vec4 rotation;
+            quat rotation;
 
             for (int i=0; i != this->bind_pose.size(); ++i) {
                 if (this->bind_pose[i].parent > -1) {
                     MD5JOINT *md5joint = &md5action->frame[int_val][this->bind_pose[i].parent];
 
-                    vec3_rotate_vec4(&location,
-                                     &md5action->frame[int_val][i].location,
-                                     &md5joint->rotation);
+                    vec3_rotate_quat(location,
+                                     md5action->frame[int_val][i].location,
+                                     md5joint->rotation);
 
-                    md5action->frame[int_val][i].location.x = location.x + md5joint->location.x;
-                    md5action->frame[int_val][i].location.y = location.y + md5joint->location.y;
-                    md5action->frame[int_val][i].location.z = location.z + md5joint->location.z;
+                    md5action->frame[int_val][i].location = location + md5joint->location;
                     
-                    vec4_multiply_vec4(&rotation,
-                                       &md5joint->rotation,
-                                       &md5action->frame[int_val][i].rotation);
+                    quat_multiply_quat(rotation,
+                                       md5joint->rotation,
+                                       md5action->frame[int_val][i].rotation);
                     
-                    vec4_normalize(&md5action->frame[int_val][i].rotation,
-                                   &rotation);
+                    md5action->frame[int_val][i].rotation = rotation.normalize();
                 }
             }
         }
@@ -550,7 +549,7 @@ void MD5MESH::build_vao()
 
 void MD5::build_bind_pose_weighted_normals_tangents()
 {
-    static vec3 zero = { 0, 0, 0 };
+    static vec3 zero(0, 0, 0);
 
     for (auto md5mesh=this->md5mesh.begin();
          md5mesh != this->md5mesh.end(); ++md5mesh) {
@@ -571,16 +570,12 @@ void MD5::build_bind_pose_weighted_normals_tangents()
                     v2,
                     normal;
 
-            vec3_diff(&v1,
-                      &vertex_array[indice[0]],
-                      &vertex_array[indice[1]]);
+            v1 = vertex_array[indice[0]] - vertex_array[indice[1]];
 
-            vec3_diff(&v2,
-                      &vertex_array[indice[0]],
-                      &vertex_array[indice[2]]);
+            v2 = vertex_array[indice[0]] - vertex_array[indice[2]];
 
 
-            vec3_cross(&normal, &v1, &v2);
+            normal = v1.crossProduct(v2);
 
             vec3_normalize(&normal, &normal);
 
@@ -592,51 +587,30 @@ void MD5::build_bind_pose_weighted_normals_tangents()
              */
 
             // Smooth normals
-            vec3_add(&md5mesh->md5vertex[indice[0]].normal,
-                     &md5mesh->md5vertex[indice[0]].normal,
-                     &normal);
+            md5mesh->md5vertex[indice[0]].normal += normal;
 
-            vec3_add(&md5mesh->md5vertex[indice[1]].normal,
-                     &md5mesh->md5vertex[indice[1]].normal,
-                     &normal);
+            md5mesh->md5vertex[indice[1]].normal += normal;
 
-            vec3_add(&md5mesh->md5vertex[indice[2]].normal,
-                     &md5mesh->md5vertex[indice[2]].normal,
-                     &normal);
+            md5mesh->md5vertex[indice[2]].normal += normal;
 
             vec3 tangent;
 
-            vec2 uv1, uv2;
+            vec2 uv1(md5mesh->md5vertex[indice[1]].uv);
+            uv1 -= md5mesh->md5vertex[indice[0]].uv;
 
-            float c;
+            vec2 uv2(md5mesh->md5vertex[indice[2]].uv);
+            uv2 -= md5mesh->md5vertex[indice[0]].uv;
 
-            vec2_diff(&uv1,
-                      &md5mesh->md5vertex[indice[1]].uv,
-                      &md5mesh->md5vertex[indice[0]].uv);
+            float c = 1.0f / (uv1.x * uv2.y - uv2.x * uv1.y);
 
-            vec2_diff(&uv2,
-                      &md5mesh->md5vertex[indice[2]].uv,
-                      &md5mesh->md5vertex[indice[0]].uv);
+            tangent = (v1 * uv2.y + v2 * uv1.y) * c;
 
 
-            c = 1.0f / (uv1.x * uv2.y - uv2.x * uv1.y);
+            md5mesh->md5vertex[indice[0]].tangent += tangent;
 
-            tangent.x = (v1.x * uv2.y + v2.x * uv1.y) * c;
-            tangent.y = (v1.y * uv2.y + v2.y * uv1.y) * c;
-            tangent.z = (v1.z * uv2.y + v2.z * uv1.y) * c;
+            md5mesh->md5vertex[indice[1]].tangent += tangent;
 
-
-            vec3_add(&md5mesh->md5vertex[indice[0]].tangent,
-                     &md5mesh->md5vertex[indice[0]].tangent,
-                     &tangent);
-
-            vec3_add(&md5mesh->md5vertex[indice[1]].tangent,
-                     &md5mesh->md5vertex[indice[1]].tangent,
-                     &tangent);
-
-            vec3_add(&md5mesh->md5vertex[indice[2]].tangent,
-                     &md5mesh->md5vertex[indice[2]].tangent,
-                     &tangent);
+            md5mesh->md5vertex[indice[2]].tangent += tangent;
         }
 
 
@@ -666,28 +640,24 @@ void MD5::build_bind_pose_weighted_normals_tangents()
                 vec3    normal(md5vertex->normal),
                         tangent(md5vertex->tangent);
                 
-                vec4    rotation(md5joint->rotation);
+                quat    rotation(md5joint->rotation);
                 
                 
-                vec4_conjugate(&rotation, &rotation);
+                quat_conjugate(rotation, rotation);
                 
                 
-                vec3_rotate_vec4(&normal,
-                                 &normal,
-                                 &rotation);
+                vec3_rotate_quat(normal,
+                                 normal,
+                                 rotation);
                 
-                vec3_rotate_vec4(&tangent,
-                                 &tangent,
-                                 &rotation);
+                vec3_rotate_quat(tangent,
+                                 tangent,
+                                 rotation);
                 
                 
-                vec3_add(&md5weight->normal,
-                         &md5weight->normal,
-                         &normal);
-                
-                vec3_add(&md5weight->tangent,
-                         &md5weight->tangent,
-                         &tangent);
+                md5weight->normal = md5weight->normal + normal;
+
+                md5weight->tangent = md5weight->tangent + tangent;
             }
         }
         
@@ -722,38 +692,32 @@ void MD5::set_pose(std::vector<MD5JOINT> &pose)
             MD5VERTEX *md5vertex = &md5mesh->md5vertex[j];
 
             for (int k=0; k != md5vertex->count; ++k) {
-                vec3    location = { 0.0f, 0.0f, 0.0f },
-                        normal   = { 0.0f, 0.0f, 0.0f },
-                        tangent  = { 0.0f, 0.0f, 0.0f };
+                vec3    location(0.0f, 0.0f, 0.0f),
+                        normal  (0.0f, 0.0f, 0.0f),
+                        tangent (0.0f, 0.0f, 0.0f);
 
 
                 MD5WEIGHT *md5weight = &md5mesh->md5weight[md5vertex->start + k];
 
                 MD5JOINT *md5joint = &pose[md5weight->joint];
 
-                vec3_rotate_vec4(&location,
-                                 &md5weight->location,
-                                 &md5joint->rotation);
+                vec3_rotate_quat(location,
+                                 md5weight->location,
+                                 md5joint->rotation);
 
-                vec3_rotate_vec4(&normal,
-                                 &md5weight->normal,
-                                 &md5joint->rotation);
+                vec3_rotate_quat(normal,
+                                 md5weight->normal,
+                                 md5joint->rotation);
 
-                vec3_rotate_vec4(&tangent,
-                                 &md5weight->tangent,
-                                 &md5joint->rotation);
+                vec3_rotate_quat(tangent,
+                                 md5weight->tangent,
+                                 md5joint->rotation);
 
-                vertex_array[j].x += (md5joint->location.x + location.x) * md5weight->bias;
-                vertex_array[j].y += (md5joint->location.y + location.y) * md5weight->bias;
-                vertex_array[j].z += (md5joint->location.z + location.z) * md5weight->bias;
+                vertex_array[j] += (md5joint->location + location) * md5weight->bias;
 
-                normal_array[j].x += normal.x * md5weight->bias;
-                normal_array[j].y += normal.y * md5weight->bias;
-                normal_array[j].z += normal.z * md5weight->bias;
+                normal_array[j] += normal * md5weight->bias;
 
-                tangent_array[j].x += tangent.x * md5weight->bias;
-                tangent_array[j].y += tangent.y * md5weight->bias;
-                tangent_array[j].z += tangent.z * md5weight->bias;
+                tangent_array[j] += tangent * md5weight->bias;
             }
             
             uv_array[j] = md5vertex->uv;
@@ -788,9 +752,9 @@ void MD5::blend_pose(std::vector<MD5JOINT> &final_pose,
             case MD5_METHOD_FRAME:
             case MD5_METHOD_LERP:
             {
-                vec4_lerp(&final_pose[i].rotation,
-                          &pose0[i].rotation,
-                          &pose1[i].rotation,
+                quat_lerp(final_pose[i].rotation,
+                          pose0[i].rotation,
+                          pose1[i].rotation,
                           blend);
                 break;
             }
@@ -798,9 +762,9 @@ void MD5::blend_pose(std::vector<MD5JOINT> &final_pose,
 
             case MD5_METHOD_SLERP:
             {
-                vec4_slerp(&final_pose[i].rotation,
-                           &pose0[i].rotation,
-                           &pose1[i].rotation,
+                quat_slerp(final_pose[i].rotation,
+                           pose0[i].rotation,
+                           pose1[i].rotation,
                            blend);
 
                 break;
@@ -830,9 +794,9 @@ void MD5::add_pose(std::vector<MD5JOINT> &final_pose,
                 case MD5_METHOD_FRAME:
                 case MD5_METHOD_LERP:
                 {
-                    vec4_lerp(&final_pose[i].rotation,
-                              &action0.pose[i].rotation,
-                              &action1.pose[i].rotation,
+                    quat_lerp(final_pose[i].rotation,
+                              action0.pose[i].rotation,
+                              action1.pose[i].rotation,
                               action_weight);
                     break;
                 }
@@ -840,9 +804,9 @@ void MD5::add_pose(std::vector<MD5JOINT> &final_pose,
 
                 case MD5_METHOD_SLERP:
                 {
-                    vec4_slerp(&final_pose[i].rotation,
-                               &action0.pose[i].rotation,
-                               &action1.pose[i].rotation,
+                    quat_slerp(final_pose[i].rotation,
+                               action0.pose[i].rotation,
+                               action1.pose[i].rotation,
                                action_weight);
                     break;
                 }
@@ -858,13 +822,9 @@ void MD5::add_pose(std::vector<MD5JOINT> &final_pose,
 void MD5::update_bound_mesh()
 {
     // Get the mesh min and max.
-    this->min.x =
-    this->min.y =
-    this->min.z = FLT_MAX;
 
-    this->max.x =
-    this->max.y =
-    this->max.z = -FLT_MAX;
+    // min, and max vectors are already set using FLT_MAX, or -FLT_MAX
+    // by the constructor
 
 
     for (int i=0; i != this->md5mesh.size(); ++i) {
@@ -885,14 +845,11 @@ void MD5::update_bound_mesh()
 
 
     // Mesh dimension
-    vec3_diff(&this->dimension,
-              &this->max,
-              &this->min);
+    this->dimension = this->max - this->min;
     
     
     // Bounding sphere radius
-    this->radius = vec3_dist(&this->min,
-                             &this->max) * 0.5f;
+    this->radius = (this->max - this->min).length() * 0.5f;
 }
 
 

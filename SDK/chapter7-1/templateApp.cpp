@@ -63,14 +63,14 @@ TEMPLATEAPP templateApp = {
 float rotz = 0.0f;
 
 /* To remember the current touch location. */
-vec2 touche_location = { 0.0f, 0.0f },
+vec2 touche_location(0.0f, 0.0f),
 /* The touch delta (to use in the touch moved callback.) */
-     touche_delta    = { 0.0f, 0.0f };
+     touche_delta   (0.0f, 0.0f);
 /* The current eye location of the camera in world coordinates.  Give a
  * little offset on the Z axis to simulate the position of a "human" eye
  * looking at the scene.
  */
-vec3 eye_location  = { 0.0f, 0.0f, 1.84f };
+vec3 eye_location (0.0f, 0.0f, 1.84f);
 
 void program_bind_attrib_location(void *ptr) {
     PROGRAM *program = (PROGRAM *)ptr;
@@ -151,7 +151,7 @@ void templateAppDraw(void) {
         /* Declare the forward vector.  In this case, the forward direction is
          * the positive Y axis.
          */
-        vec3 forward = { 0.0f, 1.0f, 0.0f },
+        vec3 forward(0.0f, 1.0f, 0.0f),
         /* Declare the direction vector that you will use to affect the
          * current eye location of the camera.
          */

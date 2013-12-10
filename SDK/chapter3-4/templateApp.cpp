@@ -58,9 +58,9 @@ PROGRAM *program = NULL;
 /* Flag to auto rotate the mesh on the Z axis (demo reel style). */
 bool	auto_rotate = false;
 /* Hold the touche location onscreen. */
-vec2 touche = { 0.0f, 0.0f };
+vec2 touche(0.0f, 0.0f);
 /* Store the rotation angle of the mesh. */
-vec3 rot_angle = { 0.0f, 0.0f, 0.0f };
+vec3 rot_angle(0.0f, 0.0f, 0.0f);
 
 /* The main structure of the template. This is a pure C struct, you initialize the structure
    as demonstrated below. Depending on the type of your type of app simply comment / uncomment
@@ -100,7 +100,7 @@ void program_draw_callback(void *ptr)
                                1, GL_FALSE, (float *)GFX_get_normal_matrix());
         } else if(name == "LIGHTPOSITION") {
             /* Set the light position in eye space to be at the same location as the viewer. */
-            vec3 l = { 0.0f, 0.0f, 0.0f };
+            vec3 l(0.0f, 0.0f, 0.0f);
             glUniform3fv(uniform.location, 1, (float *)&l);
         } else if((name == "DIFFUSE") && !uniform.constant) {
             /* Specify that the uniform is constant and will not change
@@ -288,9 +288,9 @@ void templateAppDraw(void)
     GFX_set_matrix_mode(MODELVIEW_MATRIX);
     GFX_load_identity();
     {
-        vec3 e = { 0.0f, -4.0f, 0.0f },
-             c = { 0.0f,  0.0f, 0.0f },
-             u = { 0.0f,  0.0f, 1.0f };
+        vec3 e(0.0f, -4.0f, 0.0f),
+             c(0.0f,  0.0f, 0.0f),
+             u(0.0f,  0.0f, 1.0f);
         GFX_look_at(&e, &c, &u);
     }
 

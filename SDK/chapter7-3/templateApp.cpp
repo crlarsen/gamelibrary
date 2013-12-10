@@ -52,7 +52,7 @@ OBJ *obj = NULL;
 PROGRAM *program = NULL;
 
 
-vec3 location = { 0.0f, 0.0f, 1.84f };
+vec3 location(0.0f, 0.0f, 1.84f);
 
 float   rotz = 0.0f,
         rotx = 90.0f;
@@ -69,13 +69,13 @@ float screen_size = 0.0f;
  * delta when the touch is moved.
  */
 vec2 view_location,
-     view_delta = { 0.0f, 0.0f };
+     view_delta(0.0f, 0.0f);
 /* Same as above for the view, but this time for the camera location.
  * In addition, create another variable for the movement delta.  Note that you
  * declare it as a 3D vector because you will be using the Z as the force
  * factor to smooth the movement.
  */
-vec3 move_location = { 0.0f, 0.0f, 0.0f },
+vec3 move_location(0.0f, 0.0f, 0.0f),
      move_delta;
 
 TEMPLATEAPP templateApp = {
@@ -302,15 +302,11 @@ void templateAppToucheMoved(float x, float y, unsigned int tap_count)
         /* If the touch start is on the left side of the screen, deal with it
          * as a camera movement.
          */
-        vec3 touche = { x,
-                        y,
-                        0.0f };
+        vec3 touche(x, y, 0.0f);
         /* Calculate the delta to determine which direction the touch is
          * going.
          */
-        vec3_diff(&move_delta,
-                  &touche,
-                  &move_location);
+        move_delta = touche - move_location;
         /* Normalize the delta to have a direction vector in the range of
          * -1 to 1.
          */
@@ -322,7 +318,7 @@ void templateAppToucheMoved(float x, float y, unsigned int tap_count)
          * the slower the movement will be, and as the touch distance increases,
          * the movement speed will increase up to its maximum.
          */
-        move_delta.z = CLAMP(vec3_dist(&move_location, &touche) / 128.0f,
+        move_delta.z = CLAMP((move_location-touche).length() / 128.0f,
                              0.0f,
                              1.0f);
     } else {
