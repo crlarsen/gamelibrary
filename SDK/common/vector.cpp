@@ -24,28 +24,28 @@ as being the original software.
 #include "gfx.h"
 
 
-void vec3_lerp(vec3 *dst, const vec3 *v0, const vec3 *v1, const float t)
+void vec3_lerp(vec3 &dst, const vec3 &v0, const vec3 &v1, const float t)
 {
-	if( t == 1.0f )
-	{
-		dst->x = v1->x;
-		dst->y = v1->y;
-		dst->z = v1->z;
-		
-		return;
-	}
-	else if( t == 0.0f )
-	{
-		dst->x = v0->x;
-		dst->y = v0->y;
-		dst->z = v0->z;
-	
-		return;
-	}
+    if( t == 1.0f )
+    {
+        dst.x = v1.x;
+        dst.y = v1.y;
+        dst.z = v1.z;
 
-	dst->x = v0->x + t * ( v1->x - v0->x );
-	dst->y = v0->y + t * ( v1->y - v0->y );
-	dst->z = v0->z + t * ( v1->z - v0->z );
+        return;
+    }
+    else if( t == 0.0f )
+    {
+        dst.x = v0.x;
+        dst.y = v0.y;
+        dst.z = v0.z;
+
+        return;
+    }
+
+    dst.x = v0.x + t * ( v1.x - v0.x );
+    dst.y = v0.y + t * ( v1.y - v0.y );
+    dst.z = v0.z + t * ( v1.z - v0.z );
 }
 
 
@@ -69,17 +69,14 @@ void vec3_rotate_quat(vec3 &dst, const vec3 &v0, const quaternion &v1)
 
     quat_multiply_quat(f, t, i);
 
-//    memcpy(&dst, &f.i, sizeof(vec3));
-    dst.x = f.i;
-    dst.y = f.j;
-    dst.z = f.k;
+    dst = f.v;
 }
 
 
 void vec3_to_recast( vec3 *v )
 {
-	vec3 tmp(v->x, v->z, -v->y);
-	
+    vec3 tmp(v->x, v->z, -v->y);
+
     *v = tmp;
 }
 
@@ -94,11 +91,11 @@ void recast_to_vec3( vec3 *v )
 
 void quat_build_r(quaternion &v)
 {
-    float l = 1.0f - ( v.i * v.i ) -
-                     ( v.j * v.j ) -
-                     ( v.k * v.k );
+    float l = 1.0f - ( v->i * v->i ) -
+                     ( v->j * v->j ) -
+                     ( v->k * v->k );
 
-    v.r = ( l < 0.0f ) ? 0.0f : -sqrtf( l );
+    v->r = ( l < 0.0f ) ? 0.0f : -sqrtf( l );
 }
 
 
@@ -106,10 +103,10 @@ void quat_multiply_vec3(quaternion &dst, const quaternion &v0, const vec3 &v1)
 {
     quaternion v;
 
-    v.i =  ( v0.r * v1.x ) + ( v0.j * v1.z ) - ( v0.k * v1.y );
-    v.j =  ( v0.r * v1.y ) + ( v0.k * v1.x ) - ( v0.i * v1.z );
-    v.k =  ( v0.r * v1.z ) + ( v0.i * v1.y ) - ( v0.j * v1.x );
-    v.r = -( v0.i * v1.x ) - ( v0.j * v1.y ) - ( v0.k * v1.z );
+    v->i =  ( v0->r * v1.x ) + ( v0->j * v1.z ) - ( v0->k * v1.y );
+    v->j =  ( v0->r * v1.y ) + ( v0->k * v1.x ) - ( v0->i * v1.z );
+    v->k =  ( v0->r * v1.z ) + ( v0->i * v1.y ) - ( v0->j * v1.x );
+    v->r = -( v0->i * v1.x ) - ( v0->j * v1.y ) - ( v0->k * v1.z );
 
     dst = v;
 }
@@ -120,10 +117,10 @@ void quat_multiply_quat(quaternion &dst, const quaternion &v0, const quaternion 
 {
     quaternion v;
 
-    v.i = (v0.i * v1.r) + (v0.r * v1.i) + (v0.j * v1.k) - (v0.k * v1.j);
-    v.j = (v0.j * v1.r) + (v0.r * v1.j) + (v0.k * v1.i) - (v0.i * v1.k);
-    v.k = (v0.k * v1.r) + (v0.r * v1.k) + (v0.i * v1.j) - (v0.j * v1.i);
-    v.r = (v0.r * v1.r) - (v0.i * v1.i) - (v0.j * v1.j) - (v0.k * v1.k);
+    v->i = (v0->i * v1->r) + (v0->r * v1->i) + (v0->j * v1->k) - (v0->k * v1->j);
+    v->j = (v0->j * v1->r) + (v0->r * v1->j) + (v0->k * v1->i) - (v0->i * v1->k);
+    v->k = (v0->k * v1->r) + (v0->r * v1->k) + (v0->i * v1->j) - (v0->j * v1->i);
+    v->r = (v0->r * v1->r) - (v0->i * v1->i) - (v0->j * v1->j) - (v0->k * v1->k);
 
     dst = v;
 }
@@ -174,10 +171,10 @@ void quat_lerp(quaternion &dst, const quaternion &v0, const quaternion &v1, cons
 		k1 = sinf( t * o ) * o1;
 	}
 	
-	dst.i = ( k0 * v0.i ) + ( k1 * tmp.i );
-	dst.j = ( k0 * v0.j ) + ( k1 * tmp.j );
-	dst.k = ( k0 * v0.k ) + ( k1 * tmp.k );		
-	dst.r = ( k0 * v0.r ) + ( k1 * tmp.r );
+	dst->i = ( k0 * v0->i ) + ( k1 * tmp->i );
+	dst->j = ( k0 * v0->j ) + ( k1 * tmp->j );
+	dst->k = ( k0 * v0->k ) + ( k1 * tmp->k );		
+	dst->r = ( k0 * v0->r ) + ( k1 * tmp->r );
 }
 
 
@@ -219,8 +216,8 @@ void quat_slerp(quaternion &dst, const quaternion &v0, const quaternion &v1, con
         k1 = sinf( t * o ) * o1;
     }
 
-    dst.i = ( k0 * v0.i ) + ( k1 * tmp.i );
-    dst.j = ( k0 * v0.j ) + ( k1 * tmp.j );
-    dst.k = ( k0 * v0.k ) + ( k1 * tmp.k );		
-    dst.r = ( k0 * v0.r ) + ( k1 * tmp.r );
+    dst->i = ( k0 * v0->i ) + ( k1 * tmp->i );
+    dst->j = ( k0 * v0->j ) + ( k1 * tmp->j );
+    dst->k = ( k0 * v0->k ) + ( k1 * tmp->k );		
+    dst->r = ( k0 * v0->r ) + ( k1 * tmp->r );
 }

@@ -59,7 +59,7 @@ typedef void(THREADCALLBACK(void *));
 
 
 struct THREAD {
-    unsigned char	state;
+    AnimState           state;
 
     int			priority;
 

@@ -350,7 +350,8 @@ void GFX_scale( float x, float y, float z )
 
     vec3 v(x, y, z);
 
-    if( !memcmp( &v, &scale, sizeof( vec3 ) ) ) return;
+//    if( !memcmp( &v, &scale, sizeof( vec3 ) ) ) return;
+    if (v == scale) return;
 
 
     switch( gfx.matrix_mode )

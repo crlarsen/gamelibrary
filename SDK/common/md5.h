@@ -236,7 +236,7 @@ struct MD5ACTION {
 
     int			next_frame;
 
-    unsigned char	state;
+    AnimState           state;
 
     MD5Method           method;
 

@@ -117,6 +117,14 @@ struct vec2 {
     const vec2 operator*(const float rhs) const {
         return vec2(*this) *= rhs;
     }
+    bool operator==(const vec2 &rhs) const {
+        return (this->x==rhs.x) &&
+               (this->y==rhs.y);
+    }
+    bool operator!=(const vec2 &rhs) const {
+        return (this->x!=rhs.x) ||
+               (this->y!=rhs.y);
+    }
 };
 
 inline vec2 operator*(const float lhs, const vec2 &rhs) {
@@ -241,6 +249,11 @@ struct vec3 {
         return (this->x==rhs.x) &&
                (this->y==rhs.y) &&
                (this->z==rhs.z);
+    }
+    bool operator!=(const vec3 &rhs) const {
+        return (this->x!=rhs.x) ||
+               (this->y!=rhs.y) ||
+               (this->z!=rhs.z);
     }
     const float dotProduct(const vec3 &rhs) const {
         return this->x*rhs.x + this->y*rhs.y + this->z*rhs.z;
@@ -440,6 +453,18 @@ struct vec4 {
     const vec4 operator-(void) const {
         return vec4(-this->x, -this->y, -this->z, -this->w);
     }
+    bool operator==(const vec4 &rhs) const {
+        return (this->x==rhs.x) &&
+               (this->y==rhs.y) &&
+               (this->z==rhs.z) &&
+               (this->w==rhs.w);
+    }
+    bool operator!=(const vec4 &rhs) const {
+        return (this->x!=rhs.x) ||
+               (this->y!=rhs.y) ||
+               (this->z!=rhs.z) ||
+               (this->w!=rhs.w);
+    }
 };
 
 inline vec3::vec3(const vec4 &argXYZW, const bool truncate) {
@@ -479,64 +504,66 @@ typedef struct
 
 
 struct quaternion {
-    float r;
-    float i;
-    float j;
-    float k;
+private:
+    typedef struct { float r, i, j, k; } _CRL_q;
+public:
+    float   w;
+    vec3    v;
 
     quaternion() {}
-    quaternion(const float w, const float x, const float y, const float z) {
-        this->i = x;
-        this->j = y;
-        this->k = z;
-        this->r = w;
+    quaternion(const float argW, const float argX, const float argY, const float argZ) {
+        w    = argW;
+        v[0] = argX;
+        v[1] = argY;
+        v[2] = argZ;
     }
     explicit quaternion(const float argW, const vec3 &argXYZ) {
-        i = argXYZ.x;
-        j = argXYZ.y;
-        k = argXYZ.z;
-        r = argW;
+        w = argW;
+        v = argXYZ;
     }
     quaternion(const quaternion &rhs) {
-        this->i = rhs.i;
-        this->j = rhs.j;
-        this->k = rhs.k;
-        this->r = rhs.r;
+        w = rhs.w;
+        v = rhs.v;
     }
     quaternion &operator=(const quaternion &rhs) {
         if (this != &rhs) {
-            this->i = rhs.i;
-            this->j = rhs.j;
-            this->k = rhs.k;
-            this->r = rhs.r;
+            w = rhs.w;
+            v = rhs.v;
         }
         return *this;
     }
+    _CRL_q *operator->() { return (_CRL_q *)this; }
+    const _CRL_q *operator->() const { return (const _CRL_q *)this; }
     quaternion &operator+=(const quaternion &rhs) {
-        this->i += rhs.i;
-        this->j += rhs.j;
-        this->k += rhs.k;
-        this->r += rhs.r;
+        w += rhs.w;
+        v += rhs.v;
         return *this;
     }
     quaternion &operator+(const quaternion &rhs) const {
         return quaternion(*this) += rhs;
     }
     quaternion &operator-=(const quaternion &rhs) {
-        this->i -= rhs.i;
-        this->j -= rhs.j;
-        this->k -= rhs.k;
-        this->r -= rhs.r;
+        w -= rhs.w;
+        v -= rhs.v;
         return *this;
     }
     quaternion &operator-(const quaternion &rhs) {
         return quaternion(*this) -= rhs;
     }
+    quaternion &operator*=(const quaternion &rhs) {
+        quaternion   tmp(*this);
+
+        this->w = tmp.w*rhs.w - tmp.v.dotProduct(rhs.v);
+        this->v = tmp.w*rhs.v + rhs.w*tmp.v + tmp.v.crossProduct(rhs.v);
+
+        return *this;
+    }
+    const quaternion operator*(const quaternion &rhs) const {
+        return quaternion(*this) *= rhs;
+    }
     quaternion &operator*=(const float rhs) {
-        this->i *= rhs;
-        this->j *= rhs;
-        this->k *= rhs;
-        this->r *= rhs;
+        w *= rhs;
+        v *= rhs;
         return *this;
     }
     const quaternion operator*(const float rhs) const {
@@ -548,17 +575,15 @@ struct quaternion {
             exit(1);
 #endif
         float    oneOverRhs = 1.0 / rhs;
-        this->i *= oneOverRhs;
-        this->j *= oneOverRhs;
-        this->k *= oneOverRhs;
-        this->r *= oneOverRhs;
+        w *= oneOverRhs;
+        v *= oneOverRhs;
         return *this;
     }
     const quaternion operator/(const float rhs) const {
         return quaternion(*this) /= rhs;
     }
     const float dotProduct(const quaternion &rhs) const {
-        return this->i*rhs.i + this->j*rhs.j + this->k*rhs.k + this->r*rhs.r;
+        return w*rhs.w + v.dotProduct(rhs.v);
     }
     const float length(void) const {
         return sqrt(this->dotProduct(*this));
@@ -580,10 +605,18 @@ struct quaternion {
         return m;
     }
     const quaternion operator-(void) const {
-        return quaternion(-this->r, -this->i, -this->j, -this->k);
+        return quaternion(-w, -v);
     }
     const quaternion conjugate() const {
-        return quaternion(this->r, -this->i, -this->j, -this->k);
+        return quaternion(w, -v);
+    }
+    bool operator==(const quaternion &rhs) const {
+        return (this->w==rhs.w) &&
+               (this->v==rhs.v);
+    }
+    bool operator!=(const quaternion &rhs) const {
+        return (this->w!=rhs.w) ||
+               (this->v!=rhs.v);
     }
 };
 

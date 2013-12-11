@@ -82,9 +82,9 @@ MD5::MD5(char *filename, const bool relative_path) :
                            &this->bind_pose[i].location.x,
                            &this->bind_pose[i].location.y,
                            &this->bind_pose[i].location.z,
-                           &this->bind_pose[i].rotation.i,
-                           &this->bind_pose[i].rotation.j,
-                           &this->bind_pose[i].rotation.k) == 8) {
+                           &this->bind_pose[i].rotation->i,
+                           &this->bind_pose[i].rotation->j,
+                           &this->bind_pose[i].rotation->k) == 8) {
                     quat_build_r(this->bind_pose[i].rotation);
 
                     ++i;
@@ -230,9 +230,9 @@ int MD5::load_action(char *name, char *filename, const bool relative_path)
                            &md5joint[i].location.x,
                            &md5joint[i].location.y,
                            &md5joint[i].location.z,
-                           &md5joint[i].rotation.i,
-                           &md5joint[i].rotation.j,
-                           &md5joint[i].rotation.k) == 6) {
+                           &md5joint[i].rotation->i,
+                           &md5joint[i].rotation->j,
+                           &md5joint[i].rotation->k) == 6) {
                     strcpy(md5joint[i].name, this->bind_pose[i].name);
 
                     quat_build_r(md5joint[i].rotation);
@@ -741,9 +741,9 @@ void MD5::blend_pose(std::vector<MD5JOINT> &final_pose,
                      const float blend)
 {
     for (int i=0; i != this->bind_pose.size(); ++i) {
-        vec3_lerp(&final_pose[i].location,
-                  &pose0[i].location,
-                  &pose1[i].location,
+        vec3_lerp(final_pose[i].location,
+                  pose0[i].location,
+                  pose1[i].location,
                   blend);
 
         switch(joint_interpolation_method) {
@@ -779,12 +779,12 @@ void MD5::add_pose(std::vector<MD5JOINT> &final_pose,
                    const float action_weight)
 {
     for (int i=0; i != this->bind_pose.size(); ++i) {
-        if (memcmp(&action1.frame[action1.curr_frame][i].location, &action1.frame[action1.next_frame][i].location, sizeof(vec3)) ||
-            memcmp(&action1.frame[action1.curr_frame][i].rotation, &action1.frame[action1.next_frame][i].rotation, sizeof(vec4)))
+        if ((action1.frame[action1.curr_frame][i].location != action1.frame[action1.next_frame][i].location) ||
+            (action1.frame[action1.curr_frame][i].rotation != action1.frame[action1.next_frame][i].rotation))
         {
-            vec3_lerp(&final_pose[i].location,
-                      &action0.pose[i].location,
-                      &action1.pose[i].location,
+            vec3_lerp(final_pose[i].location,
+                      action0.pose[i].location,
+                      action1.pose[i].location,
                       action_weight);
 
             switch(joint_interpolation_method)
