@@ -29,7 +29,7 @@ void vec3_lerp(vec3 *dst, const vec3 *v0, const vec3 *v1, const float t);
 
 void vec3_lerp2( vec3 *dst, vec3 *v0, vec3 *v1, float t );
 
-void vec3_rotate_quat(vec3 &dst, const vec3 &v0, const quat &v1);
+void vec3_rotate_quat(vec3 &dst, const vec3 &v0, const quaternion &v1);
 
 
 void vec3_to_recast( vec3 *v );
@@ -37,16 +37,14 @@ void vec3_to_recast( vec3 *v );
 void recast_to_vec3( vec3 *v );
 
 
-void quat_build_w(quat &v);
+void quat_build_r(quaternion &v);
 
-void quat_multiply_vec3(quat &dst, const quat &v0, const vec3 &v1);
+void quat_multiply_vec3(quaternion &dst, const quaternion &v0, const vec3 &v1);
 
-void quat_multiply_quat(quat &dst, const quat &v0, const quat &v1);
+void quat_multiply_quat(quaternion &dst, const quaternion &v0, const quaternion &v1);
 
-void quat_conjugate(quat &dst, const quat &v);
+void quat_lerp(quaternion &dst, const quaternion &v0, const quaternion &v1, const float t);
 
-void quat_lerp(quat &dst, const quat &v0, const quat &v1, const float t);
-
-void quat_slerp(quat &dst, const quat &v0, const quat &v1, const float t);
+void quat_slerp(quaternion &dst, const quaternion &v0, const quaternion &v1, const float t);
 
 #endif

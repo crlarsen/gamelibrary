@@ -82,10 +82,10 @@ MD5::MD5(char *filename, const bool relative_path) :
                            &this->bind_pose[i].location.x,
                            &this->bind_pose[i].location.y,
                            &this->bind_pose[i].location.z,
-                           &this->bind_pose[i].rotation.x,
-                           &this->bind_pose[i].rotation.y,
-                           &this->bind_pose[i].rotation.z) == 8) {
-                    quat_build_w(this->bind_pose[i].rotation);
+                           &this->bind_pose[i].rotation.i,
+                           &this->bind_pose[i].rotation.j,
+                           &this->bind_pose[i].rotation.k) == 8) {
+                    quat_build_r(this->bind_pose[i].rotation);
 
                     ++i;
                 }
@@ -230,12 +230,12 @@ int MD5::load_action(char *name, char *filename, const bool relative_path)
                            &md5joint[i].location.x,
                            &md5joint[i].location.y,
                            &md5joint[i].location.z,
-                           &md5joint[i].rotation.x,
-                           &md5joint[i].rotation.y,
-                           &md5joint[i].rotation.z) == 6) {
+                           &md5joint[i].rotation.i,
+                           &md5joint[i].rotation.j,
+                           &md5joint[i].rotation.k) == 6) {
                     strcpy(md5joint[i].name, this->bind_pose[i].name);
 
-                    quat_build_w(md5joint[i].rotation);
+                    quat_build_r(md5joint[i].rotation);
                 }
 
                 line = strtok(NULL, "\n");
@@ -244,7 +244,7 @@ int MD5::load_action(char *name, char *filename, const bool relative_path)
 
             vec3 location;
 
-            quat rotation;
+            quaternion rotation;
 
             for (int i=0; i != this->bind_pose.size(); ++i) {
                 if (this->bind_pose[i].parent > -1) {
@@ -640,11 +640,11 @@ void MD5::build_bind_pose_weighted_normals_tangents()
                 vec3    normal(md5vertex->normal),
                         tangent(md5vertex->tangent);
                 
-                quat    rotation(md5joint->rotation);
+                quaternion    rotation(md5joint->rotation);
                 
                 
-                quat_conjugate(rotation, rotation);
-                
+                rotation = rotation.conjugate();
+
                 
                 vec3_rotate_quat(normal,
                                  normal,

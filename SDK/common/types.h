@@ -478,137 +478,112 @@ typedef struct
 } ucol4;
 
 
-struct quat {
-	float x;
-	float y;
-	float z;
-	float w;
-	
-    quat() {}
-    quat(const float w, const float x, const float y, const float z) {
-        this->x = x;
-        this->y = y;
-        this->z = z;
-        this->w = w;
+struct quaternion {
+    float r;
+    float i;
+    float j;
+    float k;
+
+    quaternion() {}
+    quaternion(const float w, const float x, const float y, const float z) {
+        this->i = x;
+        this->j = y;
+        this->k = z;
+        this->r = w;
     }
-    explicit quat(const vec3 &argXYZ, const float argW=1.0) {
-        x = argXYZ.x;
-        y = argXYZ.y;
-        z = argXYZ.z;
-        w = argW;
+    explicit quaternion(const float argW, const vec3 &argXYZ) {
+        i = argXYZ.x;
+        j = argXYZ.y;
+        k = argXYZ.z;
+        r = argW;
     }
-    quat(const quat &rhs) {
-        this->x = rhs.x;
-        this->y = rhs.y;
-        this->z = rhs.z;
-        this->w = rhs.w;
+    quaternion(const quaternion &rhs) {
+        this->i = rhs.i;
+        this->j = rhs.j;
+        this->k = rhs.k;
+        this->r = rhs.r;
     }
-    quat &operator=(const quat &rhs) {
+    quaternion &operator=(const quaternion &rhs) {
         if (this != &rhs) {
-            this->x = rhs.x;
-            this->y = rhs.y;
-            this->z = rhs.z;
-            this->w = rhs.w;
+            this->i = rhs.i;
+            this->j = rhs.j;
+            this->k = rhs.k;
+            this->r = rhs.r;
         }
         return *this;
     }
-    const float operator[](const int i) const {
-        switch (i) {
-            case 0:
-                return x;
-                break;
-            case 1:
-                return y;
-                break;
-            case 2:
-                return z;
-                break;
-        }
-        return w;
-    }
-    float &operator[](const int i) {
-        switch (i) {
-            case 0:
-                return x;
-                break;
-            case 1:
-                return y;
-                break;
-            case 2:
-                return z;
-                break;
-        }
-        return w;
-    }
-    quat &operator+=(const quat &rhs) {
-        this->x += rhs.x;
-        this->y += rhs.y;
-        this->z += rhs.z;
-        this->w += rhs.w;
+    quaternion &operator+=(const quaternion &rhs) {
+        this->i += rhs.i;
+        this->j += rhs.j;
+        this->k += rhs.k;
+        this->r += rhs.r;
         return *this;
     }
-    quat &operator+(const quat &rhs) const {
-        return quat(*this) += rhs;
+    quaternion &operator+(const quaternion &rhs) const {
+        return quaternion(*this) += rhs;
     }
-    quat &operator-=(const quat &rhs) {
-        this->x -= rhs.x;
-        this->y -= rhs.y;
-        this->z -= rhs.z;
-        this->w -= rhs.w;
+    quaternion &operator-=(const quaternion &rhs) {
+        this->i -= rhs.i;
+        this->j -= rhs.j;
+        this->k -= rhs.k;
+        this->r -= rhs.r;
         return *this;
     }
-    quat &operator-(const quat &rhs) {
-        return quat(*this) -= rhs;
+    quaternion &operator-(const quaternion &rhs) {
+        return quaternion(*this) -= rhs;
     }
-    quat &operator*=(const float rhs) {
-        this->x *= rhs;
-        this->y *= rhs;
-        this->z *= rhs;
-        this->w *= rhs;
+    quaternion &operator*=(const float rhs) {
+        this->i *= rhs;
+        this->j *= rhs;
+        this->k *= rhs;
+        this->r *= rhs;
         return *this;
     }
-    const quat operator*(const float rhs) const {
-        return quat(*this) *= rhs;
+    const quaternion operator*(const float rhs) const {
+        return quaternion(*this) *= rhs;
     }
-    quat &operator/=(const float rhs) {
+    quaternion &operator/=(const float rhs) {
 #ifndef NDEBUG
         if (rhs == 0.0)
             exit(1);
 #endif
         float    oneOverRhs = 1.0 / rhs;
-        this->x *= oneOverRhs;
-        this->y *= oneOverRhs;
-        this->z *= oneOverRhs;
-        this->w *= oneOverRhs;
+        this->i *= oneOverRhs;
+        this->j *= oneOverRhs;
+        this->k *= oneOverRhs;
+        this->r *= oneOverRhs;
         return *this;
     }
-    const quat operator/(const float rhs) const {
-        return quat(*this) /= rhs;
+    const quaternion operator/(const float rhs) const {
+        return quaternion(*this) /= rhs;
     }
-    const float dotProduct(const quat &rhs) const {
-        return this->x*rhs.x + this->y*rhs.y + this->z*rhs.z + this->w*rhs.w;
+    const float dotProduct(const quaternion &rhs) const {
+        return this->i*rhs.i + this->j*rhs.j + this->k*rhs.k + this->r*rhs.r;
     }
     const float length(void) const {
         return sqrt(this->dotProduct(*this));
     }
-    const quat normalize(void) const {
+    const quaternion normalize(void) const {
         return *this / length();
     }
-    float safeNormalize(const quat &rhs) {
+    float safeNormalize(const quaternion &rhs) {
         float   l = rhs.length();
         float   m = (l!=0.0f) ? (1.0f/l) : 0.0f;
         *this *= m;
         return m;
     }
-    float safeNormalize(const quat *rhs=NULL) {
-        const quat  *use = rhs!=NULL ? rhs : this;
+    float safeNormalize(const quaternion *rhs=NULL) {
+        const quaternion  *use = rhs!=NULL ? rhs : this;
         float   l = use->length();
         float   m = (l!=0.0f) ? (1.0f/l) : 0.0f;
         *this *= m;
         return m;
     }
-    const quat operator-(void) const {
-        return quat(-this->w, -this->x, -this->y, -this->z);
+    const quaternion operator-(void) const {
+        return quaternion(-this->r, -this->i, -this->j, -this->k);
+    }
+    const quaternion conjugate() const {
+        return quaternion(this->r, -this->i, -this->j, -this->k);
     }
 };
 

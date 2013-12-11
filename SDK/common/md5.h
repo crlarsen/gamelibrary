@@ -60,7 +60,7 @@ struct MD5JOINT
 
     vec3			location;
 
-    quat			rotation;
+    quaternion			rotation;
 
     MD5JOINT() : parent(-1), location(0,0,0), rotation(1,0,0,0) {}
 };
