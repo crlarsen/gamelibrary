@@ -419,8 +419,8 @@ void fullscreen_pass(void)
         objmesh->draw();
 
 
-        radius.x = 0.0f;
-        radius.y = blur_radius / (float)colorbuffer_height;
+        radius->x = 0.0f;
+        radius->y = blur_radius / (float)colorbuffer_height;
 
         glUniform2fv(program->get_uniform_location((char *)"BLUR_RADIUS"),
                      1,

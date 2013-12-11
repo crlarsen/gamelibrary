@@ -299,17 +299,17 @@ void templateAppDraw(void) {
     GFX_load_identity();
 
 
-    if (view_delta.x || view_delta.y) {
+    if (view_delta->x || view_delta->y) {
 
-        if (view_delta.y) next_rotz -= view_delta.y;
+        if (view_delta->y) next_rotz -= view_delta->y;
 
-        if (view_delta.x) {
-            next_rotx -= view_delta.x;
+        if (view_delta->x) {
+            next_rotx -= view_delta->x;
             next_rotx = CLAMP(next_rotx, 0.0f, 90.0f);
         }
 
-        view_delta.x =
-        view_delta.y = 0.0f;
+        view_delta->x =
+        view_delta->y = 0.0f;
     }
 
     rotx = rotx * 0.9f + next_rotx * 0.1f;
@@ -381,18 +381,18 @@ void templateAppDraw(void) {
 
 void templateAppToucheBegan(float x, float y, unsigned int tap_count)
 {
-	view_location.x = x;
-	view_location.y = y;
+	view_location->x = x;
+	view_location->y = y;
 }
 
 
 void templateAppToucheMoved(float x, float y, unsigned int tap_count)
 {
-	view_delta.x = view_delta.x * 0.75f + (x - view_location.x) * 0.25f;
-	view_delta.y = view_delta.y * 0.75f + (y - view_location.y) * 0.25f;
+	view_delta->x = view_delta->x * 0.75f + (x - view_location->x) * 0.25f;
+	view_delta->y = view_delta->y * 0.75f + (y - view_location->y) * 0.25f;
 
-	view_location.x = x;
-	view_location.y = y;
+	view_location->x = x;
+	view_location->y = y;
 }
 
 

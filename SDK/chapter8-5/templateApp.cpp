@@ -493,16 +493,16 @@ void templateAppDraw(void) {
     GFX_set_matrix_mode(MODELVIEW_MATRIX);
     GFX_load_identity();
 
-    if (view_delta.x || view_delta.y) {
-        if (view_delta.y) next_rotz -= view_delta.y;
+    if (view_delta->x || view_delta->y) {
+        if (view_delta->y) next_rotz -= view_delta->y;
 
-        if (view_delta.x) {
-            next_rotx -= view_delta.x;
+        if (view_delta->x) {
+            next_rotx -= view_delta->x;
             next_rotx = CLAMP(next_rotx, 0.0f, 90.0f);
         }
 
-        view_delta.x =
-        view_delta.y = 0.0f;
+        view_delta->x =
+        view_delta->y = 0.0f;
     }
 
     rotx = rotx * 0.9f + next_rotx * 0.1f;
@@ -543,7 +543,7 @@ void templateAppDraw(void) {
          * (http://www.opengl.org/sdk/docs/man/xhtml/gluUnproject.xml)
          * function.
          */
-        if (GFX_unproject(view_location.x,
+        if (GFX_unproject(view_location->x,
                           /* The origin of the OpenGLES color buffer is down
                            * left, but its location for iOS and Android is up
                            * left.  To handle this situation, simply use the
@@ -551,7 +551,7 @@ void templateAppDraw(void) {
                            * to readjust the Y location of the picking point
                            * onscreen.
                            */
-                          viewport_matrix[3] - view_location.y,
+                          viewport_matrix[3] - view_location->y,
                           /* This parameter represents the depth that you want
                            * to query, with 1 representing the far clipping
                            * plane and 0 representing the near clipping plane.
@@ -816,18 +816,18 @@ void templateAppToucheBegan(float x, float y, unsigned int tap_count)
         }
     }
 
-    view_location.x = x;
-    view_location.y = y;
+    view_location->x = x;
+    view_location->y = y;
 }
 
 
 void templateAppToucheMoved(float x, float y, unsigned int tap_count)
 {
-    view_delta.x = view_delta.x * 0.75f + (x - view_location.x) * 0.25f;
-    view_delta.y = view_delta.y * 0.75f + (y - view_location.y) * 0.25f;
+    view_delta->x = view_delta->x * 0.75f + (x - view_location->x) * 0.25f;
+    view_delta->y = view_delta->y * 0.75f + (y - view_location->y) * 0.25f;
 
-    view_location.x = x;
-    view_location.y = y;
+    view_location->x = x;
+    view_location->y = y;
 }
 
 

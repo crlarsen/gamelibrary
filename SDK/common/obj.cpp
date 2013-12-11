@@ -1283,9 +1283,9 @@ OBJ::OBJ(char *filename, const bool relative_path)
                     vec2 uv2(this->indexed_uv[objtriangleindex->uv_index[1]]);
                     uv2 -= this->indexed_uv[objtriangleindex->uv_index[0]];
 
-                    float c = 1.0f / (uv1.x * uv2.y - uv2.x * uv1.y);
+                    float c = 1.0f / (uv1->x * uv2->y - uv2->x * uv1->y);
 
-                    tangent = (v1 * uv2.y + v2 * uv1.y) * c;
+                    tangent = (v1 * uv2->y + v2 * uv1->y) * c;
 
 
                     this->indexed_tangent[objtriangleindex->vertex_index[0]] += tangent;

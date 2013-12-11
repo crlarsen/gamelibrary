@@ -159,7 +159,7 @@ void templateAppDraw(void)
     GFX_load_identity();
     vec3 e(0.0f, -6.0f, 1.35f), /* The location of the camera. */
          c(0.0f, -5.0f, 1.35f), /* Where the camera is looking. */
-         u(0.0f, 0.0f, 1.0f);
+         u(0.0f,  0.0f, 1.0f);
     
      GFX_look_at(&e, &c, &u);
 

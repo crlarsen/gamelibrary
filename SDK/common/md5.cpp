@@ -115,8 +115,8 @@ MD5::MD5(char *filename, const bool relative_path) :
                 } else if (sscanf(line,
                                   " vert %d ( %f %f ) %d %d",
                                   &int_val,
-                                  &md5vertex.uv.x,
-                                  &md5vertex.uv.y,
+                                  &md5vertex.uv->x,
+                                  &md5vertex.uv->y,
                                   &md5vertex.start,
                                   &md5vertex.count) == 5) {
                     this->md5mesh[mesh_index].md5vertex[int_val] = md5vertex;
@@ -601,9 +601,9 @@ void MD5::build_bind_pose_weighted_normals_tangents()
             vec2 uv2(md5mesh->md5vertex[indice[2]].uv);
             uv2 -= md5mesh->md5vertex[indice[0]].uv;
 
-            float c = 1.0f / (uv1.x * uv2.y - uv2.x * uv1.y);
+            float c = 1.0f / (uv1->x * uv2->y - uv2->x * uv1->y);
 
-            tangent = (v1 * uv2.y + v2 * uv1.y) * c;
+            tangent = (v1 * uv2->y + v2 * uv1->y) * c;
 
 
             md5mesh->md5vertex[indice[0]].tangent += tangent;

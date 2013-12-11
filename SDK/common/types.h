@@ -58,72 +58,72 @@ inline bool withinEpsilon(const float lhs, const float rhs)
 }
 
 struct vec2 {
-    float x;
-    float y;
-
+private:
+    typedef struct { float x, y; } _CRL_vf2;
+    float   _v[2];
+public:
+    int nElems() const { return sizeof(_v)/sizeof(_v[0]); }
     vec2() {}
     vec2(const float x, const float y) {
-        this->x = x;
-        this->y = y;
+        _v[0] = x;
+        _v[1] = y;
     }
     vec2(const vec2 &rhs) {
-        this->x = rhs.x;
-        this->y = rhs.y;
+        for (int i=0; i!=nElems(); ++i)
+            _v[i] = rhs._v[i];
     }
     vec2 &operator=(const vec2 &rhs) {
         if (this != &rhs) {
-            this->x = rhs.x;
-            this->y = rhs.y;
+            for (int i=0; i!=nElems(); ++i)
+                _v[i] = rhs._v[i];
         }
         return *this;
     }
     const float operator[](const int i) const {
-        switch (i) {
-            case 0:
-                return x;
-                break;
-        }
-        return y;
+        assert(0<=i && i<nElems());
+        return _v[i];
     }
     float &operator[](const int i) {
-        switch (i) {
-            case 0:
-                return x;
-                break;
-        }
-        return y;
+        assert(0<=i && i<nElems());
+        return _v[i];
     }
+    _CRL_vf2 *operator->() { return (_CRL_vf2 *)this; }
+    const _CRL_vf2 *operator->() const { return (const _CRL_vf2 *)this; }
     vec2 &operator+=(const vec2 &rhs) {
-        this->x += rhs.x;
-        this->y += rhs.y;
+        for (int i=0; i!=nElems(); ++i)
+            _v[i] += rhs._v[i];
         return *this;
     }
     vec2 &operator+(const vec2 &rhs) const {
         return vec2(*this) += rhs;
     }
     vec2 &operator-=(const vec2 &rhs) {
-        this->x -= rhs.x;
-        this->y -= rhs.y;
+        for (int i=0; i!=nElems(); ++i)
+            _v[i] -= rhs._v[i];
         return *this;
     }
     vec2 &operator-(const vec2 &rhs) const {
         return vec2(*this) -= rhs;
     }
     vec2 &operator*=(const float rhs) {
-        this->x *= rhs;
-        this->y *= rhs;
+        for (int i=0; i!=nElems(); ++i)
+            _v[i] *= rhs;
         return *this;
     }
     const vec2 operator*(const float rhs) const {
         return vec2(*this) *= rhs;
     }
     bool operator==(const vec2 &rhs) const {
-        return (this->x==rhs.x) &&
-               (this->y==rhs.y);
+        for (int i=0; i!=nElems(); ++i)
+            if (_v[i] != rhs._v[i])
+                return false;
+        return true;
     }
     bool operator!=(const vec2 &rhs) const {
-        return (this->x!=rhs.x) ||
-               (this->y!=rhs.y);
+        for (int i=0; i!=nElems(); ++i)
+            if (_v[i] != rhs._v[i])
+                return true;
+        return false;
     }
 };
 

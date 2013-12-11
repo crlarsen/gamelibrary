@@ -328,8 +328,8 @@ void templateAppToucheBegan(float x, float y, unsigned int tap_count)
     if (tap_count == 2) auto_rotate = !auto_rotate;
 
     /* Remember the current touche position. */
-    touche.x = x;
-    touche.y = y;
+    touche->x = x;
+    touche->y = y;
 }
 
 
@@ -338,11 +338,11 @@ void templateAppToucheMoved(float x, float y, unsigned int tap_count)
     /* Stop auto rotate. */
     auto_rotate = false;
     /* Calculate the touche delta and assign it to the angle X and Z. */
-    rot_angle.z += -(touche.x - x);
-    rot_angle.x += -(touche.y - y);
+    rot_angle.z += -(touche->x - x);
+    rot_angle.x += -(touche->y - y);
     /* Remember the current touche position. */
-    touche.x = x;
-    touche.y = y;
+    touche->x = x;
+    touche->y = y;
 }
 
 

@@ -204,19 +204,19 @@ void templateAppDraw(void) {
 void templateAppToucheBegan(float x, float y, unsigned int tap_count) {
     if (tap_count == 2) auto_rotate = !auto_rotate;
     
-    touche.x = x;
-    touche.y = y;
+    touche->x = x;
+    touche->y = y;
 }
 
 
 void templateAppToucheMoved(float x, float y, unsigned int tap_count) {
     auto_rotate = false;
     
-    rot_angle.z += -(touche.x - x);
-    rot_angle.x += -(touche.y - y);
+    rot_angle.z += -(touche->x - x);
+    rot_angle.x += -(touche->y - y);
     
-    touche.x = x;
-    touche.y = y;
+    touche->x = x;
+    touche->y = y;
 }
 
 

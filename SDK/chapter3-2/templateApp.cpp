@@ -53,7 +53,7 @@ OBJMESH *objmesh = NULL;
 /* Shader program structure pointer. */
 PROGRAM *program = NULL;
 /* Flag to auto rotate the mesh on the Z axis (demo reel style). */
-unsigned char auto_rotate = 0;
+bool auto_rotate = false;
 /* Hold the touche location onscreen. */
 vec2 touche(0.0f, 0.0f);
 /* Store the rotation angle of the mesh. */
@@ -265,21 +265,21 @@ void templateAppToucheBegan(float x, float y, unsigned int tap_count)
     if (tap_count == 2) auto_rotate = !auto_rotate;
 
     /* Remember the current touche position. */
-    touche.x = x;
-    touche.y = y;
+    touche->x = x;
+    touche->y = y;
 }
 
 
 void templateAppToucheMoved(float x, float y, unsigned int tap_count)
 {
     /* Stop auto rotate. */
-    auto_rotate = 0;
+    auto_rotate = false;
     /* Calculate the touche delta and assign it to the angle X and Z. */
-    rot_angle.z += -(touche.x - x);
-    rot_angle.x += -(touche.y - y);
+    rot_angle.z += -(touche->x - x);
+    rot_angle.x += -(touche->y - y);
     /* Remember the current touche position. */
-    touche.x = x;
-    touche.y = y;
+    touche->x = x;
+    touche->y = y;
 }
 
 

@@ -191,7 +191,7 @@ void templateAppInit(int width, int height)
     light = new DirectionalLight((char *)"point", color, 45.0f, 0.0f, 0.0f);
 
     /* Manually initialize a blank OBJ structure.  You do not need to
-     * use the OBJ_load function this time, because there's no geometry
+     * use the OBJ::load function this time, because there's no geometry
      * to load, only a material file.
      */
     obj = new OBJ;
@@ -430,8 +430,8 @@ void templateAppToucheBegan(float x, float y, unsigned int tap_count)
 {
     if (tap_count == 2) auto_rotate = !auto_rotate;
 
-    touche.x = x;
-    touche.y = y;
+    touche->x = x;
+    touche->y = y;
 }
 
 
@@ -439,11 +439,11 @@ void templateAppToucheMoved(float x, float y, unsigned int tap_count)
 {
     auto_rotate = 0;
 
-    rot_angle.z += x - touche.x;
-    rot_angle.x += y - touche.y;
+    rot_angle.z += x - touche->x;
+    rot_angle.x += y - touche->y;
 
-    touche.x = x;
-    touche.y = y;
+    touche->x = x;
+    touche->y = y;
 }
 
 

@@ -541,8 +541,8 @@ void templateAppDraw(void) {
 
 void templateAppToucheBegan(float x, float y, unsigned int tap_count)
 {
-    start_pos.x = x;
-    start_pos.y = y;
+    start_pos->x = x;
+    start_pos->y = y;
 }
 
 
@@ -570,9 +570,9 @@ void templateAppToucheEnded(float x, float y, unsigned int tap_count)
          * clamping it in the range of 0 to 10.  Note that the X and Y values are
          * inverted because you are in landscape mode.
          */
-        momo->btrigidbody->setLinearVelocity(btVector3(CLAMP((y - start_pos.y) * 0.1f, 0.0f, 10.0f),
+        momo->btrigidbody->setLinearVelocity(btVector3(CLAMP((y - start_pos->y) * 0.1f, 0.0f, 10.0f),
                                                        0.0f,
-                                                       CLAMP((x - start_pos.x) * 0.1f, 0.0f, 10.0f)));
+                                                       CLAMP((x - start_pos->x) * 0.1f, 0.0f, 10.0f)));
     }
 }
 

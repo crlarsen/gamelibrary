@@ -402,8 +402,8 @@ void templateAppDraw(void) {
          * cause the server (in other words, the driver) to stall until the
          * final color is calculated for the pixels you will be requesting.
          */
-        glReadPixels(touche.x,  // X coordinate of the touch.
-                     viewport_matrix[3]-touche.y,   // Y coordinate transformed to
+        glReadPixels(touche->x, // X coordinate of the touch.
+                     viewport_matrix[3]-touche->y,  // Y coordinate transformed to
                                                     // OpenGLES coordinates.
                      1, 1,      // width x height of request pixel rectangle.
                      GL_RGBA,   // The requested pixel format.
@@ -589,8 +589,8 @@ void templateAppToucheBegan(float x, float y, unsigned int tap_count)
         next_level();
     }
 
-    touche.x = x;
-    touche.y = y;
+    touche->x = x;
+    touche->y = y;
 }
 
 

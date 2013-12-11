@@ -237,17 +237,17 @@ void FONT::print(float x, float y, char *text, vec4 *color)
 
             x += bakedchar->xadvance;
 
-            vert[0].x = quad.x1; vert[0].y = quad.y0;
-            uv  [0].x = quad.s1; uv  [0].y = quad.t0;
+            vert[0]->x = quad.x1; vert[0]->y = quad.y0;
+            uv  [0]->x = quad.s1; uv  [0]->y = quad.t0;
 
-            vert[1].x = quad.x0; vert[1].y = quad.y0;
-            uv  [1].x = quad.s0; uv  [1].y = quad.t0;
+            vert[1]->x = quad.x0; vert[1]->y = quad.y0;
+            uv  [1]->x = quad.s0; uv  [1]->y = quad.t0;
 
-            vert[2].x = quad.x1; vert[2].y = quad.y1;
-            uv  [2].x = quad.s1; uv  [2].y = quad.t1;
+            vert[2]->x = quad.x1; vert[2]->y = quad.y1;
+            uv  [2]->x = quad.s1; uv  [2]->y = quad.t1;
 
-            vert[3].x = quad.x0; vert[3].y = quad.y1;
-            uv  [3].x = quad.s0; uv  [3].y = quad.t1;
+            vert[3]->x = quad.x0; vert[3]->y = quad.y1;
+            uv  [3]->x = quad.s0; uv  [3]->y = quad.t1;
 
             glVertexAttribPointer(vertex_attribute,
                                   2,

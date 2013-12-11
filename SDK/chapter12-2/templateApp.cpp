@@ -184,7 +184,7 @@ void templateAppInit(int width, int height)
     light = new DirectionalLight((char *)"point", color, 45.0f, 0.0f, 0.0f);
 
     /* Manually initialize a blank OBJ structure.  You do not need to
-     * use the OBJ_load function this time, because there's no geometry
+     * use the OBJ::load function this time, because there's no geometry
      * to load, only a material file.
      */
     obj = new OBJ;
@@ -238,7 +238,8 @@ void templateAppInit(int width, int height)
     md5->build();
 
     /* Loop while there are some mesh parts. */
-    for (auto md5mesh=md5->md5mesh.begin(); md5mesh!=md5->md5mesh.end(); ++md5mesh) {
+    for (auto md5mesh=md5->md5mesh.begin();
+         md5mesh!=md5->md5mesh.end(); ++md5mesh) {
         /* Query the OBJ material database to get the objmaterial
          * pointer for the current mesh part.  Note that for the MD5
          * format, each part name is considered as a shader that
@@ -254,7 +255,7 @@ void templateAppInit(int width, int height)
                      true);
 
     /* Retrieve the pointer of the idle action. */
-    idle = md5->get_action((char *)"idle", 0);
+    idle = md5->get_action((char *)"idle", true);
 
     /* Set the frame rate that want to use to play back the animation. */
     idle->set_action_fps(24.0f);
@@ -269,7 +270,7 @@ void templateAppInit(int width, int height)
 //                       */
 //                      MD5_METHOD_FRAME,
 //                      /* Specify whether or not the animation should loop
-//                       * when the end frame is reached (either 1 or 0).
+//                       * when the end frame is reached (either true or false).
 //                       */
 //                      true);
 
@@ -349,8 +350,8 @@ void templateAppToucheBegan(float x, float y, unsigned int tap_count)
 {
     if (tap_count == 2) auto_rotate = !auto_rotate;
 
-    touche.x = x;
-    touche.y = y;
+    touche->x = x;
+    touche->y = y;
 }
 
 
@@ -358,16 +359,17 @@ void templateAppToucheMoved(float x, float y, unsigned int tap_count)
 {
     auto_rotate = 0;
 
-    rot_angle.z += x - touche.x;
-    rot_angle.x += y - touche.y;
+    rot_angle.z += x - touche->x;
+    rot_angle.x += y - touche->y;
 
-    touche.x = x;
-    touche.y = y;
+    touche->x = x;
+    touche->y = y;
 }
 
 
 void templateAppExit(void) {
     delete obj;
+    obj = NULL;
     delete md5;
     md5 = NULL;
 

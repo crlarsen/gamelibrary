@@ -249,17 +249,17 @@ void templateAppDraw(void) {
     GFX_load_identity();
 
 
-    if (view_delta.x || view_delta.y) {
+    if (view_delta->x || view_delta->y) {
 
-        if (view_delta.y) rotz -= view_delta.y;
+        if (view_delta->y) rotz -= view_delta->y;
 
-        if (view_delta.x) {
-            rotx += view_delta.x;
+        if (view_delta->x) {
+            rotx += view_delta->x;
             rotx = CLAMP(rotx, 0.0f, 180.0f);
         }
         
-        view_delta.x =
-        view_delta.y = 0.0f;
+        view_delta->x =
+        view_delta->y = 0.0f;
     }
     
     
@@ -343,8 +343,8 @@ void templateAppToucheBegan(float x, float y, unsigned int tap_count)
         move_location.x = x;
         move_location.y = y;
     } else {
-        view_location.x = x;
-        view_location.y = y;
+        view_location->x = x;
+        view_location->y = y;
     }
 }
 
@@ -354,14 +354,14 @@ void templateAppToucheMoved(float x, float y, unsigned int tap_count)
     if (y > ((screen_size * 0.5f) - (screen_size * 0.05f)) &&
         y < ((screen_size * 0.5f) + (screen_size * 0.05f))) {
         move_delta.z =
-        view_delta.x =
-        view_delta.y = 0.0f;
+        view_delta->x =
+        view_delta->y = 0.0f;
 
         move_location.x = x;
         move_location.y = y;
 
-        view_location.x = x;
-        view_location.y = y;
+        view_location->x = x;
+        view_location->y = y;
     } else if (y < (screen_size * 0.5f)) {
         vec3 touche(x, y, 0.0f);
 
@@ -373,11 +373,11 @@ void templateAppToucheMoved(float x, float y, unsigned int tap_count)
                              0.0f,
                              1.0f);
     } else {
-        view_delta.x = view_delta.x * 0.75f + (x - view_location.x) * 0.25f;
-        view_delta.y = view_delta.y * 0.75f + (y - view_location.y) * 0.25f;
+        view_delta->x = view_delta->x * 0.75f + (x - view_location->x) * 0.25f;
+        view_delta->y = view_delta->y * 0.75f + (y - view_location->y) * 0.25f;
 
-        view_location.x = x;
-        view_location.y = y;
+        view_location->x = x;
+        view_location->y = y;
     }
 }
 

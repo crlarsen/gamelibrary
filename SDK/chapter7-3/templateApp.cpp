@@ -163,24 +163,24 @@ void templateAppDraw(void) {
     /* First make sure that either the X or Y view_delta actually has a
      * value, in order to avoid processing movements for nothing.
      */
-    if (view_delta.x || view_delta.y) {
+    if (view_delta->x || view_delta->y) {
         /* If the delta Y is active (!=0), apply it to the Z rotation of
          * the camera.
          */
-        if (view_delta.y) rotz -= view_delta.y;
+        if (view_delta->y) rotz -= view_delta->y;
         /* If the delta X is active, apply it to the X rotation.  And since
          * you don't want the view to start flipping, clamp it in the range
          * of 0 to 180.  This way, the user will be restricted to look from
          * straight up to straight down (since forward is 90 degrees).
          */
-        if (view_delta.x) {
-            rotx += view_delta.x;
+        if (view_delta->x) {
+            rotx += view_delta->x;
             rotx = CLAMP(rotx, 0.0f, 180.0f);
         }
 
         /* Set the deltas back to 0. */
-        view_delta.x =
-        view_delta.y = 0.0f;
+        view_delta->x =
+        view_delta->y = 0.0f;
     }
 
     /* Check if you have a force (!=0). */
@@ -268,8 +268,8 @@ void templateAppToucheBegan(float x, float y, unsigned int tap_count)
         move_location.x = x;
         move_location.y = y;
     } else {
-        view_location.x = x;
-        view_location.y = y;
+        view_location->x = x;
+        view_location->y = y;
     }
 }
 
@@ -285,9 +285,9 @@ void templateAppToucheMoved(float x, float y, unsigned int tap_count)
         y < ((screen_size * 0.5f) + (screen_size * 0.05f))) {
         /* Stop the current movement for the view or if the camera is on the move.
          */
-        move_delta.z =
-        view_delta.x =
-        view_delta.y = 0.0f;
+        move_delta.z  =
+        view_delta->x =
+        view_delta->y = 0.0f;
         /* In order to make things easier for the user, assign the current
          * location of the touch to be either the starting point of the view or the
          * movement, since you never know in which direction the user will move the
@@ -296,8 +296,8 @@ void templateAppToucheMoved(float x, float y, unsigned int tap_count)
         move_location.x = x;
         move_location.y = y;
 
-        view_location.x = x;
-        view_location.y = y;
+        view_location->x = x;
+        view_location->y = y;
     } else if (y < (screen_size * 0.5f)) {
         /* If the touch start is on the left side of the screen, deal with it
          * as a camera movement.
@@ -328,12 +328,12 @@ void templateAppToucheMoved(float x, float y, unsigned int tap_count)
         /* Calculate the view delta and linearly interpolate the values to
          * smooth things out a bit.
          */
-        view_delta.x = view_delta.x * 0.75f + (x - view_location.x) * 0.25f;
-        view_delta.y = view_delta.y * 0.75f + (y - view_location.y) * 0.25f;
+        view_delta->x = view_delta->x * 0.75f + (x - view_location->x) * 0.25f;
+        view_delta->y = view_delta->y * 0.75f + (y - view_location->y) * 0.25f;
         /* Remember the current location as the starting point for the next
          * movement (if any). */
-        view_location.x = x;
-        view_location.y = y;
+        view_location->x = x;
+        view_location->y = y;
     }
 }
 

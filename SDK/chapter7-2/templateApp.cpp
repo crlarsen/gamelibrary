@@ -149,7 +149,7 @@ void templateAppDraw(void) {
     /* The touch delta Y only affects the rotation, so check if you got a
      * value different than 0 to process the forward/backward movements.
      */
-    if (touche_delta.x) {
+    if (touche_delta->x) {
         /* Declare the forward vector.  In this case, the forward direction is
          * the positive Y axis.
          */
@@ -174,8 +174,8 @@ void templateAppDraw(void) {
          * vector to the eye_location to make the camera move.  And use the
          * touche_delta.x as the speed factor.
          */
-        eye_location.x += direction.x * -touche_delta.x;
-        eye_location.y += direction.y * -touche_delta.x;
+        eye_location.x += direction.x * -touche_delta->x;
+        eye_location.y += direction.y * -touche_delta->x;
     }
 
     /* Rotate the matrix -90 degrees on the positive X axis to look
@@ -244,8 +244,8 @@ void templateAppDraw(void) {
 void templateAppToucheBegan(float x, float y, unsigned int tap_count)
 {
     /* Remember the touch location when the onscreen movement starts. */
-    touche_location.x = x;
-    touche_location.y = y;
+    touche_location->x = x;
+    touche_location->y = y;
 }
 
 
@@ -265,27 +265,27 @@ void templateAppToucheMoved(float x, float y, unsigned int tap_count)
      * might get some jaggy results.  You will fix this problem by interpolating
      * the touch location.
      */
-    touche_delta.x = touche_delta.x * 0.9f + CLAMP(touche_location.x - x, -
+    touche_delta->x = touche_delta->x * 0.9f + CLAMP(touche_location->x - x, -
                                                    0.1f, 0.1f) * 0.1f;
-    touche_delta.y = touche_delta.y * 0.9f + CLAMP(touche_location.y - y, -
+    touche_delta->y = touche_delta->y * 0.9f + CLAMP(touche_location->y - y, -
                                                    2.0f, 2.0f) * 0.1f;
 
     /* Remember the current location for the next touch movement pass. */
-    touche_location.x = x;
-    touche_location.y = y;
+    touche_location->x = x;
+    touche_location->y = y;
 
     /* Convert the touch delta Y into a rotation angle as you did previously
      * in your OBJ viewer.  But this time, the rotation will not be affected on
      * the complex geometry but on the camera view matrix.
      */
-    rotz += touche_delta.y;
+    rotz += touche_delta->y;
 }
 
 
 void templateAppToucheEnded(float x, float y, unsigned int tap_count)
 {
-    touche_delta.x =
-    touche_delta.y = 0.0f;
+    touche_delta->x =
+    touche_delta->y = 0.0f;
 }
 
 

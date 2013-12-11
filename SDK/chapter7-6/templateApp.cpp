@@ -289,25 +289,25 @@ void templateAppDraw(void) {
     /* First check if the direction vector on the X or Y axis was triggered
      * from the user touch on the right side of the screen.
      */
-    if (view_delta.x || view_delta.y) {
+    if (view_delta->x || view_delta->y) {
         /* If the Y is active (!=0), then add the value to the next Z
          * rotation.  Since you are going to interpolate the rotation, you have to
          * assign the value to the next camera Z rotation.
          */
-        if (view_delta.y) next_rotz -= view_delta.y;
+        if (view_delta->y) next_rotz -= view_delta->y;
         /* Same as above, but this time for the X rotation axis.  In addition,
          * clamp the value in the range of -180 to -90 degrees to allow the camera
          * to only look from straight up to straight down.
          */
-        if (view_delta.x) {
-            next_rotx -= view_delta.x;
+        if (view_delta->x) {
+            next_rotx -= view_delta->x;
             next_rotx = CLAMP(next_rotx, -180.0f, -90.0f);
         }
         /* Reset the view deltas to avoid triggering another pass inside this
          * block on the next rendering pass.
          */
-        view_delta.x =
-        view_delta.y = 0.0f;
+        view_delta->x =
+        view_delta->y = 0.0f;
     }
 
     /* If you got a force comming from the left side of the screen. */
@@ -453,8 +453,8 @@ void templateAppToucheBegan(float x, float y, unsigned int tap_count)
         move_location.x = x;
         move_location.y = y;
     } else {
-        view_location.x = x;
-        view_location.y = y;
+        view_location->x = x;
+        view_location->y = y;
     }
 }
 
@@ -465,14 +465,14 @@ void templateAppToucheMoved(float x, float y, unsigned int tap_count)
         y < ((screen_size * 0.5f) + (screen_size * 0.05f))) {
 
         move_delta.z =
-        view_delta.x =
-        view_delta.y = 0.0f;
+        view_delta->x =
+        view_delta->y = 0.0f;
 
         move_location.x = x;
         move_location.y = y;
 
-        view_location.x = x;
-        view_location.y = y;
+        view_location->x = x;
+        view_location->y = y;
     } else if (y < (screen_size * 0.5f)) {
         vec3 touche(x, y, 0.0f);
 
@@ -484,11 +484,11 @@ void templateAppToucheMoved(float x, float y, unsigned int tap_count)
                              0.0f,
                              1.0f);
     } else {
-        view_delta.x = view_delta.x * 0.75f + (x - view_location.x) * 0.25f;
-        view_delta.y = view_delta.y * 0.75f + (y - view_location.y) * 0.25f;
+        view_delta->x = view_delta->x * 0.75f + (x - view_location->x) * 0.25f;
+        view_delta->y = view_delta->y * 0.75f + (y - view_location->y) * 0.25f;
 
-        view_location.x = x;
-        view_location.y = y;
+        view_location->x = x;
+        view_location->y = y;
     }
 }
 

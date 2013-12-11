@@ -232,10 +232,10 @@ void program_draw(void *ptr)
 
             GFX_push_matrix();
 
-            scroll.x += 0.0025f;
-            scroll.y += 0.0025f;
+            scroll->x += 0.0025f;
+            scroll->y += 0.0025f;
 
-            GFX_translate(scroll.x, scroll.y, 0.0f);
+            GFX_translate(scroll->x, scroll->y, 0.0f);
 
             glUniformMatrix4fv(uniform.location,
                                1,
@@ -660,10 +660,10 @@ void templateAppDraw(void) {
     GFX_load_identity();
 
 
-    next_accelerometer.x = accelerometer.x * 0.1f + next_accelerometer.x * 0.9f;
-    next_accelerometer.y = accelerometer.y * 0.1f + next_accelerometer.y * 0.9f;
+    next_accelerometer->x = accelerometer->x * 0.1f + next_accelerometer->x * 0.9f;
+    next_accelerometer->y = accelerometer->y * 0.1f + next_accelerometer->y * 0.9f;
     
-    rotz += next_accelerometer.y * sensitivity;
+    rotz += next_accelerometer->y * sensitivity;
     
     vec3    forward(0.0f, 1.0f, 0.0f),
             direction;
@@ -676,7 +676,7 @@ void templateAppDraw(void) {
         direction.x = c * forward.y - s * forward.x;
         direction.y = s * forward.y + c * forward.x;
 
-        float speed = CLAMP((-next_accelerometer.x * sensitivity) * ball_speed,
+        float speed = CLAMP((-next_accelerometer->x * sensitivity) * ball_speed,
                             -ball_speed,
                             ball_speed);
 
@@ -885,14 +885,14 @@ void templateAppAccelerometer(float x, float y, float z)
 
     tmp.safeNormalize();
 
-    accelerometer.x = tmp.x + 0.35f;
+    accelerometer->x = tmp.x + 0.35f;
 
 #ifndef __IPHONE_4_0
 
-    accelerometer.y = tmp.y + 0.35f;
+    accelerometer->y = tmp->y + 0.35f;
 #else
 
-    accelerometer.y = tmp.y;
+    accelerometer->y = tmp.y;
 #endif
 }
 
