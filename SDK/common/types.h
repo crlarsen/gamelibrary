@@ -322,92 +322,65 @@ inline std::ostream &operator<<(std::ostream &os, const vec3 &rhs)
 }
     
 struct vec4 {
-	float x;
-	float y;
-	float z;
-	float w;
-	
+private:
+    typedef struct { float x, y, z, w; } _CRL_vf4;
+    float   _v[4];
+public:
+    int nElems() const { return sizeof(_v)/sizeof(_v[0]); }
+
     vec4() {}
     vec4(const float x, const float y, const float z, const float w) {
-        this->x = x;
-        this->y = y;
-        this->z = z;
-        this->w = w;
+        _v[0] = x;
+        _v[1] = y;
+        _v[2] = z;
+        _v[3] = w;
     }
     explicit vec4(const vec3 &argXYZ, const float argW=1.0) {
-        x = argXYZ.x;
-        y = argXYZ.y;
-        z = argXYZ.z;
-        w = argW;
+        _v[0] = argXYZ.x;
+        _v[1] = argXYZ.y;
+        _v[2] = argXYZ.z;
+        _v[3] = argW;
     }
     vec4(const vec4 &rhs) {
-        this->x = rhs.x;
-        this->y = rhs.y;
-        this->z = rhs.z;
-        this->w = rhs.w;
+        for (int i=0; i!=nElems(); ++i)
+            _v[i] = rhs._v[i];
     }
     vec4 &operator=(const vec4 &rhs) {
         if (this != &rhs) {
-            this->x = rhs.x;
-            this->y = rhs.y;
-            this->z = rhs.z;
-            this->w = rhs.w;
+            for (int i=0; i!=nElems(); ++i)
+                _v[i] = rhs._v[i];
         }
         return *this;
     }
     const float operator[](const int i) const {
-        switch (i) {
-            case 0:
-                return x;
-                break;
-            case 1:
-                return y;
-                break;
-            case 2:
-                return z;
-                break;
-        }
-        return w;
+        assert(0<=i && i<nElems());
+        return _v[i];
     }
     float &operator[](const int i) {
-        switch (i) {
-            case 0:
-                return x;
-                break;
-            case 1:
-                return y;
-                break;
-            case 2:
-                return z;
-                break;
-        }
-        return w;
+        assert(0<=i && i<nElems());
+        return _v[i];
     }
+    _CRL_vf4 *operator->() { return (_CRL_vf4 *)this; }
+    const _CRL_vf4 *operator->() const { return (const _CRL_vf4 *)this; }
     vec4 &operator+=(const vec4 &rhs) {
-        this->x += rhs.x;
-        this->y += rhs.y;
-        this->z += rhs.z;
-        this->w += rhs.w;
+        for (int i=0; i!=nElems(); ++i)
+            _v[i] += rhs._v[i];
         return *this;
     }
     vec4 &operator+(const vec4 &rhs) const {
         return vec4(*this) += rhs;
     }
     vec4 &operator-=(const vec4 &rhs) {
-        this->x -= rhs.x;
-        this->y -= rhs.y;
-        this->z -= rhs.z;
-        this->w -= rhs.w;
+        for (int i=0; i!=nElems(); ++i)
+            _v[i] -= rhs._v[i];
         return *this;
     }
     vec4 &operator-(const vec4 &rhs) {
         return vec4(*this) -= rhs;
     }
     vec4 &operator*=(const float rhs) {
-        this->x *= rhs;
-        this->y *= rhs;
-        this->z *= rhs;
-        this->w *= rhs;
+        for (int i=0; i!=nElems(); ++i)
+            _v[i] *= rhs;
         return *this;
     }
     const vec4 operator*(const float rhs) const {
@@ -419,17 +392,18 @@ struct vec4 {
             exit(1);
 #endif
         float    oneOverRhs = 1.0 / rhs;
-        this->x *= oneOverRhs;
-        this->y *= oneOverRhs;
-        this->z *= oneOverRhs;
-        this->w *= oneOverRhs;
+        for (int i=0; i!=nElems(); ++i)
+            _v[i] *= oneOverRhs;
         return *this;
     }
     const vec4 operator/(const float rhs) const {
         return vec4(*this) /= rhs;
     }
     const float dotProduct(const vec4 &rhs) const {
-        return this->x*rhs.x + this->y*rhs.y + this->z*rhs.z + this->w*rhs.w;
+        float tmp = _v[0] * rhs._v[0];
+        for (int i=1; i!=nElems(); ++i)
+            tmp += _v[i] * rhs._v[i];
+        return tmp;
     }
     const float length(void) const {
         return sqrt(this->dotProduct(*this));
@@ -451,30 +425,30 @@ struct vec4 {
         return m;
     }
     const vec4 operator-(void) const {
-        return vec4(-this->x, -this->y, -this->z, -this->w);
+        return vec4(-_v[0], -_v[1], -_v[2], -_v[3]);
     }
     bool operator==(const vec4 &rhs) const {
-        return (this->x==rhs.x) &&
-               (this->y==rhs.y) &&
-               (this->z==rhs.z) &&
-               (this->w==rhs.w);
+        for (int i=0; i!=nElems(); ++i)
+            if (_v[i] != rhs._v[i])
+                return false;
+        return true;
     }
     bool operator!=(const vec4 &rhs) const {
-        return (this->x!=rhs.x) ||
-               (this->y!=rhs.y) ||
-               (this->z!=rhs.z) ||
-               (this->w!=rhs.w);
+        for (int i=0; i!=nElems(); ++i)
+            if (_v[i] != rhs._v[i])
+                return true;
+        return false;
     }
 };
 
 inline vec3::vec3(const vec4 &argXYZW, const bool truncate) {
-    this->x = argXYZW.x;
-    this->y = argXYZW.y;
-    this->z = argXYZW.z;
-    if (!truncate && argXYZW.w!=0.0f && argXYZW.w!=1.0f) {
-        this->x /= argXYZW.w;
-        this->y /= argXYZW.w;
-        this->z /= argXYZW.w;
+    this->x = argXYZW[0];
+    this->y = argXYZW[1];
+    this->z = argXYZW[2];
+    if (!truncate && argXYZW[3]!=0.0f && argXYZW[3]!=1.0f) {
+        this->x /= argXYZW[3];
+        this->y /= argXYZW[3];
+        this->z /= argXYZW[3];
     }
 }
 

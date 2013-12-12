@@ -285,7 +285,7 @@ void templateAppToucheMoved(float x, float y, unsigned int tap_count)
         y < ((screen_size * 0.5f) + (screen_size * 0.05f))) {
         /* Stop the current movement for the view or if the camera is on the move.
          */
-        move_delta.z  =
+        move_delta.z =
         view_delta->x =
         view_delta->y = 0.0f;
         /* In order to make things easier for the user, assign the current

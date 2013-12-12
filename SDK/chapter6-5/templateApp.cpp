@@ -502,7 +502,7 @@ void templateAppDraw(void) {
             objmesh->btrigidbody->getWorldTransform().getOpenGLMatrix((float *)&mat);
             /* Up date the X location based on the current OpenGL matrix value. */
             // Why?  CRL
-            objmesh->location.x = mat.m[3].x;
+            objmesh->location.x = mat.m[3]->x;
             /* Add Bullet's calculation of the object's position/orientation
              * to the "stack" of transformations contained in the modelview
              * matrix.

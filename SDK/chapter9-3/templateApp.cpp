@@ -487,19 +487,13 @@ void templateAppDraw(void) {
              * shader now supports color additions on the final
              * gl_FragColor value.
              */
-            color.x = 1.0f;
-            color.y = 1.0f;
-            color.z = 1.0f;
-            color.w = 1.0f;
+            color = vec4(1,1,1,1);
         } else {
             /* Set the color be fully black so the color won't affect
              * the texture color of the piano key (because black + color
              * = color).
              */
-            color.x =
-            color.y =
-            color.z = 0.0f;
-            color.w = 1.0f;
+            color = vec4(0,0,0,1);
         }
 
         glUniform4fv(program->get_uniform_location((char *)"COLOR"),
@@ -545,10 +539,7 @@ void templateAppDraw(void) {
         strcpy(str, "GAME OVER");
 
         /* Yellow. */
-        color.x = 1.0f;
-        color.y = 1.0f;
-        color.z = 0.0f;
-        color.w = 1.0f;
+        color = vec4(1,1,0,1);
 
         font_big->print(viewport_matrix[3] * 0.5f -
                         font_big->length(str) * 0.5f,
@@ -562,11 +553,8 @@ void templateAppDraw(void) {
     sprintf(str, "Level:%d", cur_level);
 
     /* Green. */
-    color.x = 0.0f;
-    color.y = 1.0f;
-    color.z = 0.0f;
-    color.w = 1.0f;
-    
+    color = vec4(0,1,0,1);
+
     font_small->print(5.0f,
                       viewport_matrix[2] - font_small->font_size,
                       str,

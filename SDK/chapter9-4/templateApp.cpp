@@ -774,9 +774,7 @@ void templateAppDraw(void) {
 
                 objmesh->btrigidbody->getWorldTransform().getOpenGLMatrix((float *)&mat);
 
-                objmesh->location.x = mat.m[3].x;
-                objmesh->location.y = mat.m[3].y;
-                objmesh->location.z = mat.m[3].z;
+                objmesh->location = vec3(mat.m[3], true);
 
                 GFX_multiply_matrix(&mat);
             } else {
@@ -828,9 +826,9 @@ void templateAppDraw(void) {
                         &font_color);
 
         /* Yellow. */
-        font_color.x = 1.0f;
-        font_color.y = 1.0f;
-        font_color.z = 0.0f;
+        font_color->x = 1.0f;
+        font_color->y = 1.0f;
+        font_color->z = 0.0f;
 
         font_big->print(viewport_matrix[3] * 0.5f - font_big->length(level_str) * 0.5f,
                         viewport_matrix[2] - font_big->font_size * 1.5f,
@@ -838,9 +836,9 @@ void templateAppDraw(void) {
                         &font_color);
     }
     
-    font_color.x = 0.0f;
-    font_color.y = 0.0f;
-    font_color.z = 0.0f;
+    font_color->x = 0.0f;
+    font_color->y = 0.0f;
+    font_color->z = 0.0f;
 
     sprintf(gem_str, "Gem Points:%02d", gem_points);
     sprintf(time_str, "Game Time:%02.2f", game_time * 0.1f);
@@ -855,9 +853,9 @@ void templateAppDraw(void) {
                       time_str,
                       &font_color);
 
-    font_color.x = 1.0f;
-    font_color.y = 1.0f;
-    font_color.z = 0.0f;
+    font_color->x = 1.0f;
+    font_color->y = 1.0f;
+    font_color->z = 0.0f;
 
     font_small->print(viewport_matrix[3] - font_small->length(gem_str) - 8.0f,
                       (font_small->font_size * 0.5f),

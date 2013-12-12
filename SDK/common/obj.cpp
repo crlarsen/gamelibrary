@@ -993,9 +993,9 @@ bool OBJ::load_mtl(char *filename, const bool relative_path)
         } else if (sscanf(line, "illum %f", &v.x) == 1) {
             objmaterial->illumination_model = (int)v.x;
         } else if (sscanf(line, "d %f", &v.x) == 1) {
-            objmaterial->ambient.w  = v.x;
-            objmaterial->diffuse.w  = v.x;
-            objmaterial->specular.w = v.x;
+            objmaterial->ambient->w  = v.x;
+            objmaterial->diffuse->w  = v.x;
+            objmaterial->specular->w = v.x;
             objmaterial->dissolve   = v.x;
         } else if (sscanf(line, "Ns %f", &v.x) == 1) {
             objmaterial->specular_exponent = v.x;

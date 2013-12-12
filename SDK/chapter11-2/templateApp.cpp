@@ -170,8 +170,8 @@ void program_draw(void *ptr)
 
     static float rot_angle = 0.0f;
 
-    spotLight->position.x = 7.5f * cosf(rot_angle * DEG_TO_RAD);
-    spotLight->position.y = 7.5f * sinf(rot_angle * DEG_TO_RAD);
+    spotLight->position->x = 7.5f * cosf(rot_angle * DEG_TO_RAD);
+    spotLight->position->y = 7.5f * sinf(rot_angle * DEG_TO_RAD);
 
     rot_angle += 0.25f;
 
@@ -273,25 +273,25 @@ void draw_scene_from_projector(void)
      */
     GFX_look_at((vec3 *)&spotLight->position, &center, &up_axis);
 
-    projector_matrix.m[0].x = 0.5f;
-    projector_matrix.m[0].y = 0.0f;
-    projector_matrix.m[0].z = 0.0f;
-    projector_matrix.m[0].w = 0.0f;
+    projector_matrix.m[0][0] = 0.5f;
+    projector_matrix.m[0][1] = 0.0f;
+    projector_matrix.m[0][2] = 0.0f;
+    projector_matrix.m[0][3] = 0.0f;
 
-    projector_matrix.m[1].x = 0.0f;
-    projector_matrix.m[1].y = 0.5f;
-    projector_matrix.m[1].z = 0.0f;
-    projector_matrix.m[1].w = 0.0f;
+    projector_matrix.m[1][0] = 0.0f;
+    projector_matrix.m[1][1] = 0.5f;
+    projector_matrix.m[1][2] = 0.0f;
+    projector_matrix.m[1][3] = 0.0f;
 
-    projector_matrix.m[2].x = 0.0f;
-    projector_matrix.m[2].y = 0.0f;
-    projector_matrix.m[2].z = 0.5f;
-    projector_matrix.m[2].w = 0.0f;
+    projector_matrix.m[2][0] = 0.0f;
+    projector_matrix.m[2][1] = 0.0f;
+    projector_matrix.m[2][2] = 0.5f;
+    projector_matrix.m[2][3] = 0.0f;
 
-    projector_matrix.m[3].x = 0.5f;
-    projector_matrix.m[3].y = 0.5f;
-    projector_matrix.m[3].z = 0.5f;
-    projector_matrix.m[3].w = 1.0f;
+    projector_matrix.m[3][0] = 0.5f;
+    projector_matrix.m[3][1] = 0.5f;
+    projector_matrix.m[3][2] = 0.5f;
+    projector_matrix.m[3][3] = 1.0f;
 
     /* Multiply the bias matrix with the current model view and
      * projection matrix and store the result as the projector_matrix.

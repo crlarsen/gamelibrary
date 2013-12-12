@@ -724,9 +724,7 @@ void templateAppDraw(void) {
 
         objmesh->btrigidbody->getWorldTransform().getOpenGLMatrix((float *)&mat);
 
-        objmesh->location.x = mat.m[3].x;
-        objmesh->location.y = mat.m[3].y;
-        objmesh->location.z = mat.m[3].z;
+        objmesh->location = vec3(mat.m[3], true);
 
         GFX_multiply_matrix(&mat);
 
@@ -800,7 +798,7 @@ void templateAppDraw(void) {
          * This will make the text onscreen look like it has a shadow under
          * it.
          */
-        color.y = 1.0f;
+        color->y = 1.0f;
         font->print(posx, posy, msg, &color);
     }
 }

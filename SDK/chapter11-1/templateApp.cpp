@@ -191,8 +191,8 @@ void program_draw(void *ptr)
 
     auto pointLight = dynamic_cast<PointLight *>(light);
     if (pointLight) {
-        pointLight->position.x = 7.5f * cosf(rot_angle * DEG_TO_RAD);
-        pointLight->position.y = 7.5f * sinf(rot_angle * DEG_TO_RAD);
+        pointLight->position->x = 7.5f * cosf(rot_angle * DEG_TO_RAD);
+        pointLight->position->y = 7.5f * sinf(rot_angle * DEG_TO_RAD);
     }
 
     rot_angle += 0.25f;

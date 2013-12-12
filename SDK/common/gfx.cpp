@@ -469,37 +469,37 @@ void GFX_set_orthographic( float screen_ratio, float scale, float aspect_ratio, 
 
 void GFX_set_perspective( float fovy, float aspect_ratio, float clip_start, float clip_end, float screen_orientation )
 {
-	mat4 mat;
-	
-	float d = clip_end - clip_start,
-		  r = ( fovy * 0.5f ) * DEG_TO_RAD,
-		  s = sinf( r ),
-		  c = cosf( r ) / s;
+    mat4 mat;
 
-	mat4_identity( &mat );
-	
-    mat.m[ 0 ].x = c / aspect_ratio;
-    mat.m[ 1 ].y = c;
-    mat.m[ 2 ].z = -( clip_end + clip_start ) / d;
-    mat.m[ 2 ].w = -1.0f;
-    mat.m[ 3 ].z = -2.0f * clip_start * clip_end / d;
-    mat.m[ 3 ].w =  0.0f;
-	
-	GFX_multiply_matrix( &mat );
-	
-	if( screen_orientation ) GFX_rotate( screen_orientation, 0.0f, 0.0f, 1.0f );
+    float d = clip_end - clip_start,
+    r = ( fovy * 0.5f ) * DEG_TO_RAD,
+    s = sinf( r ),
+    c = cosf( r ) / s;
+
+    mat4_identity( &mat );
+
+    mat.m[0][0] = c / aspect_ratio;
+    mat.m[1][1] = c;
+    mat.m[2][2] = -( clip_end + clip_start ) / d;
+    mat.m[2][3] = -1.0f;
+    mat.m[3][2] = -2.0f * clip_start * clip_end / d;
+    mat.m[3][3] =  0.0f;
+
+    GFX_multiply_matrix( &mat );
+
+    if( screen_orientation ) GFX_rotate( screen_orientation, 0.0f, 0.0f, 1.0f );
 }
 
 
 void GFX_look_at( vec3 *eye, vec3 *center, vec3 *up )
 {
-	vec3 f,
-		 s,
-		 u;
+    vec3    f,
+            s,
+            u;
 
-	mat4 mat;
+    mat4 mat;
 
-	mat4_identity( &mat );
+    mat4_identity( &mat );
 
     f = *center - *eye;
 
@@ -511,95 +511,95 @@ void GFX_look_at( vec3 *eye, vec3 *center, vec3 *up )
 
     u = s.crossProduct(f);
 
-	mat.m[ 0 ].x = s.x;
-	mat.m[ 1 ].x = s.y;
-	mat.m[ 2 ].x = s.z;
+    mat.m[0][0] = s.x;
+    mat.m[1][0] = s.y;
+    mat.m[2][0] = s.z;
 
-	mat.m[ 0 ].y = u.x;
-	mat.m[ 1 ].y = u.y;
-	mat.m[ 2 ].y = u.z;
+    mat.m[0][1] = u.x;
+    mat.m[1][1] = u.y;
+    mat.m[2][1] = u.z;
 
-	mat.m[ 0 ].z = -f.x;
-	mat.m[ 1 ].z = -f.y;
-	mat.m[ 2 ].z = -f.z;
-
-	GFX_multiply_matrix( &mat );
-
-	GFX_translate( -eye->x, -eye->y, -eye->z );
+    mat.m[0][2] = -f.x;
+    mat.m[1][2] = -f.y;
+    mat.m[2][2] = -f.z;
+    
+    GFX_multiply_matrix( &mat );
+    
+    GFX_translate( -eye->x, -eye->y, -eye->z );
 }
 
 
-int GFX_project( float objx, float objy, float objz, mat4 *modelview_matrix, mat4 *projection_matrix, int *viewport_matrix, float *winx, float *winy, float *winz )
+bool GFX_project( float objx, float objy, float objz, mat4 *modelview_matrix, mat4 *projection_matrix, int *viewport_matrix, float *winx, float *winy, float *winz )
 {
-	vec4 vin,
-		 vout;
-		 
-	vin.x = objx;
-	vin.y = objy;
-	vin.z = objz;
-	vin.w = 1.0f;
-	
-	vec4_multiply_mat4( &vout, &vin, modelview_matrix );
+    vec4    vin,
+            vout;
 
-	vec4_multiply_mat4( &vin, &vout, projection_matrix );
+    vin->x = objx;
+    vin->y = objy;
+    vin->z = objz;
+    vin->w = 1.0f;
 
-	if( !vin.w ) return 0;
-		
-	vin.x /= vin.w;
-	vin.y /= vin.w;
-	vin.z /= vin.w;
-	
-	vin.x = vin.x * 0.5f + 0.5f;
-	vin.y = vin.y * 0.5f + 0.5f;
-	vin.z = vin.z * 0.5f + 0.5f;
+    vec4_multiply_mat4( &vout, &vin, modelview_matrix );
 
-	vin.x = vin.x * viewport_matrix[ 2 ] + viewport_matrix[ 0 ];
-	vin.y = vin.y * viewport_matrix[ 3 ] + viewport_matrix[ 1 ];
+    vec4_multiply_mat4( &vin, &vout, projection_matrix );
 
-	*winx = vin.x;
-	*winy = vin.y;
-	*winz = vin.z;
+    if( !vin->w ) return false;
 
-	return 1;
+    vin->x /= vin->w;
+    vin->y /= vin->w;
+    vin->z /= vin->w;
+
+    vin->x = vin->x * 0.5f + 0.5f;
+    vin->y = vin->y * 0.5f + 0.5f;
+    vin->z = vin->z * 0.5f + 0.5f;
+
+    vin->x = vin->x * viewport_matrix[2] + viewport_matrix[0];
+    vin->y = vin->y * viewport_matrix[3] + viewport_matrix[1];
+    
+    *winx = vin->x;
+    *winy = vin->y;
+    *winz = vin->z;
+    
+    return true;
 }
 
 
-int GFX_unproject( float winx, float winy, float winz, mat4 *modelview_matrix, mat4 *projection_matrix, int *viewport_matrix, float *objx, float *objy, float *objz )
+bool GFX_unproject( float winx, float winy, float winz, mat4 *modelview_matrix, mat4 *projection_matrix, int *viewport_matrix, float *objx, float *objy, float *objz )
 {
-	mat4 final;
+    mat4    final;
 
-	vec4 vin,
-		 vout;
+    vec4    vin,
+            vout;
 
-	mat4_multiply_mat4( &final,
-						projection_matrix,
-						modelview_matrix );
+    mat4_multiply_mat4(&final,
+                       projection_matrix,
+                       modelview_matrix);
 
-	mat4_invert_full( &final );
+    mat4_invert_full(&final);
 
-	vin.x = winx;
-	vin.y = winy;
-	vin.z = winz;
-	vin.w = 1.0f;
+    vin->x = winx;
+    vin->y = winy;
+    vin->z = winz;
+    vin->w = 1.0f;
 
-	vin.x = ( vin.x - viewport_matrix[ 0 ] ) / viewport_matrix[ 2 ];
-	vin.y = ( vin.y - viewport_matrix[ 1 ] ) / viewport_matrix[ 3 ];
+    vin->x = (vin->x - viewport_matrix[0]) / viewport_matrix[2];
+    vin->y = (vin->y - viewport_matrix[1]) / viewport_matrix[3];
 
-	vin.x = vin.x * 2.0f - 1.0f;
-	vin.y = vin.y * 2.0f - 1.0f;
-	vin.z = vin.z * 2.0f - 1.0f;
+    vin->x = vin->x * 2.0f - 1.0f;
+    vin->y = vin->y * 2.0f - 1.0f;
+    vin->z = vin->z * 2.0f - 1.0f;
 
-	vec4_multiply_mat4( &vout, &vin, &final );
-	
-	if( !vout.w ) return 0;
-	
-	vout.x /= vout.w;
-	vout.y /= vout.w;
-	vout.z /= vout.w;
-	
-	*objx = vout.x;
-	*objy = vout.y;
-	*objz = vout.z;
-	
-	return 1;
+    vec4_multiply_mat4( &vout, &vin, &final );
+
+    if(!vout->w) return false;
+
+    vout->x /= vout->w;
+    vout->y /= vout->w;
+    vout->z /= vout->w;
+    
+    *objx = vout->x;
+    *objy = vout->y;
+    *objz = vout->z;
+    
+    return true;
 }

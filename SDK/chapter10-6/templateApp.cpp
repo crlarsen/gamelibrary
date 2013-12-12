@@ -660,8 +660,8 @@ void templateAppInit(int width, int height)
     position.y = -position.y;
 
     /* Modify the color to be red. */
-    color.y =
-    color.z = 0.0f;
+    color->y =
+    color->z = 0.0f;
 
     /* Create the second lamp. */
     lamp[1] = new PointSphereLamp((char *)"point2", color, position, 10.0f);
