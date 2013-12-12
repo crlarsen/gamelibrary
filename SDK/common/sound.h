@@ -93,7 +93,7 @@ public:
     void stop();
     void set_speed(float speed);
     void set_volume(float volume);
-    void set_location(vec3 *location, float reference_distance);
+    void set_location(vec3 &location, float reference_distance);
     void rewind();
     float get_time();
     int get_state();

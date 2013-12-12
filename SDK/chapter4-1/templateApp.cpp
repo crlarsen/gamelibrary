@@ -164,7 +164,8 @@ void templateAppDraw(void)
      GFX_look_at(&e, &c, &u);
 
     /* Loop for each OBJMESH. */
-    for (int i=0; i != obj->objmesh.size(); ++i) {
+    for (auto objmesh=obj->objmesh.begin();
+         objmesh!=obj->objmesh.end(); ++objmesh) {
         /* Push the current model view matrix down. */
         GFX_push_matrix();
 
@@ -172,12 +173,12 @@ void templateAppDraw(void)
         /* Translate the model view matrix use the location XYZ of the
          * current mesh.
          */
-        GFX_translate(obj->objmesh[i].location.x,
-                      obj->objmesh[i].location.y,
-                      obj->objmesh[i].location.z);
+        GFX_translate(objmesh->location[0],
+                      objmesh->location[1],
+                      objmesh->location[2]);
 
         /* Draw the mesh and its associated material(s) onscreen. */
-        obj->objmesh[i].draw();
+        objmesh->draw();
 
         /* Pop the model view matrix back. */
         GFX_pop_matrix();

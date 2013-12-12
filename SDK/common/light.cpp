@@ -251,9 +251,9 @@ void DirectionalLight::get_direction_in_eye_space(mat4 *m, vec3 *direction)
     /* Multiply the current lamp direction by the view matrix received in
      * parameter to be able to calculate the lamp direction in eye space.
      */
-    vec3_multiply_mat4(direction,
-                       &this->direction,
-                       m);
+    vec3_multiply_mat4(*direction,
+                       this->direction,
+                       *m);
     /* Invert the vector, because in eye space, the direction is simply the
      * inverted vector.
      */
@@ -266,9 +266,9 @@ vec3 DirectionalLight::get_direction_in_eye_space(mat4 *m)
     /* Multiply the current lamp direction by the view matrix received in
      * parameter to be able to calculate the lamp direction in eye space.
      */
-    vec3_multiply_mat4(&direction,
-                       &this->direction,
-                       m);
+    vec3_multiply_mat4(direction,
+                       this->direction,
+                       *m);
     /* Invert the vector, because in eye space, the direction is simply the
      * inverted vector.
      */
@@ -289,22 +289,22 @@ void PointLight::get_position_in_eye_space(mat4 *m, vec4 *position)
     /* Multiply the position by the matrix received in parameters and
      * assign the result to the position vector.
      */
-    vec4_multiply_mat4(position,
-                       &this->position,
-                       m);
+    vec4_multiply_mat4(*position,
+                       this->position,
+                       *m);
 }
 
 void SpotLight::get_direction_in_object_space(mat4 *m, vec3 *direction)
 {
     mat4 invert;
 
-    mat4_copy_mat4(&invert, m);
+    mat4_copy_mat4(invert, *m);
 
-    mat4_invert(&invert);
+    mat4_invert(invert);
 
-    vec3_multiply_mat4(direction,
-                       &this->spot_direction,
-                       m);
+    vec3_multiply_mat4(*direction,
+                       this->spot_direction,
+                       *m);
 
     direction->safeNormalize();
 

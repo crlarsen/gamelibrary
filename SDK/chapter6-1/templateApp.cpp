@@ -125,9 +125,9 @@ void add_rigid_body(OBJMESH *objmesh, float mass)
      * relative to its pivot point, which is already centered in the middle of
      * its bounding box.
      */
-    btCollisionShape *btcollisionshape = new btBoxShape(btVector3(objmesh->dimension.x * 0.5f,
-                                                                  objmesh->dimension.y * 0.5f,
-                                                                  objmesh->dimension.z * 0.5f));
+    btCollisionShape *btcollisionshape = new btBoxShape(btVector3(objmesh->dimension[0] * 0.5f,
+                                                                  objmesh->dimension[1] * 0.5f,
+                                                                  objmesh->dimension[2] * 0.5f));
 
     /* Declare a btTransform variable to be able to contain the transformation
      * matrix of the object in a form that Bullet will understand.
@@ -139,20 +139,20 @@ void add_rigid_body(OBJMESH *objmesh, float mass)
     /* Declare 3 vectors to be able to hold the rotation of the mesh on
      * the XYZ axis.
      */
-    vec4 rotx(1.0f, 0.0f, 0.0f, objmesh->rotation.x),
-         roty(0.0f, 1.0f, 0.0f, objmesh->rotation.y),
-         rotz(0.0f, 0.0f, 1.0f, objmesh->rotation.z);
+    vec4 rotx(1.0f, 0.0f, 0.0f, objmesh->rotation[0]),
+         roty(0.0f, 1.0f, 0.0f, objmesh->rotation[1]),
+         rotz(0.0f, 0.0f, 1.0f, objmesh->rotation[2]);
 
     /* Set up the identity matrix to makesure the matrix is clean. */
-    mat4_identity(&mat);
+    mat4_identity(mat);
 
-    mat4_translate(&mat, &mat, &objmesh->location);
+    mat4_translate(mat, mat, objmesh->location);
 
-    mat4_rotate(&mat, &mat, &rotz);
+    mat4_rotate(mat, mat, rotz);
 
-    mat4_rotate(&mat, &mat, &roty);
+    mat4_rotate(mat, mat, roty);
 
-    mat4_rotate(&mat, &mat, &rotx);
+    mat4_rotate(mat, mat, rotx);
 
     /* Assign the current transformation matrix that you create using the
      * standard "OpenGL way" and send it over to the Bullet transform variable.
@@ -270,9 +270,9 @@ void templateAppInit(int width, int height) {
          * of 1kg as a parameter.
          */
         if (!strcmp(objmesh->name, "Cube")) {
-            objmesh->rotation.x =
-            objmesh->rotation.y =
-            objmesh->rotation.z = 35.0f;
+            objmesh->rotation[0] =
+            objmesh->rotation[1] =
+            objmesh->rotation[2] = 35.0f;
 
             add_rigid_body(&(*objmesh), 1.0f);
         } else {

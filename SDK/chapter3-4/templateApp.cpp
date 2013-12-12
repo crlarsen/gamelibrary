@@ -296,9 +296,9 @@ void templateAppDraw(void)
 
     glBindVertexArrayOES(objmesh->vao);
 
-    if (auto_rotate) rot_angle.z += 2.0f;
-    GFX_rotate(rot_angle.x, 1.0f, 0.0f, 0.0f);
-    GFX_rotate(rot_angle.z, 0.0f, 0.0f, 1.0f);
+    if (auto_rotate) rot_angle[2] += 2.0f;
+    GFX_rotate(rot_angle[0], 1.0f, 0.0f, 0.0f);
+    GFX_rotate(rot_angle[2], 0.0f, 0.0f, 1.0f);
 
     /* Activate the first texture unit. */
     glActiveTexture(GL_TEXTURE0);
@@ -338,8 +338,8 @@ void templateAppToucheMoved(float x, float y, unsigned int tap_count)
     /* Stop auto rotate. */
     auto_rotate = false;
     /* Calculate the touche delta and assign it to the angle X and Z. */
-    rot_angle.z += -(touche->x - x);
-    rot_angle.x += -(touche->y - y);
+    rot_angle[2] += -(touche->x - x);
+    rot_angle[0] += -(touche->y - y);
     /* Remember the current touche position. */
     touche->x = x;
     touche->y = y;

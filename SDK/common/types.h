@@ -153,9 +153,11 @@ inline std::ostream &operator<<(std::ostream &os, const vec2 &rhs)
 struct vec4;
 
 struct vec3 {
-	float x;
-	float y;
-	float z;
+private:
+    float x;
+    float y;
+    float z;
+public:
 
     vec3() {}
     vec3(const float x, const float y, const float z) {
@@ -336,9 +338,9 @@ public:
         _v[3] = w;
     }
     explicit vec4(const vec3 &argXYZ, const float argW=1.0) {
-        _v[0] = argXYZ.x;
-        _v[1] = argXYZ.y;
-        _v[2] = argXYZ.z;
+        _v[0] = argXYZ[0];
+        _v[1] = argXYZ[1];
+        _v[2] = argXYZ[2];
         _v[3] = argW;
     }
     vec4(const vec4 &rhs) {
@@ -599,13 +601,28 @@ struct mat3 {
 	vec3 m[3];
 
     mat3() {}
+    const vec3 &operator[](const int i) const {
+        assert(0<=i && i<3);
+        return m[i];
+    }
+    vec3 &operator[](const int i) {
+        assert(0<=i && i<3);
+        return m[i];
+    }
 };
 
 
 typedef struct
 {
 	vec4 m[4];
-
+    const vec4 &operator[](const int i) const {
+        assert(0<=i && i<4);
+        return m[i];
+    }
+    vec4 &operator[](const int i) {
+        assert(0<=i && i<4);
+        return m[i];
+    }
 } mat4;
 
 

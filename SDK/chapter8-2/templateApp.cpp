@@ -329,26 +329,24 @@ void templateAppDraw(void) {
     rotx = rotx * 0.9f + next_rotx * 0.1f;
     rotz = rotz * 0.9f + next_rotz * 0.1f;
 
-    eye.x = center.x +
+    eye[0] = center[0] +
             distance *
             cosf(rotx * DEG_TO_RAD) *
             sinf(rotz * DEG_TO_RAD);
 
-    eye.y = center.y -
+    eye[1] = center[1] -
             distance *
             cosf(rotx * DEG_TO_RAD) *
             cosf(rotz * DEG_TO_RAD);
 
-    eye.z = center.z +
+    eye[2] = center[2] +
             distance *
             sinf(rotx * DEG_TO_RAD);
 
     rotx = rotx * 0.9f + next_rotx * 0.1f;
     rotz = rotz * 0.9f + next_rotz * 0.1f;
     
-    center.x = maze->location.x;
-    center.y = maze->location.y;
-    center.z = maze->location.z;
+    center = maze->location;
 
     GFX_look_at(&eye,
                 &center,
@@ -383,24 +381,24 @@ void templateAppDraw(void) {
                           GFX_get_modelview_matrix(),
                           GFX_get_projection_matrix(),
                           viewport_matrix,
-                          &location.x,
-                          &location.y,
-                          &location.z)) {
+                          &location[0],
+                          &location[1],
+                          &location[2])) {
 
             /* Now that you have the XYZ location on the far plane, you can
              * create the collision ray.  Begin by creating the starting point,
              * which is basically the current camera eye position.
              */
-            btVector3 ray_from(eye.x,
-                               eye.y,
-                               eye.z),
+            btVector3 ray_from(eye[0],
+                               eye[1],
+                               eye[2]),
             /* Translate the resulting location of GFX_unproject based on the
              * current eye location to make sure that the coordinate system
              * will fit with what the player currently sees onscreen.
              */
-            ray_to(location.x + eye.x,
-                   location.y + eye.y,
-                   location.z + eye.z);
+            ray_to(location[0] + eye[0],
+                   location[1] + eye[1],
+                   location[2] + eye[2]);
             /* Create the collision ray. */
             btCollisionWorld::ClosestRayResultCallback collision_ray(ray_from,
                                                                      ray_to);
@@ -424,15 +422,13 @@ void templateAppDraw(void) {
                      * the current player location as the starting point of
                      * the query.
                      */
-                    navigationpath_player.start_location.x = player->location.x;
-                    navigationpath_player.start_location.y = player->location.y;
-                    navigationpath_player.start_location.z = player->location.z;
+                    navigationpath_player.start_location = player->location;
                     /* Then simply use the collision ray hit position XYZ as
                      * the end point of the path query.
                      */
-                    navigationpath_player.end_location.x = collision_ray.m_hitPointWorld.x();
-                    navigationpath_player.end_location.y = collision_ray.m_hitPointWorld.y();
-                    navigationpath_player.end_location.z = collision_ray.m_hitPointWorld.z();
+                    navigationpath_player.end_location[0] = collision_ray.m_hitPointWorld.x();
+                    navigationpath_player.end_location[1] = collision_ray.m_hitPointWorld.y();
+                    navigationpath_player.end_location[2] = collision_ray.m_hitPointWorld.z();
                     /* The query is ready to be sent to Detour, so send it over.
                      * If Detour was able to find a path, the function will
                      * return 1 and will store the way points information
@@ -457,9 +453,9 @@ void templateAppDraw(void) {
                         for (int i=0; i!=navigationpathdata_player.path_point_count + 1; ++i)
                             console_print("%d: %f %f %f\n",
                                           i,
-                                          navigationpathdata_player.path_point_array[i].x,
-                                          navigationpathdata_player.path_point_array[i].y,
-                                          navigationpathdata_player.path_point_array[i].z);
+                                          navigationpathdata_player.path_point_array[i][0],
+                                          navigationpathdata_player.path_point_array[i][1],
+                                          navigationpathdata_player.path_point_array[i][2]);
                         printf("\n");
                     }
                 }

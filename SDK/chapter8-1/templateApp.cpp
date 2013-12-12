@@ -317,18 +317,18 @@ void templateAppDraw(void) {
 
 
 
-    eye.x = center.x +
+    eye[0] = center[0] +
             distance *
             cosf(rotx * DEG_TO_RAD) *
             sinf(rotz * DEG_TO_RAD);
 
-    eye.y = center.y -
+    eye[1] = center[1] -
             distance *
             cosf(rotx * DEG_TO_RAD) *
             cosf(rotz * DEG_TO_RAD);
 
 
-    eye.z = center.z +
+    eye[2] = center[2] +
             distance *
             sinf(rotx * DEG_TO_RAD);
     
@@ -336,9 +336,9 @@ void templateAppDraw(void) {
     rotx = rotx * 0.9f + next_rotx * 0.1f;
     rotz = rotz * 0.9f + next_rotz * 0.1f;
     
-    center.x = maze->location.x;
-    center.y = maze->location.y;
-    center.z = maze->location.z;
+    center[0] = maze->location[0];
+    center[1] = maze->location[1];
+    center[2] = maze->location[2];
 
     GFX_look_at(&eye,
                 &center,

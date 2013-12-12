@@ -296,7 +296,7 @@ void draw_scene_from_projector(void)
     /* Multiply the bias matrix with the current model view and
      * projection matrix and store the result as the projector_matrix.
      */
-    mat4_multiply_mat4(&projector_matrix, &projector_matrix, GFX_get_modelview_projection_matrix());
+    mat4_multiply_mat4(projector_matrix, projector_matrix, *GFX_get_modelview_projection_matrix());
 }
 
 
@@ -332,20 +332,20 @@ void draw_scene(void)
      */
     mat4 projector_matrix_copy;
 
-    mat4_copy_mat4(&projector_matrix_copy, &projector_matrix);
+    mat4_copy_mat4(projector_matrix_copy, projector_matrix);
 
     for (objmesh=obj->objmesh.begin();
          objmesh!=obj->objmesh.end(); ++objmesh) {
 
         GFX_push_matrix();
 
-        GFX_translate(objmesh->location.x,
-                      objmesh->location.y,
-                      objmesh->location.z);
+        GFX_translate(objmesh->location[0],
+                      objmesh->location[1],
+                      objmesh->location[2]);
 
-        mat4_copy_mat4(&projector_matrix, &projector_matrix_copy);
+        mat4_copy_mat4(projector_matrix, projector_matrix_copy);
 
-        mat4_translate(&projector_matrix, &projector_matrix, &objmesh->location);
+        mat4_translate(projector_matrix, projector_matrix, objmesh->location);
 
         objmesh->draw();
         

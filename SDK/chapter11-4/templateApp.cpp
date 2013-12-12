@@ -228,9 +228,9 @@ void templateAppDraw(void)
 
         GFX_push_matrix();
 
-        GFX_translate(objmesh->location.x,
-                      objmesh->location.y,
-                      objmesh->location.z);
+        GFX_translate(objmesh->location[0],
+                      objmesh->location[1],
+                      objmesh->location[2]);
 
         /* If the current object name is the sphere. */
         if (strstr(objmesh->name, "sphere")) {
@@ -251,12 +251,12 @@ void templateAppDraw(void)
             glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 
             /* Rotate all the points around the orjbect origin. */
-            objmesh->rotation.x += 0.5f;
-            objmesh->rotation.y += 0.5f;
-            objmesh->rotation.z += 0.5f;
-            GFX_rotate(objmesh->rotation.z, 0.0f, 0.0f, 1.0f);
-            GFX_rotate(objmesh->rotation.y, 0.0f, 1.0f, 0.0f);
-            GFX_rotate(objmesh->rotation.x, 1.0f, 0.0f, 0.0f);
+            objmesh->rotation[0] += 0.5f;
+            objmesh->rotation[1] += 0.5f;
+            objmesh->rotation[2] += 0.5f;
+            GFX_rotate(objmesh->rotation[2], 0.0f, 0.0f, 1.0f);
+            GFX_rotate(objmesh->rotation[1], 0.0f, 1.0f, 0.0f);
+            GFX_rotate(objmesh->rotation[0], 1.0f, 0.0f, 0.0f);
 
             /* Draw the mesh.  From here, the particles.gfx shader will be
              * called and it will handle the point sizes, attenuations,

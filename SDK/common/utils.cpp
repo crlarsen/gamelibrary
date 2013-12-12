@@ -373,9 +373,9 @@ float sphere_distance_in_frustum( vec4  *frustum, vec3  *location, float radius 
 bool point_in_frustum( vec4 *frustum, vec3 *location )
 {
     for (int i=0; i!=6; ++i) {
-        if (frustum[i]->x * location->x +
-            frustum[i]->y * location->y +
-            frustum[i]->z * location->z +
+        if (frustum[i]->x * (*location)[0] +
+            frustum[i]->y * (*location)[1] +
+            frustum[i]->z * (*location)[2] +
             frustum[i]->w < 0.0f )
             return false;
     }
@@ -390,9 +390,9 @@ bool box_in_frustum( vec4 *frustum, vec3 *location, vec3 *dimension )
 
     while( i != 6 )
     {
-        if (frustum[ i ]->x * ( location->x - dimension->x ) +
-            frustum[ i ]->y * ( location->y - dimension->y ) +
-            frustum[ i ]->z * ( location->z - dimension->z ) +
+        if (frustum[ i ]->x * ( (*location)[0] - (*dimension)[0] ) +
+            frustum[ i ]->y * ( (*location)[1] - (*dimension)[1] ) +
+            frustum[ i ]->z * ( (*location)[2] - (*dimension)[2] ) +
             frustum[ i ]->w > 0.0f )
         {
             ++i;
@@ -400,9 +400,9 @@ bool box_in_frustum( vec4 *frustum, vec3 *location, vec3 *dimension )
         }
 
 
-        if (frustum[ i ]->x * ( location->x + dimension->x ) +
-            frustum[ i ]->y * ( location->y - dimension->y ) +
-            frustum[ i ]->z * ( location->z - dimension->z ) +
+        if (frustum[ i ]->x * ( (*location)[0] + (*dimension)[0] ) +
+            frustum[ i ]->y * ( (*location)[1] - (*dimension)[1] ) +
+            frustum[ i ]->z * ( (*location)[2] - (*dimension)[2] ) +
             frustum[ i ]->w > 0.0f )
         {
             ++i;
@@ -410,9 +410,9 @@ bool box_in_frustum( vec4 *frustum, vec3 *location, vec3 *dimension )
         }
 
 
-        if (frustum[ i ]->x * ( location->x - dimension->x ) +
-            frustum[ i ]->y * ( location->y + dimension->y ) +
-            frustum[ i ]->z * ( location->z - dimension->z ) +
+        if (frustum[ i ]->x * ( (*location)[0] - (*dimension)[0] ) +
+            frustum[ i ]->y * ( (*location)[1] + (*dimension)[1] ) +
+            frustum[ i ]->z * ( (*location)[2] - (*dimension)[2] ) +
             frustum[ i ]->w > 0.0f )
         {
             ++i;
@@ -420,9 +420,9 @@ bool box_in_frustum( vec4 *frustum, vec3 *location, vec3 *dimension )
         }
 
 
-        if (frustum[ i ]->x * ( location->x + dimension->x ) +
-            frustum[ i ]->y * ( location->y + dimension->y ) +
-            frustum[ i ]->z * ( location->z - dimension->z ) +
+        if (frustum[ i ]->x * ( (*location)[0] + (*dimension)[0] ) +
+            frustum[ i ]->y * ( (*location)[1] + (*dimension)[1] ) +
+            frustum[ i ]->z * ( (*location)[2] - (*dimension)[2] ) +
             frustum[ i ]->w > 0.0f )
         {
             ++i;
@@ -430,9 +430,9 @@ bool box_in_frustum( vec4 *frustum, vec3 *location, vec3 *dimension )
         }
 
 
-        if (frustum[ i ]->x * ( location->x - dimension->x ) +
-            frustum[ i ]->y * ( location->y - dimension->y ) +
-            frustum[ i ]->z * ( location->z + dimension->z ) +
+        if (frustum[ i ]->x * ( (*location)[0] - (*dimension)[0] ) +
+            frustum[ i ]->y * ( (*location)[1] - (*dimension)[1] ) +
+            frustum[ i ]->z * ( (*location)[2] + (*dimension)[2] ) +
             frustum[ i ]->w > 0.0f )
         {
             ++i;
@@ -440,9 +440,9 @@ bool box_in_frustum( vec4 *frustum, vec3 *location, vec3 *dimension )
         }
 
 
-        if (frustum[ i ]->x * ( location->x + dimension->x ) +
-            frustum[ i ]->y * ( location->y + dimension->y ) +
-            frustum[ i ]->z * ( location->z + dimension->z ) +
+        if (frustum[ i ]->x * ( (*location)[0] + (*dimension)[0] ) +
+            frustum[ i ]->y * ( (*location)[1] + (*dimension)[1] ) +
+            frustum[ i ]->z * ( (*location)[2] + (*dimension)[2] ) +
             frustum[ i ]->w > 0.0f )
         {
             ++i;
@@ -450,9 +450,9 @@ bool box_in_frustum( vec4 *frustum, vec3 *location, vec3 *dimension )
         }
 
 
-        if (frustum[ i ]->x * ( location->x - dimension->x ) +
-            frustum[ i ]->y * ( location->y + dimension->y ) +
-            frustum[ i ]->z * ( location->z + dimension->z ) +
+        if (frustum[ i ]->x * ( (*location)[0] - (*dimension)[0] ) +
+            frustum[ i ]->y * ( (*location)[1] + (*dimension)[1] ) +
+            frustum[ i ]->z * ( (*location)[2] + (*dimension)[2] ) +
             frustum[ i ]->w > 0.0f )
         {
             ++i;
@@ -460,9 +460,9 @@ bool box_in_frustum( vec4 *frustum, vec3 *location, vec3 *dimension )
         }
         
         
-        if (frustum[ i ]->x * ( location->x + dimension->x ) +
-            frustum[ i ]->y * ( location->y + dimension->y ) +
-            frustum[ i ]->z * ( location->z + dimension->z ) +
+        if (frustum[ i ]->x * ( (*location)[0] + (*dimension)[0] ) +
+            frustum[ i ]->y * ( (*location)[1] + (*dimension)[1] ) +
+            frustum[ i ]->z * ( (*location)[2] + (*dimension)[2] ) +
             frustum[ i ]->w > 0.0f )
         {
             ++i;
@@ -481,9 +481,9 @@ InFrustum sphere_intersect_frustum( vec4  *frustum, vec3  *location, float radiu
     unsigned char c = 0;
 
     for (int i=0; i!=6; ++i) {
-        float   d = frustum[i]->x * location->x +
-        frustum[i]->y * location->y +
-        frustum[i]->z * location->z +
+        float   d = frustum[i]->x * (*location)[0] +
+        frustum[i]->y * (*location)[1] +
+        frustum[i]->z * (*location)[2] +
         frustum[i]->w;
 
         if (d < -radius)
@@ -506,58 +506,58 @@ InFrustum box_intersect_frustum(vec4 *frustum,
     for (int i=0; i!=6; ++i) {
         c1 = 0;
 
-        if (frustum[ i ]->x * ( location->x - dimension->x ) +
-            frustum[ i ]->y * ( location->y - dimension->y ) +
-            frustum[ i ]->z * ( location->z - dimension->z ) +
+        if (frustum[ i ]->x * ( (*location)[0] - (*dimension)[0] ) +
+            frustum[ i ]->y * ( (*location)[1] - (*dimension)[1] ) +
+            frustum[ i ]->z * ( (*location)[2] - (*dimension)[2] ) +
             frustum[ i ]->w > 0.0f )
         { ++c1; }
 
 
-        if (frustum[ i ]->x * ( location->x + dimension->x ) +
-            frustum[ i ]->y * ( location->y - dimension->y ) +
-            frustum[ i ]->z * ( location->z - dimension->z ) +
+        if (frustum[ i ]->x * ( (*location)[0] + (*dimension)[0] ) +
+            frustum[ i ]->y * ( (*location)[1] - (*dimension)[1] ) +
+            frustum[ i ]->z * ( (*location)[2] - (*dimension)[2] ) +
             frustum[ i ]->w > 0.0f )
         { ++c1; }
 
 
-        if (frustum[ i ]->x * ( location->x - dimension->x ) +
-            frustum[ i ]->y * ( location->y + dimension->y ) +
-            frustum[ i ]->z * ( location->z - dimension->z ) +
+        if (frustum[ i ]->x * ( (*location)[0] - (*dimension)[0] ) +
+            frustum[ i ]->y * ( (*location)[1] + (*dimension)[1] ) +
+            frustum[ i ]->z * ( (*location)[2] - (*dimension)[2] ) +
             frustum[ i ]->w > 0.0f )
         { ++c1; }
 
 
-        if (frustum[ i ]->x * ( location->x + dimension->x ) +
-            frustum[ i ]->y * ( location->y + dimension->y ) +
-            frustum[ i ]->z * ( location->z - dimension->z ) +
+        if (frustum[ i ]->x * ( (*location)[0] + (*dimension)[0] ) +
+            frustum[ i ]->y * ( (*location)[1] + (*dimension)[1] ) +
+            frustum[ i ]->z * ( (*location)[2] - (*dimension)[2] ) +
             frustum[ i ]->w > 0.0f )
         { ++c1; }
 
 
-        if (frustum[ i ]->x * ( location->x - dimension->x ) +
-            frustum[ i ]->y * ( location->y - dimension->y ) +
-            frustum[ i ]->z * ( location->z + dimension->z ) +
+        if (frustum[ i ]->x * ( (*location)[0] - (*dimension)[0] ) +
+            frustum[ i ]->y * ( (*location)[1] - (*dimension)[1] ) +
+            frustum[ i ]->z * ( (*location)[2] + (*dimension)[2] ) +
             frustum[ i ]->w > 0.0f )
         { ++c1; }
 
 
-        if (frustum[ i ]->x * ( location->x + dimension->x ) +
-            frustum[ i ]->y * ( location->y - dimension->y ) +
-            frustum[ i ]->z * ( location->z + dimension->z ) +
+        if (frustum[ i ]->x * ( (*location)[0] + (*dimension)[0] ) +
+            frustum[ i ]->y * ( (*location)[1] - (*dimension)[1] ) +
+            frustum[ i ]->z * ( (*location)[2] + (*dimension)[2] ) +
             frustum[ i ]->w > 0.0f )
         { ++c1; }
 
 
-        if (frustum[ i ]->x * ( location->x - dimension->x ) +
-            frustum[ i ]->y * ( location->y + dimension->y ) +
-            frustum[ i ]->z * ( location->z + dimension->z ) +
+        if (frustum[ i ]->x * ( (*location)[0] - (*dimension)[0] ) +
+            frustum[ i ]->y * ( (*location)[1] + (*dimension)[1] ) +
+            frustum[ i ]->z * ( (*location)[2] + (*dimension)[2] ) +
             frustum[ i ]->w > 0.0f )
         { ++c1; }
         
         
-        if (frustum[ i ]->x * ( location->x + dimension->x ) +
-            frustum[ i ]->y * ( location->y + dimension->y ) +
-            frustum[ i ]->z * ( location->z + dimension->z ) +
+        if (frustum[ i ]->x * ( (*location)[0] + (*dimension)[0] ) +
+            frustum[ i ]->y * ( (*location)[1] + (*dimension)[1] ) +
+            frustum[ i ]->z * ( (*location)[2] + (*dimension)[2] ) +
             frustum[ i ]->w > 0.0f )
         { ++c1; }
         
@@ -626,30 +626,30 @@ void create_direction_vector( vec3 *dst, vec3 *up_axis, float rotx, float roty, 
 
     mat4 m;
 
-    mat4_identity( &m );
+    mat4_identity( m );
 
     rotation->z = 1.0f;
     rotation->x =
     rotation->y = 0.0f;
     rotation->w = rotz;
 
-    mat4_rotate( &m, &m, &rotation );
+    mat4_rotate( m, m, rotation );
 
     rotation->y = 1.0f;
     rotation->x =
     rotation->z = 0.0f;
     rotation->w = roty;
 
-    mat4_rotate( &m, &m, &rotation );
+    mat4_rotate( m, m, rotation );
 
     rotation->x = 1.0f;
     rotation->y =
     rotation->z = 0.0f;
     rotation->w = rotx;
 
-    mat4_rotate( &m, &m, &rotation );
+    mat4_rotate( m, m, rotation );
     
     *up_axis = -*up_axis;
     
-    vec3_multiply_mat4( dst, up_axis, &m );
+    vec3_multiply_mat4( *dst, *up_axis, m );
 }

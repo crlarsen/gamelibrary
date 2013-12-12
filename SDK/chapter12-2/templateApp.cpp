@@ -318,13 +318,13 @@ void templateAppDraw(void)
     /* If auto-rotate is ON, simply turn the geometry on the Z axis,
      * demo reel style.
      */
-    if (auto_rotate) rot_angle.z += 1.0f;
+    if (auto_rotate) rot_angle[2] += 1.0f;
 
     /* Rotate the X and Z axis based on the rotation specified by the
      * user.
      */
-    GFX_rotate(rot_angle.x, 1.0f, 0.0f, 0.0f);
-    GFX_rotate(rot_angle.z, 0.0f, 0.0f, 1.0f);
+    GFX_rotate(rot_angle[0], 1.0f, 0.0f, 0.0f);
+    GFX_rotate(rot_angle[2], 0.0f, 0.0f, 1.0f);
 
     /* Increase the time step of the animation.  Note that the
      * MD5_drawn_action function will return 1 (in this case, when the
@@ -359,8 +359,8 @@ void templateAppToucheMoved(float x, float y, unsigned int tap_count)
 {
     auto_rotate = 0;
 
-    rot_angle.z += x - touche->x;
-    rot_angle.x += y - touche->y;
+    rot_angle[2] += x - touche->x;
+    rot_angle[0] += y - touche->y;
 
     touche->x = x;
     touche->y = y;

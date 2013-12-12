@@ -139,21 +139,21 @@ void GFX_load_identity( void )
 	{
 		case MODELVIEW_MATRIX:
 		{
-			mat4_identity( GFX_get_modelview_matrix() );
+			mat4_identity( *GFX_get_modelview_matrix() );
 			
 			break;
 		}
 		
 		case PROJECTION_MATRIX:
 		{
-			mat4_identity( GFX_get_projection_matrix() );
+			mat4_identity( *GFX_get_projection_matrix() );
 			
 			break;
 		}
 		
 		case TEXTURE_MATRIX:
 		{
-			mat4_identity( GFX_get_texture_matrix() );
+			mat4_identity( *GFX_get_texture_matrix() );
 			
 			break;
 		}		
@@ -167,8 +167,8 @@ void GFX_push_matrix( void )
 	{
 		case MODELVIEW_MATRIX:
 		{
-			mat4_copy_mat4( &gfx.modelview_matrix[ gfx.modelview_matrix_index + 1 ],
-							&gfx.modelview_matrix[ gfx.modelview_matrix_index	  ] );
+			mat4_copy_mat4( gfx.modelview_matrix[ gfx.modelview_matrix_index + 1 ],
+							gfx.modelview_matrix[ gfx.modelview_matrix_index	  ] );
 		
 			++gfx.modelview_matrix_index;
 			
@@ -177,8 +177,8 @@ void GFX_push_matrix( void )
 
 		case PROJECTION_MATRIX:
 		{
-			mat4_copy_mat4( &gfx.projection_matrix[ gfx.projection_matrix_index + 1 ],
-							&gfx.projection_matrix[ gfx.projection_matrix_index	    ] );
+			mat4_copy_mat4( gfx.projection_matrix[ gfx.projection_matrix_index + 1 ],
+							gfx.projection_matrix[ gfx.projection_matrix_index	    ] );
 			
 			++gfx.projection_matrix_index;
 			
@@ -187,8 +187,8 @@ void GFX_push_matrix( void )
 		
 		case TEXTURE_MATRIX:
 		{
-			mat4_copy_mat4( &gfx.texture_matrix[ gfx.texture_matrix_index + 1 ],
-							&gfx.texture_matrix[ gfx.texture_matrix_index     ] );
+			mat4_copy_mat4( gfx.texture_matrix[ gfx.texture_matrix_index + 1 ],
+							gfx.texture_matrix[ gfx.texture_matrix_index     ] );
 			
 			++gfx.texture_matrix_index;
 			
@@ -232,21 +232,21 @@ void GFX_load_matrix( mat4 *m )
 	{
 		case MODELVIEW_MATRIX:
 		{
-			mat4_copy_mat4( GFX_get_modelview_matrix(), m );
+			mat4_copy_mat4( *GFX_get_modelview_matrix(), *m );
 			
 			break;
 		}
 	
 		case PROJECTION_MATRIX:
 		{
-			mat4_copy_mat4( GFX_get_projection_matrix(), m );
+			mat4_copy_mat4( *GFX_get_projection_matrix(), *m );
 			
 			break;
 		}
 		
 		case TEXTURE_MATRIX:
 		{
-			mat4_copy_mat4( GFX_get_texture_matrix(), m );
+			mat4_copy_mat4( *GFX_get_texture_matrix(), *m );
 			
 			break;
 		}		
@@ -260,21 +260,21 @@ void GFX_multiply_matrix( mat4 *m )
 	{
 		case MODELVIEW_MATRIX:
 		{
-			mat4_multiply_mat4( GFX_get_modelview_matrix(), GFX_get_modelview_matrix(), m );
+			mat4_multiply_mat4( *GFX_get_modelview_matrix(), *GFX_get_modelview_matrix(), *m );
 
 			break;
 		}
 			
 		case PROJECTION_MATRIX:
 		{
-			mat4_multiply_mat4( GFX_get_projection_matrix(), GFX_get_projection_matrix(), m );
+			mat4_multiply_mat4( *GFX_get_projection_matrix(), *GFX_get_projection_matrix(), *m );
 			
 			break;
 		}
 		
 		case TEXTURE_MATRIX:
 		{
-			mat4_multiply_mat4( GFX_get_texture_matrix(), GFX_get_texture_matrix(), m );
+			mat4_multiply_mat4( *GFX_get_texture_matrix(), *GFX_get_texture_matrix(), *m );
 			
 			break;
 		}		
@@ -290,21 +290,21 @@ void GFX_translate( float x, float y, float z )
     {
         case MODELVIEW_MATRIX:
         {
-            mat4_translate( GFX_get_modelview_matrix(), GFX_get_modelview_matrix(), &v );
+            mat4_translate( *GFX_get_modelview_matrix(), *GFX_get_modelview_matrix(), v );
 
             break;
         }
 
         case PROJECTION_MATRIX:
         {
-            mat4_translate( GFX_get_projection_matrix(), GFX_get_projection_matrix(), &v );
+            mat4_translate( *GFX_get_projection_matrix(), *GFX_get_projection_matrix(), v );
 
             break;
         }
 
         case TEXTURE_MATRIX:
         {
-            mat4_translate( GFX_get_texture_matrix(), GFX_get_texture_matrix(), &v );
+            mat4_translate( *GFX_get_texture_matrix(), *GFX_get_texture_matrix(), v );
             
             break;
         }		
@@ -322,21 +322,21 @@ void GFX_rotate( float angle, float x, float y, float z )
 	{
 		case MODELVIEW_MATRIX:
 		{
-			mat4_rotate( GFX_get_modelview_matrix(), GFX_get_modelview_matrix(), &v );
+			mat4_rotate( *GFX_get_modelview_matrix(), *GFX_get_modelview_matrix(), v );
 			
 			break;
 		}
 	
 		case PROJECTION_MATRIX:
 		{
-			mat4_rotate( GFX_get_projection_matrix(), GFX_get_projection_matrix(), &v );
+			mat4_rotate( *GFX_get_projection_matrix(), *GFX_get_projection_matrix(), v );
 			
 			break;
 		}
 
 		case TEXTURE_MATRIX:
 		{
-			mat4_rotate( GFX_get_texture_matrix(), GFX_get_texture_matrix(), &v );
+			mat4_rotate( *GFX_get_texture_matrix(), *GFX_get_texture_matrix(), v );
 			
 			break;
 		}		
@@ -358,21 +358,21 @@ void GFX_scale( float x, float y, float z )
     {
         case MODELVIEW_MATRIX:
         {
-            mat4_scale( GFX_get_modelview_matrix(), GFX_get_modelview_matrix(), &v );
+            mat4_scale( *GFX_get_modelview_matrix(), *GFX_get_modelview_matrix(), v );
 
             break;
         }
 
         case PROJECTION_MATRIX:
         {
-            mat4_scale( GFX_get_projection_matrix(), GFX_get_projection_matrix(), &v );
+            mat4_scale( *GFX_get_projection_matrix(), *GFX_get_projection_matrix(), v );
 
             break;
         }
             
         case TEXTURE_MATRIX:
         {
-            mat4_scale( GFX_get_texture_matrix(), GFX_get_texture_matrix(), &v );
+            mat4_scale( *GFX_get_texture_matrix(), *GFX_get_texture_matrix(), v );
             
             break;
         }		
@@ -394,9 +394,9 @@ mat4 *GFX_get_texture_matrix( void )
 
 mat4 *GFX_get_modelview_projection_matrix( void )
 {
-	mat4_multiply_mat4( &gfx.modelview_projection_matrix, 
-						GFX_get_projection_matrix(),
-						GFX_get_modelview_matrix() );
+	mat4_multiply_mat4( gfx.modelview_projection_matrix,
+						*GFX_get_projection_matrix(),
+						*GFX_get_modelview_matrix() );
 	
 	return &gfx.modelview_projection_matrix; 
 }
@@ -406,13 +406,13 @@ mat3 *GFX_get_normal_matrix( void )
 {
 	mat4 mat;
 	
-	mat4_copy_mat4( &mat, GFX_get_modelview_matrix() );
+	mat4_copy_mat4( mat, *GFX_get_modelview_matrix() );
 
-	mat4_invert_full( &mat );
+	mat4_invert_full( mat );
 
-	mat4_transpose( &mat );
+	mat4_transpose( mat );
 	
-	mat3_copy_mat4( &gfx.normal_matrix, &mat );
+	mat3_copy_mat4( gfx.normal_matrix, mat );
 
 	return &gfx.normal_matrix;
 }
@@ -476,7 +476,7 @@ void GFX_set_perspective( float fovy, float aspect_ratio, float clip_start, floa
     s = sinf( r ),
     c = cosf( r ) / s;
 
-    mat4_identity( &mat );
+    mat4_identity( mat );
 
     mat.m[0][0] = c / aspect_ratio;
     mat.m[1][1] = c;
@@ -499,7 +499,7 @@ void GFX_look_at( vec3 *eye, vec3 *center, vec3 *up )
 
     mat4 mat;
 
-    mat4_identity( &mat );
+    mat4_identity( mat );
 
     f = *center - *eye;
 
@@ -511,21 +511,21 @@ void GFX_look_at( vec3 *eye, vec3 *center, vec3 *up )
 
     u = s.crossProduct(f);
 
-    mat.m[0][0] = s.x;
-    mat.m[1][0] = s.y;
-    mat.m[2][0] = s.z;
+    mat.m[0][0] = s[0];
+    mat.m[1][0] = s[1];
+    mat.m[2][0] = s[2];
 
-    mat.m[0][1] = u.x;
-    mat.m[1][1] = u.y;
-    mat.m[2][1] = u.z;
+    mat.m[0][1] = u[0];
+    mat.m[1][1] = u[1];
+    mat.m[2][1] = u[2];
 
-    mat.m[0][2] = -f.x;
-    mat.m[1][2] = -f.y;
-    mat.m[2][2] = -f.z;
+    mat.m[0][2] = -f[0];
+    mat.m[1][2] = -f[1];
+    mat.m[2][2] = -f[2];
     
     GFX_multiply_matrix( &mat );
     
-    GFX_translate( -eye->x, -eye->y, -eye->z );
+    GFX_translate( -(*eye)[0], -(*eye)[1], -(*eye)[2] );
 }
 
 
@@ -539,9 +539,9 @@ bool GFX_project( float objx, float objy, float objz, mat4 *modelview_matrix, ma
     vin->z = objz;
     vin->w = 1.0f;
 
-    vec4_multiply_mat4( &vout, &vin, modelview_matrix );
+    vec4_multiply_mat4( vout, vin, *modelview_matrix );
 
-    vec4_multiply_mat4( &vin, &vout, projection_matrix );
+    vec4_multiply_mat4( vin, vout, *projection_matrix );
 
     if( !vin->w ) return false;
 
@@ -571,11 +571,11 @@ bool GFX_unproject( float winx, float winy, float winz, mat4 *modelview_matrix, 
     vec4    vin,
             vout;
 
-    mat4_multiply_mat4(&final,
-                       projection_matrix,
-                       modelview_matrix);
+    mat4_multiply_mat4(final,
+                       *projection_matrix,
+                       *modelview_matrix);
 
-    mat4_invert_full(&final);
+    mat4_invert_full(final);
 
     vin->x = winx;
     vin->y = winy;
@@ -589,7 +589,7 @@ bool GFX_unproject( float winx, float winy, float winz, mat4 *modelview_matrix, 
     vin->y = vin->y * 2.0f - 1.0f;
     vin->z = vin->z * 2.0f - 1.0f;
 
-    vec4_multiply_mat4( &vout, &vin, &final );
+    vec4_multiply_mat4( vout, vin, final );
 
     if(!vout->w) return false;
 

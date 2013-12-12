@@ -201,11 +201,11 @@ SOUND::SOUND(char *name, SOUNDBUFFER *soundbuffer)
 
     alGenSources(1, &this->sid);
 
-    alSource3f(this->sid, AL_POSITION, tmp.x, tmp.y, tmp.z);
+    alSource3f(this->sid, AL_POSITION, tmp[0], tmp[1], tmp[2]);
 
-    alSource3f(this->sid, AL_VELOCITY, tmp.x, tmp.y, tmp.z);
+    alSource3f(this->sid, AL_VELOCITY, tmp[0], tmp[1], tmp[2]);
 
-    alSource3f(this->sid, AL_DIRECTION, tmp.x, tmp.y, tmp.z);
+    alSource3f(this->sid, AL_DIRECTION, tmp[0], tmp[1], tmp[2]);
 
     alSourcef(this->sid, AL_ROLLOFF_FACTOR, 1.0f);
 
@@ -271,7 +271,7 @@ void SOUND::set_volume(float volume)
 }
 
 
-void SOUND::set_location(vec3 *location, float reference_distance)
+void SOUND::set_location(vec3 &location, float reference_distance)
 {
     alSourcei(this->sid, AL_SOURCE_RELATIVE, AL_FALSE);
 
@@ -279,9 +279,9 @@ void SOUND::set_location(vec3 *location, float reference_distance)
 
     alSource3f(this->sid,
                AL_POSITION,
-               location->x,
-               location->y,
-               location->z);
+               location[0],
+               location[1],
+               location[2]);
 }
 
 

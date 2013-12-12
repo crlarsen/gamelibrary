@@ -328,7 +328,7 @@ bool contact_added_callback(btManifoldPoint &btmanifoldpoint,
             index = 3;
         }
 
-        gems_sound[index]->set_location(&objmesh->location,
+        gems_sound[index]->set_location(objmesh->location,
                                         objmesh->radius * gem_factor);
 
         gems_sound[index]->play(0);
@@ -389,7 +389,7 @@ void load_level(void)
          objmesh!=obj->objmesh.end(); ++objmesh) {
 
         if (strstr(objmesh->name, "gem")) {
-            objmesh->rotation.z = (float)(random() % 360);
+            objmesh->rotation[2] = (float)(random() % 360);
 
             objmesh->btrigidbody->setCollisionFlags(objmesh->btrigidbody->getCollisionFlags() |
                                                     btCollisionObject::CF_CUSTOM_MATERIAL_CALLBACK);
@@ -504,7 +504,7 @@ void load_level(void)
 
     objmesh = obj->get_mesh("water", false);
 
-    water_sound->set_location(&objmesh->location,
+    water_sound->set_location(objmesh->location,
                               objmesh->radius);
 
     water_sound->set_volume(0.5f);
@@ -522,7 +522,7 @@ void load_level(void)
 
     objmesh = obj->get_mesh("lava", false);
 
-    lava_sound->set_location(&objmesh->location,
+    lava_sound->set_location(objmesh->location,
                              objmesh->radius);
 
     lava_sound->set_volume(0.5f);
@@ -540,7 +540,7 @@ void load_level(void)
 
     objmesh = obj->get_mesh("toxic", false);
     
-    toxic_sound->set_location(&objmesh->location,
+    toxic_sound->set_location(objmesh->location,
                               objmesh->radius);
 
     toxic_sound->set_volume(0.5f);
@@ -673,43 +673,43 @@ void templateAppDraw(void) {
                 c = cosf(r),
                 s = sinf(r);
 
-        direction.x = c * forward.y - s * forward.x;
-        direction.y = s * forward.y + c * forward.x;
+        direction[0] = c * forward[1] - s * forward[0];
+        direction[1] = s * forward[1] + c * forward[0];
 
         float speed = CLAMP((-next_accelerometer->x * sensitivity) * ball_speed,
                             -ball_speed,
                             ball_speed);
 
-        player->btrigidbody->setAngularVelocity(btVector3(direction.x * speed,
-                                                          direction.y * speed,
+        player->btrigidbody->setAngularVelocity(btVector3(direction[0] * speed,
+                                                          direction[1] * speed,
                                                           0.0f));
         
         player->btrigidbody->setActivationState(ACTIVE_TAG);
     }
 
-    next_eye.x = player->location.x +
-    distance *
-    cosf(rotx * DEG_TO_RAD) *
-    sinf(rotz * DEG_TO_RAD);
+    next_eye[0] = player->location[0] +
+                  distance *
+                  cosf(rotx * DEG_TO_RAD) *
+                  sinf(rotz * DEG_TO_RAD);
 
-    next_eye.y = player->location.y -
-    distance *
-    cosf(rotx * DEG_TO_RAD) *
-    cosf(rotz * DEG_TO_RAD);
+    next_eye[1] = player->location[1] -
+                  distance *
+                  cosf(rotx * DEG_TO_RAD) *
+                  cosf(rotz * DEG_TO_RAD);
 
-    next_eye.z = player->location.z +
-    distance *
-    sinf(rotx * DEG_TO_RAD);
+    next_eye[2] = player->location[2] +
+                  distance *
+                  sinf(rotx * DEG_TO_RAD);
 
-    player->location.z += player->dimension.z;
+    player->location[2] += player->dimension[2];
 
-    btVector3 p1(player->location.x,
-                 player->location.y,
-                 player->location.z),
+    btVector3 p1(player->location[0],
+                 player->location[1],
+                 player->location[2]),
 
-    p2(next_eye.x,
-       next_eye.y,
-       next_eye.z);
+    p2(next_eye[0],
+       next_eye[1],
+       next_eye[2]);
 
     ClosestNotMeRayResultCallback back_ray(player->btrigidbody,
                                            p1,
@@ -722,19 +722,17 @@ void templateAppDraw(void) {
     if (back_ray.hasHit()) {
         back_ray.m_hitNormalWorld.normalize();
 
-        next_eye.x = back_ray.m_hitPointWorld.x() +
+        next_eye[0] = back_ray.m_hitPointWorld.x() +
         (back_ray.m_hitNormalWorld.x() * 0.1f);
 
-        next_eye.y = back_ray.m_hitPointWorld.y() +
+        next_eye[1] = back_ray.m_hitPointWorld.y() +
         (back_ray.m_hitNormalWorld.y()* 0.1f);
 
-        next_eye.z = back_ray.m_hitPointWorld.z() +
+        next_eye[2] = back_ray.m_hitPointWorld.z() +
         (back_ray.m_hitNormalWorld.z()* 0.1f);
     }
     
-    eye.x = next_eye.x * 0.05f + eye.x * 0.95f;
-    eye.y = next_eye.y * 0.05f + eye.y * 0.95f;
-    eye.z = next_eye.z * 0.05f + eye.z * 0.95f;
+    eye = next_eye * 0.05f + eye * 0.95f;
 
     direction = player->location - eye;
 
@@ -762,13 +760,13 @@ void templateAppDraw(void) {
             GFX_push_matrix();
 
             if (strstr(objmesh->name, "gem")) {
-                GFX_translate(objmesh->location.x,
-                              objmesh->location.y,
-                              objmesh->location.z);
+                GFX_translate(objmesh->location[0],
+                              objmesh->location[1],
+                              objmesh->location[2]);
 
-                objmesh->rotation.z += 1.0f;
+                objmesh->rotation[2] += 1.0f;
 
-                GFX_rotate(objmesh->rotation.z, 0.0f, 0.0f, 1.0f);
+                GFX_rotate(objmesh->rotation[2], 0.0f, 0.0f, 1.0f);
             } else if (objmesh->btrigidbody) {
                 mat4 mat;
 
@@ -778,9 +776,9 @@ void templateAppDraw(void) {
 
                 GFX_multiply_matrix(&mat);
             } else {
-                GFX_translate(objmesh->location.x,
-                              objmesh->location.y,
-                              objmesh->location.z);
+                GFX_translate(objmesh->location[0],
+                              objmesh->location[1],
+                              objmesh->location[2]);
             }
             
             objmesh->draw();
@@ -883,14 +881,14 @@ void templateAppAccelerometer(float x, float y, float z)
 
     tmp.safeNormalize();
 
-    accelerometer->x = tmp.x + 0.35f;
+    accelerometer->x = tmp[0] + 0.35f;
 
 #ifndef __IPHONE_4_0
 
-    accelerometer->y = tmp->y + 0.35f;
+    accelerometer->y = tmp[1] + 0.35f;
 #else
 
-    accelerometer->y = tmp.y;
+    accelerometer->y = tmp[1];
 #endif
 }
 

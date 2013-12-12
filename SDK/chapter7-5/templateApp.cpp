@@ -214,7 +214,7 @@ void templateAppInit(int width, int height) {
     /* Give a little offset on the Y axis to make sure that the scene can be
      * covered by the camera eye position (well at least mostly).
      */
-    eye.y -= 3.0f;
+    eye[1] -= 3.0f;
 
     for (auto texture=obj->texture.begin();
          texture!=obj->texture.end(); ++texture) {
@@ -253,16 +253,16 @@ void templateAppDraw(void) {
     GFX_load_identity();
 
     /* First check if you have a force. */
-    if (move_delta.z) {
+    if (move_delta[2]) {
         /* Just like you did in the previous chapter for the capsule shape,
          * assign the movement delta (aka the direction vector) coming from
          * the touch screen to the ball collision shape.
          *
-         * Reverse the move_delta.x to fit the current coordinate system.
+         * Reverse the move_delta[0] to fit the current coordinate system.
          */
-        player->btrigidbody->setAngularVelocity(btVector3(-move_delta.x * move_delta.z * 6.7f,
-                                                          move_delta.y * move_delta.z * 6.7f,
-                                                          0.0f));
+        player->btrigidbody->setAngularVelocity(btVector3(-move_delta[0] * move_delta[2] * 6.7f,
+                                                           move_delta[1] * move_delta[2] * 6.7f,
+                                                           0.0f));
 
         /* Activate the rigid body; otherwise the setAngularVelocity call
          * will have no affect if the ball is deactivated.
@@ -273,9 +273,9 @@ void templateAppDraw(void) {
     /* Linearly interpolate the current center point of the camera with the
      * current location of the player object in space.
      */
-    center.x = center.x * 0.975f + player->location.x * 0.025f;
-    center.y = center.y * 0.975f + player->location.y * 0.025f;
-    center.z = center.z * 0.975f + player->location.z * 0.025f;
+    center[0] = center[0] * 0.975f + player->location[0] * 0.025f;
+    center[1] = center[1] * 0.975f + player->location[1] * 0.025f;
+    center[2] = center[2] * 0.975f + player->location[2] * 0.025f;
 
     GFX_look_at(&eye,
                 &center,
@@ -310,8 +310,8 @@ void templateAppDraw(void) {
 
 void templateAppToucheBegan(float x, float y, unsigned int tap_count)
 {
-    move_location.x = x;
-    move_location.y = y;
+    move_location[0] = x;
+    move_location[1] = y;
 }
 
 
@@ -323,15 +323,15 @@ void templateAppToucheMoved(float x, float y, unsigned int tap_count)
 
     move_delta.safeNormalize();
 
-    move_delta.z = CLAMP((move_location-touche).length() / 128.0f,
-                         0.0f,
-                         1.0f);
+    move_delta[2] = CLAMP((move_location-touche).length() / 128.0f,
+                          0.0f,
+                          1.0f);
 }
 
 
 void templateAppToucheEnded(float x, float y, unsigned int tap_count)
 {
-    move_delta.z = 0.0f;
+    move_delta[2] = 0.0f;
 }
 
 

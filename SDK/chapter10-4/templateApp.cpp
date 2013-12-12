@@ -173,9 +173,9 @@ void DirectionalLamp::get_direction_in_eye_space(mat4 *m, vec3 *direction)
     /* Multiply the current lamp direction by the view matrix received in
      * parameter to be able to calculate the lamp direction in eye space.
      */
-    vec3_multiply_mat4(direction,
-                       &this->direction,
-                       m);
+    vec3_multiply_mat4(*direction,
+                       this->direction,
+                       *m);
     /* Invert the vector, because in eye space, the direction is simply the
      * inverted vector.
      */
@@ -251,9 +251,9 @@ void PointLamp::get_position_in_eye_space(mat4 *m, vec4 *position)
     /* Multiply the position by the matrix received in parameters and
      * assign the result to the position vector.
      */
-    vec4_multiply_mat4(position,
-                       &this->position,
-                       m);
+    vec4_multiply_mat4(*position,
+                       this->position,
+                       *m);
 }
 
 struct AttenuatedPointLamp : PointLamp {
@@ -543,9 +543,9 @@ void templateAppDraw(void)
 
         GFX_push_matrix();
 
-        GFX_translate(objmesh->location.x,
-                      objmesh->location.y,
-                      objmesh->location.z);
+        GFX_translate(objmesh->location[0],
+                      objmesh->location[1],
+                      objmesh->location[2]);
         
         objmesh->draw();
         

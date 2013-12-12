@@ -224,7 +224,8 @@ void templateAppDraw(void)
      GFX_look_at(&e, &c, &u);
 
     /* Solid Objects */
-    for (auto objmesh=obj->objmesh.begin(); objmesh!=obj->objmesh.end(); ++objmesh) {
+    for (auto objmesh=obj->objmesh.begin();
+         objmesh!=obj->objmesh.end(); ++objmesh) {
         /* Get the material pointer of the first triangle list of the
          * current mesh. All your objects are using a single material,
          * so only one triangle list is available. By getting access to
@@ -237,9 +238,9 @@ void templateAppDraw(void)
         /* Is it a solid object? */
         if (objmaterial->dissolve == 1.0f) {
             GFX_push_matrix();
-            GFX_translate(objmesh->location.x,
-                          objmesh->location.y,
-                          objmesh->location.z);
+            GFX_translate(objmesh->location[0],
+                          objmesh->location[1],
+                          objmesh->location[2]);
             objmesh->draw();
             GFX_pop_matrix();
         }
@@ -254,7 +255,8 @@ void templateAppDraw(void)
      */
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     /* Transparent Objects */
-    for (auto objmesh=obj->objmesh.begin(); objmesh!=obj->objmesh.end(); ++objmesh) {
+    for (auto objmesh=obj->objmesh.begin();
+         objmesh!=obj->objmesh.end(); ++objmesh) {
         OBJMATERIAL *objmaterial = objmesh->objtrianglelist[0].objmaterial;
         /* If the current dissolve value doesn't fit the conditions of
          * the solid or alpha tested objects, the current object has to
@@ -262,9 +264,9 @@ void templateAppDraw(void)
          */
         if (objmaterial->dissolve != 1.0f) {
             GFX_push_matrix();
-            GFX_translate(objmesh->location.x,
-                          objmesh->location.y,
-                          objmesh->location.z);
+            GFX_translate(objmesh->location[0],
+                          objmesh->location[1],
+                          objmesh->location[2]);
             glCullFace(GL_FRONT);
             objmesh->draw();
             glCullFace(GL_BACK);

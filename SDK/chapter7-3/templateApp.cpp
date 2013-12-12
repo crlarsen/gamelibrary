@@ -184,7 +184,7 @@ void templateAppDraw(void) {
     }
 
     /* Check if you have a force (!=0). */
-    if (move_delta.z) {
+    if (move_delta[2]) {
         /* Rotate the move_delta coordinate system by the current Z rotation
          * of the camera.  This way, forward will always be up, backward will
          * always be down, left will always be left, and right will always be
@@ -199,33 +199,33 @@ void templateAppDraw(void) {
          * words, the forward vector based on the movement direction (delta)
          * using the camera rotation space.
          */
-        forward.x = c * move_delta.y - s * move_delta.x;
-        forward.y = s * move_delta.y + c * move_delta.x;
+        forward[0] = c * move_delta[1] - s * move_delta[0];
+        forward[1] = s * move_delta[1] + c * move_delta[0];
         /* Add the vector to the current camera location and multiply it by a
          * factor (basically the camera speed) to regulate the movements.
          */
-        location.x += forward.x * move_delta.z * 0.1f;
-        location.y += forward.y * move_delta.z * 0.1f;
+        location[0] += forward[0] * move_delta[2] * 0.1f;
+        location[1] += forward[1] * move_delta[2] * 0.1f;
         /* Get the sine for the rotz and offset it 90 degrees to make sure it
          * fits with the world positive Y axis (the forward vector).
          */
-        forward.z = sinf((rotx - 90.0f) * DEG_TO_RAD);
+        forward[2] = sinf((rotx - 90.0f) * DEG_TO_RAD);
         /* If the movement delta on the X axis (either positive or negative) is
          * almost a fully straight movement (near -1 or 1), take in consideration
          * the Z elevation.
          */
-        if (move_delta.x < -0.99f)
-            location.z -= forward.z * move_delta.z * 0.1f;
+        if (move_delta[0] < -0.99f)
+            location[2] -= forward[2] * move_delta[2] * 0.1f;
 
-        else if (move_delta.x > 0.99f)
-            location.z += forward.z * move_delta.z * 0.1f;
+        else if (move_delta[0] > 0.99f)
+            location[2] += forward[2] * move_delta[2] * 0.1f;
     }
 
 	GFX_rotate(-rotx, 1.0f, 0.0f, 0.0f);
 
 	GFX_rotate(-rotz, 0.0f, 0.0f, 1.0f);
 
-	GFX_translate(-location.x, -location.y, -location.z);
+	GFX_translate(-location[0], -location[1], -location[2]);
 
     build_frustum(frustum,
                   GFX_get_modelview_matrix(),
@@ -241,9 +241,9 @@ void templateAppDraw(void) {
         if (objmesh->distance > 0.0f) {
             GFX_push_matrix();
 
-            GFX_translate(objmesh->location.x,
-                          objmesh->location.y,
-                          objmesh->location.z);
+            GFX_translate(objmesh->location[0],
+                          objmesh->location[1],
+                          objmesh->location[2]);
 
             glUniformMatrix4fv(program->uniform_map["MODELVIEWPROJECTIONMATRIX"].location,
                                1,
@@ -265,8 +265,8 @@ void templateAppToucheBegan(float x, float y, unsigned int tap_count)
      * starting point of the touch for either the movement or the view.
      */
     if (y < (screen_size * 0.5f)) {
-        move_location.x = x;
-        move_location.y = y;
+        move_location[0] = x;
+        move_location[1] = y;
     } else {
         view_location->x = x;
         view_location->y = y;
@@ -285,7 +285,7 @@ void templateAppToucheMoved(float x, float y, unsigned int tap_count)
         y < ((screen_size * 0.5f) + (screen_size * 0.05f))) {
         /* Stop the current movement for the view or if the camera is on the move.
          */
-        move_delta.z =
+        move_delta[2] =
         view_delta->x =
         view_delta->y = 0.0f;
         /* In order to make things easier for the user, assign the current
@@ -293,8 +293,8 @@ void templateAppToucheMoved(float x, float y, unsigned int tap_count)
          * movement, since you never know in which direction the user will move the
          * touch.
          */
-        move_location.x = x;
-        move_location.y = y;
+        move_location[0] = x;
+        move_location[1] = y;
 
         view_location->x = x;
         view_location->y = y;
@@ -317,7 +317,7 @@ void templateAppToucheMoved(float x, float y, unsigned int tap_count)
          * the slower the movement will be, and as the touch distance increases,
          * the movement speed will increase up to its maximum.
          */
-        move_delta.z = CLAMP((move_location-touche).length() / 128.0f,
+        move_delta[2] = CLAMP((move_location-touche).length() / 128.0f,
                              0.0f,
                              1.0f);
     } else {
@@ -340,7 +340,7 @@ void templateAppToucheMoved(float x, float y, unsigned int tap_count)
 
 void templateAppToucheEnded(float x, float y, unsigned int tap_count)
 {
-    move_delta.z = 0.0f;
+    move_delta[2] = 0.0f;
 }
 
 

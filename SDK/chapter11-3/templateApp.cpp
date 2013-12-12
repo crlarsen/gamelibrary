@@ -364,7 +364,7 @@ void draw_scene_from_projector(void)
     projector_matrix.m[3][2] = 0.5f;
     projector_matrix.m[3][3] = 1.0f;
 
-    mat4_multiply_mat4(&projector_matrix, &projector_matrix, GFX_get_modelview_projection_matrix());
+    mat4_multiply_mat4(projector_matrix, projector_matrix, *GFX_get_modelview_projection_matrix());
     
     /* Bind the shadowmap buffer to redirect the drawing to the shadowmap
      * frame buffer.
@@ -404,9 +404,9 @@ void draw_scene_from_projector(void)
 
         GFX_push_matrix();
 
-        GFX_translate(objmesh->location.x,
-                      objmesh->location.y,
-                      objmesh->location.z);
+        GFX_translate(objmesh->location[0],
+                      objmesh->location[1],
+                      objmesh->location[2]);
 
         objmesh->draw();
 
@@ -447,7 +447,7 @@ void draw_scene(void)
 
     mat4 projector_matrix_copy;
     
-    mat4_copy_mat4(&projector_matrix_copy, &projector_matrix);
+    mat4_copy_mat4(projector_matrix_copy, projector_matrix);
     
     /* Get the lighting shader program. */
     PROGRAM *program = obj->get_program("lighting", false);
@@ -470,13 +470,13 @@ void draw_scene(void)
 
         GFX_push_matrix();
 
-        GFX_translate(objmesh->location.x,
-                      objmesh->location.y,
-                      objmesh->location.z);
+        GFX_translate(objmesh->location[0],
+                      objmesh->location[1],
+                      objmesh->location[2]);
 
-        mat4_copy_mat4(&projector_matrix, &projector_matrix_copy);
+        mat4_copy_mat4(projector_matrix, projector_matrix_copy);
 
-        mat4_translate(&projector_matrix, &projector_matrix, &objmesh->location);
+        mat4_translate(projector_matrix, projector_matrix, objmesh->location);
 
         objmesh->draw();
         

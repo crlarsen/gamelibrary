@@ -367,9 +367,9 @@ void templateAppDraw(void) {
              */
             OBJMESH *objmesh = &obj->objmesh[i];
             GFX_push_matrix();
-            GFX_translate(objmesh->location.x,
-                          objmesh->location.y,
-                          objmesh->location.z);
+            GFX_translate(objmesh->location[0],
+                          objmesh->location[1],
+                          objmesh->location[2]);
             glUniformMatrix4fv(program->get_uniform_location((char *)"MODELVIEWPROJECTIONMATRIX"),
                                1,
                                GL_FALSE,
@@ -465,9 +465,9 @@ void templateAppDraw(void) {
 
         GFX_push_matrix();
 
-        GFX_translate(objmesh->location.x,
-                      objmesh->location.y,
-                      objmesh->location.z);
+        GFX_translate(objmesh->location[0],
+                      objmesh->location[1],
+                      objmesh->location[2]);
 
         glUniformMatrix4fv(program->get_uniform_location((char *)"MODELVIEWPROJECTIONMATRIX"),
                            1,

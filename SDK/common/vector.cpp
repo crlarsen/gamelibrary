@@ -28,32 +28,32 @@ void vec3_lerp(vec3 &dst, const vec3 &v0, const vec3 &v1, const float t)
 {
     if( t == 1.0f )
     {
-        dst.x = v1.x;
-        dst.y = v1.y;
-        dst.z = v1.z;
+        dst[0] = v1[0];
+        dst[1] = v1[1];
+        dst[2] = v1[2];
 
         return;
     }
     else if( t == 0.0f )
     {
-        dst.x = v0.x;
-        dst.y = v0.y;
-        dst.z = v0.z;
+        dst[0] = v0[0];
+        dst[1] = v0[1];
+        dst[2] = v0[2];
 
         return;
     }
 
-    dst.x = v0.x + t * ( v1.x - v0.x );
-    dst.y = v0.y + t * ( v1.y - v0.y );
-    dst.z = v0.z + t * ( v1.z - v0.z );
+    dst[0] = v0[0] + t * ( v1[0] - v0[0] );
+    dst[1] = v0[1] + t * ( v1[1] - v0[1] );
+    dst[2] = v0[2] + t * ( v1[2] - v0[2] );
 }
 
 
 void vec3_lerp2( vec3 *dst, vec3 *v0, vec3 *v1, float t )
 {
-	dst->x = v0->x * t + v1->x * ( 1.0f - t );
-	dst->y = v0->y * t + v1->y * ( 1.0f - t );
-	dst->z = v0->z * t + v1->z * ( 1.0f - t );
+	(*dst)[0] = (*v0)[0] * t + (*v1)[0] * ( 1.0f - t );
+	(*dst)[1] = (*v0)[1] * t + (*v1)[1] * ( 1.0f - t );
+	(*dst)[2] = (*v0)[2] * t + (*v1)[2] * ( 1.0f - t );
 }
 
 
@@ -75,7 +75,7 @@ void vec3_rotate_quat(vec3 &dst, const vec3 &v0, const quaternion &v1)
 
 void vec3_to_recast( vec3 *v )
 {
-    vec3 tmp(v->x, v->z, -v->y);
+    vec3 tmp((*v)[0], (*v)[2], -(*v)[1]);
 
     *v = tmp;
 }
@@ -83,7 +83,7 @@ void vec3_to_recast( vec3 *v )
 
 void recast_to_vec3( vec3 *v )
 {
-    vec3    tmp(v->x, -v->z, v->y);
+    vec3    tmp((*v)[0], -(*v)[2], (*v)[1]);
 
     *v = tmp;
 }
@@ -103,10 +103,10 @@ void quat_multiply_vec3(quaternion &dst, const quaternion &v0, const vec3 &v1)
 {
     quaternion v;
 
-    v->i =  ( v0->r * v1.x ) + ( v0->j * v1.z ) - ( v0->k * v1.y );
-    v->j =  ( v0->r * v1.y ) + ( v0->k * v1.x ) - ( v0->i * v1.z );
-    v->k =  ( v0->r * v1.z ) + ( v0->i * v1.y ) - ( v0->j * v1.x );
-    v->r = -( v0->i * v1.x ) - ( v0->j * v1.y ) - ( v0->k * v1.z );
+    v->i =  ( v0->r * v1[0] ) + ( v0->j * v1[2] ) - ( v0->k * v1[1] );
+    v->j =  ( v0->r * v1[1] ) + ( v0->k * v1[0] ) - ( v0->i * v1[2] );
+    v->k =  ( v0->r * v1[2] ) + ( v0->i * v1[1] ) - ( v0->j * v1[0] );
+    v->r = -( v0->i * v1[0] ) - ( v0->j * v1[1] ) - ( v0->k * v1[2] );
 
     dst = v;
 }

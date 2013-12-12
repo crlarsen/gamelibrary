@@ -225,7 +225,8 @@ void templateAppDraw(void)
      GFX_look_at(&e, &c, &u);
 
     /* Solid Objects */
-    for (int i=0; i != obj->objmesh.size(); ++i) {
+    for (auto objmesh=obj->objmesh.begin();
+         objmesh!=obj->objmesh.end(); ++objmesh) {
         /* Get the material pointer of the first triangle list of the
          * current mesh. All your objects are using a single material,
          * so only one triangle list is available. By getting access to
@@ -234,14 +235,14 @@ void templateAppDraw(void)
          * material dissolve property as you did earlier to classify
          * your object at render time.
          */
-        OBJMATERIAL *objmaterial = obj->objmesh[i].objtrianglelist[0].objmaterial;
+        OBJMATERIAL *objmaterial = objmesh->objtrianglelist[0].objmaterial;
         /* Is it a solid object? */
         if (objmaterial->dissolve == 1.0f) {
             GFX_push_matrix();
-            GFX_translate(obj->objmesh[i].location.x,
-                          obj->objmesh[i].location.y,
-                          obj->objmesh[i].location.z);
-            obj->objmesh[i].draw();
+            GFX_translate(objmesh->location[0],
+                          objmesh->location[1],
+                          objmesh->location[2]);
+            objmesh->draw();
             GFX_pop_matrix();
         }
     }
@@ -252,9 +253,9 @@ void templateAppDraw(void)
         OBJMATERIAL *objmaterial = objmesh->objtrianglelist[0].objmaterial;
         if (!objmaterial->dissolve) {
             GFX_push_matrix();
-            GFX_translate(objmesh->location.x,
-                          objmesh->location.y,
-                          objmesh->location.z);
+            GFX_translate(objmesh->location[0],
+                          objmesh->location[1],
+                          objmesh->location[2]);
             objmesh->draw();
             GFX_pop_matrix();
         }
@@ -278,9 +279,9 @@ void templateAppDraw(void)
          */
         if (objmaterial->dissolve>0.0f && objmaterial->dissolve<1.0f) {
             GFX_push_matrix();
-            GFX_translate(objmesh->location.x,
-                          objmesh->location.y,
-                          objmesh->location.z);
+            GFX_translate(objmesh->location[0],
+                          objmesh->location[1],
+                          objmesh->location[2]);
             objmesh->draw();
             GFX_pop_matrix();
         }
