@@ -656,8 +656,8 @@ void templateAppInit(int width, int height)
     lamp[0] = new PointSphereLamp((char *)"point1", color, position, 10.0f);
 
     /* Invert the XY position. */
-    position[0] = -position[0];
-    position[1] = -position[1];
+    position->x = -position->x;
+    position->y = -position->y;
 
     /* Modify the color to be red. */
     color->y =
@@ -696,9 +696,9 @@ void templateAppDraw(void)
 
         GFX_push_matrix();
 
-        GFX_translate(objmesh->location[0],
-                      objmesh->location[1],
-                      objmesh->location[2]);
+        GFX_translate(objmesh->location->x,
+                      objmesh->location->y,
+                      objmesh->location->z);
         
         objmesh->draw();
         

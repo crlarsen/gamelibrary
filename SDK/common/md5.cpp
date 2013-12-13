@@ -79,9 +79,9 @@ MD5::MD5(char *filename, const bool relative_path) :
                            "%s %d ( %f %f %f ) ( %f %f %f )",
                             this->bind_pose[i].name,
                            &this->bind_pose[i].parent,
-                           &this->bind_pose[i].location[0],
-                           &this->bind_pose[i].location[1],
-                           &this->bind_pose[i].location[2],
+                           &this->bind_pose[i].location->x,
+                           &this->bind_pose[i].location->y,
+                           &this->bind_pose[i].location->z,
                            &this->bind_pose[i].rotation->i,
                            &this->bind_pose[i].rotation->j,
                            &this->bind_pose[i].rotation->k) == 8) {
@@ -138,9 +138,9 @@ MD5::MD5(char *filename, const bool relative_path) :
                                   &int_val,
                                   &md5weight.joint,
                                   &md5weight.bias,
-                                  &md5weight.location[0],
-                                  &md5weight.location[1],
-                                  &md5weight.location[2]) == 6) {
+                                  &md5weight.location->x,
+                                  &md5weight.location->y,
+                                  &md5weight.location->z) == 6) {
                     this->md5mesh[mesh_index].md5weight[int_val] = md5weight;
 
                 }
@@ -227,9 +227,9 @@ int MD5::load_action(char *name, char *filename, const bool relative_path)
             for (int i=0; i != this->bind_pose.size(); ++i) {
                 if (sscanf(line,
                            " %f %f %f %f %f %f",
-                           &md5joint[i].location[0],
-                           &md5joint[i].location[1],
-                           &md5joint[i].location[2],
+                           &md5joint[i].location->x,
+                           &md5joint[i].location->y,
+                           &md5joint[i].location->z,
                            &md5joint[i].rotation->i,
                            &md5joint[i].rotation->j,
                            &md5joint[i].rotation->k) == 6) {
@@ -831,13 +831,13 @@ void MD5::update_bound_mesh()
         vec3 *vertex_array = (vec3 *)md5mesh->vertex_data;
 
         for (int j=0; j != md5mesh->md5vertex.size(); ++j) {
-            if (vertex_array[j][0] < this->min[0]) this->min[0] = vertex_array[j][0];
-            if (vertex_array[j][1] < this->min[1]) this->min[1] = vertex_array[j][1];
-            if (vertex_array[j][2] < this->min[2]) this->min[2] = vertex_array[j][2];
+            if (vertex_array[j]->x < this->min->x) this->min->x = vertex_array[j]->x;
+            if (vertex_array[j]->y < this->min->y) this->min->y = vertex_array[j]->y;
+            if (vertex_array[j]->z < this->min->z) this->min->z = vertex_array[j]->z;
 
-            if (vertex_array[j][0] > this->max[0]) this->max[0] = vertex_array[j][0];
-            if (vertex_array[j][1] > this->max[1]) this->max[1] = vertex_array[j][1];
-            if (vertex_array[j][2] > this->max[2]) this->max[2] = vertex_array[j][2];
+            if (vertex_array[j]->x > this->max->x) this->max->x = vertex_array[j]->x;
+            if (vertex_array[j]->y > this->max->y) this->max->y = vertex_array[j]->y;
+            if (vertex_array[j]->z > this->max->z) this->max->z = vertex_array[j]->z;
         }
     }
 

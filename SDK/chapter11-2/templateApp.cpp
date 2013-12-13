@@ -273,25 +273,25 @@ void draw_scene_from_projector(void)
      */
     GFX_look_at((vec3 *)&spotLight->position, &center, &up_axis);
 
-    projector_matrix.m[0][0] = 0.5f;
-    projector_matrix.m[0][1] = 0.0f;
-    projector_matrix.m[0][2] = 0.0f;
-    projector_matrix.m[0][3] = 0.0f;
+    projector_matrix[0][0] = 0.5f;
+    projector_matrix[0][1] = 0.0f;
+    projector_matrix[0][2] = 0.0f;
+    projector_matrix[0][3] = 0.0f;
 
-    projector_matrix.m[1][0] = 0.0f;
-    projector_matrix.m[1][1] = 0.5f;
-    projector_matrix.m[1][2] = 0.0f;
-    projector_matrix.m[1][3] = 0.0f;
+    projector_matrix[1][0] = 0.0f;
+    projector_matrix[1][1] = 0.5f;
+    projector_matrix[1][2] = 0.0f;
+    projector_matrix[1][3] = 0.0f;
 
-    projector_matrix.m[2][0] = 0.0f;
-    projector_matrix.m[2][1] = 0.0f;
-    projector_matrix.m[2][2] = 0.5f;
-    projector_matrix.m[2][3] = 0.0f;
+    projector_matrix[2][0] = 0.0f;
+    projector_matrix[2][1] = 0.0f;
+    projector_matrix[2][2] = 0.5f;
+    projector_matrix[2][3] = 0.0f;
 
-    projector_matrix.m[3][0] = 0.5f;
-    projector_matrix.m[3][1] = 0.5f;
-    projector_matrix.m[3][2] = 0.5f;
-    projector_matrix.m[3][3] = 1.0f;
+    projector_matrix[3][0] = 0.5f;
+    projector_matrix[3][1] = 0.5f;
+    projector_matrix[3][2] = 0.5f;
+    projector_matrix[3][3] = 1.0f;
 
     /* Multiply the bias matrix with the current model view and
      * projection matrix and store the result as the projector_matrix.
@@ -339,9 +339,9 @@ void draw_scene(void)
 
         GFX_push_matrix();
 
-        GFX_translate(objmesh->location[0],
-                      objmesh->location[1],
-                      objmesh->location[2]);
+        GFX_translate(objmesh->location->x,
+                      objmesh->location->y,
+                      objmesh->location->z);
 
         mat4_copy_mat4(projector_matrix, projector_matrix_copy);
 

@@ -238,9 +238,9 @@ void templateAppDraw(void)
         /* Is it a solid object? */
         if (objmaterial->dissolve == 1.0f) {
             GFX_push_matrix();
-            GFX_translate(objmesh->location[0],
-                          objmesh->location[1],
-                          objmesh->location[2]);
+            GFX_translate(objmesh->location->x,
+                          objmesh->location->y,
+                          objmesh->location->z);
             objmesh->draw();
             GFX_pop_matrix();
         }
@@ -252,9 +252,9 @@ void templateAppDraw(void)
         OBJMATERIAL *objmaterial = objmesh->objtrianglelist[0].objmaterial;
         if (!objmaterial->dissolve) {
             GFX_push_matrix();
-            GFX_translate(objmesh->location[0],
-                          objmesh->location[1],
-                          objmesh->location[2]);
+            GFX_translate(objmesh->location->x,
+                          objmesh->location->y,
+                          objmesh->location->z);
             glCullFace(GL_FRONT);
             objmesh->draw();
             glCullFace(GL_BACK);
@@ -281,9 +281,9 @@ void templateAppDraw(void)
          */
         if (objmaterial->dissolve>0.0f && objmaterial->dissolve<1.0f) {
             GFX_push_matrix();
-            GFX_translate(objmesh->location[0],
-                          objmesh->location[1],
-                          objmesh->location[2]);
+            GFX_translate(objmesh->location->x,
+                          objmesh->location->y,
+                          objmesh->location->z);
             glCullFace(GL_FRONT);
             objmesh->draw();
             glCullFace(GL_BACK);

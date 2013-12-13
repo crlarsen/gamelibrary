@@ -24,9 +24,9 @@ as being the original software.
 #ifndef MATRIX_H
 #define MATRIX_H
 
-void vec3_multiply_mat4( vec3 &dst, const vec3 &v, const mat4 &m );
+void vec3_multiply_mat4(vec3 &dst, const vec3 &v, const mat4 &m);
 
-void vec4_multiply_mat4( vec4 &dst, const vec4 &v, const mat4 &m );
+void vec4_multiply_mat4(vec4 &dst, const vec4 &v, const mat4 &m);
 
 void mat3_identity( mat3 &m );
 

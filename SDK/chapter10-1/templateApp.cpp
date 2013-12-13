@@ -351,9 +351,9 @@ void templateAppDraw(void)
 
         GFX_push_matrix();
 
-        GFX_translate(objmesh->location[0],
-                      objmesh->location[1],
-                      objmesh->location[2]);
+        GFX_translate(objmesh->location->x,
+                      objmesh->location->y,
+                      objmesh->location->z);
         
         objmesh->draw();
         

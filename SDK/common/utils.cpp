@@ -84,7 +84,7 @@ void get_file_path( char *filepath, char *path )
     if (t) {
         p = ( t - filepath ) + 1;
         strncpy( path, filepath, p );
-        path[ p ] = 0;
+        path[p] = 0;
     }
 }
 
@@ -144,7 +144,7 @@ void generate_color_from_index( unsigned int index, vec4 *color )
 
 void console_print( const char *str, ... )
 {
-    char tmp[ 1024 ] = {""};
+    char tmp[1024] = {""};
 
     va_list	ap;
 
@@ -164,182 +164,182 @@ void console_print( const char *str, ... )
 }
 
 
-void build_frustum( vec4 frustum[ 6 ], mat4 *modelview_matrix, mat4 *projection_matrix )
+void build_frustum(vec4 frustum[6], const mat4 &modelview_matrix, const mat4 &projection_matrix)
 {
     mat4 c;
 
     float t;
 
-    c.m[ 0 ][0] = modelview_matrix->m[ 0 ][0] * projection_matrix->m[ 0 ][0] +
-                 modelview_matrix->m[ 0 ][1] * projection_matrix->m[ 1 ][0] +
-                 modelview_matrix->m[ 0 ][2] * projection_matrix->m[ 2 ][0] +
-                 modelview_matrix->m[ 0 ][3] * projection_matrix->m[ 3 ][0];
+    c[0][0] = modelview_matrix[0][0] * projection_matrix[0][0] +
+              modelview_matrix[0][1] * projection_matrix[1][0] +
+              modelview_matrix[0][2] * projection_matrix[2][0] +
+              modelview_matrix[0][3] * projection_matrix[3][0];
 
-    c.m[ 0 ][1] = modelview_matrix->m[ 0 ][0] * projection_matrix->m[ 0 ][1] +
-                 modelview_matrix->m[ 0 ][1] * projection_matrix->m[ 1 ][1] +
-                 modelview_matrix->m[ 0 ][2] * projection_matrix->m[ 2 ][1] +
-                 modelview_matrix->m[ 0 ][3] * projection_matrix->m[ 3 ][1];
+    c[0][1] = modelview_matrix[0][0] * projection_matrix[0][1] +
+              modelview_matrix[0][1] * projection_matrix[1][1] +
+              modelview_matrix[0][2] * projection_matrix[2][1] +
+              modelview_matrix[0][3] * projection_matrix[3][1];
 
-    c.m[ 0 ][2] = modelview_matrix->m[ 0 ][0] * projection_matrix->m[ 0 ][2] +
-                 modelview_matrix->m[ 0 ][1] * projection_matrix->m[ 1 ][2] +
-                 modelview_matrix->m[ 0 ][2] * projection_matrix->m[ 2 ][2] +
-                 modelview_matrix->m[ 0 ][3] * projection_matrix->m[ 3 ][2];
+    c[0][2] = modelview_matrix[0][0] * projection_matrix[0][2] +
+              modelview_matrix[0][1] * projection_matrix[1][2] +
+              modelview_matrix[0][2] * projection_matrix[2][2] +
+              modelview_matrix[0][3] * projection_matrix[3][2];
 
-    c.m[ 0 ][3] = modelview_matrix->m[ 0 ][0] * projection_matrix->m[ 0 ][3] +
-                 modelview_matrix->m[ 0 ][1] * projection_matrix->m[ 1 ][3] +
-                 modelview_matrix->m[ 0 ][2] * projection_matrix->m[ 2 ][3] +
-                 modelview_matrix->m[ 0 ][3] * projection_matrix->m[ 3 ][3];
+    c[0][3] = modelview_matrix[0][0] * projection_matrix[0][3] +
+              modelview_matrix[0][1] * projection_matrix[1][3] +
+              modelview_matrix[0][2] * projection_matrix[2][3] +
+              modelview_matrix[0][3] * projection_matrix[3][3];
 
-    c.m[ 1 ][0] = modelview_matrix->m[ 1 ][0] * projection_matrix->m[ 0 ][0] +
-                 modelview_matrix->m[ 1 ][1] * projection_matrix->m[ 1 ][0] +
-                 modelview_matrix->m[ 1 ][2] * projection_matrix->m[ 2 ][0] +
-                 modelview_matrix->m[ 1 ][3] * projection_matrix->m[ 3 ][0];
+    c[1][0] = modelview_matrix[1][0] * projection_matrix[0][0] +
+              modelview_matrix[1][1] * projection_matrix[1][0] +
+              modelview_matrix[1][2] * projection_matrix[2][0] +
+              modelview_matrix[1][3] * projection_matrix[3][0];
 
-    c.m[ 1 ][1] = modelview_matrix->m[ 1 ][0] * projection_matrix->m[ 0 ][1] +
-                 modelview_matrix->m[ 1 ][1] * projection_matrix->m[ 1 ][1] +
-                 modelview_matrix->m[ 1 ][2] * projection_matrix->m[ 2 ][1] +
-                 modelview_matrix->m[ 1 ][3] * projection_matrix->m[ 3 ][1];
+    c[1][1] = modelview_matrix[1][0] * projection_matrix[0][1] +
+              modelview_matrix[1][1] * projection_matrix[1][1] +
+              modelview_matrix[1][2] * projection_matrix[2][1] +
+              modelview_matrix[1][3] * projection_matrix[3][1];
 
-    c.m[ 1 ][2] = modelview_matrix->m[ 1 ][0] * projection_matrix->m[ 0 ][2] +
-                 modelview_matrix->m[ 1 ][1] * projection_matrix->m[ 1 ][2] +
-                 modelview_matrix->m[ 1 ][2] * projection_matrix->m[ 2 ][2] +
-                 modelview_matrix->m[ 1 ][3] * projection_matrix->m[ 3 ][2];
+    c[1][2] = modelview_matrix[1][0] * projection_matrix[0][2] +
+              modelview_matrix[1][1] * projection_matrix[1][2] +
+              modelview_matrix[1][2] * projection_matrix[2][2] +
+              modelview_matrix[1][3] * projection_matrix[3][2];
 
-    c.m[ 1 ][3] = modelview_matrix->m[ 1 ][0] * projection_matrix->m[ 0 ][3] +
-                 modelview_matrix->m[ 1 ][1] * projection_matrix->m[ 1 ][3] +
-                 modelview_matrix->m[ 1 ][2] * projection_matrix->m[ 2 ][3] +
-                 modelview_matrix->m[ 1 ][3] * projection_matrix->m[ 3 ][3];
+    c[1][3] = modelview_matrix[1][0] * projection_matrix[0][3] +
+              modelview_matrix[1][1] * projection_matrix[1][3] +
+              modelview_matrix[1][2] * projection_matrix[2][3] +
+              modelview_matrix[1][3] * projection_matrix[3][3];
 
-    c.m[ 2 ][0] = modelview_matrix->m[ 2 ][0] * projection_matrix->m[ 0 ][0] +
-                 modelview_matrix->m[ 2 ][1] * projection_matrix->m[ 1 ][0] +
-                 modelview_matrix->m[ 2 ][2] * projection_matrix->m[ 2 ][0] +
-                 modelview_matrix->m[ 2 ][3] * projection_matrix->m[ 3 ][0];
+    c[2][0] = modelview_matrix[2][0] * projection_matrix[0][0] +
+              modelview_matrix[2][1] * projection_matrix[1][0] +
+              modelview_matrix[2][2] * projection_matrix[2][0] +
+              modelview_matrix[2][3] * projection_matrix[3][0];
 
-    c.m[ 2 ][1] = modelview_matrix->m[ 2 ][0] * projection_matrix->m[ 0 ][1] +
-                 modelview_matrix->m[ 2 ][1] * projection_matrix->m[ 1 ][1] +
-                 modelview_matrix->m[ 2 ][2] * projection_matrix->m[ 2 ][1] +
-                 modelview_matrix->m[ 2 ][3] * projection_matrix->m[ 3 ][1];
+    c[2][1] = modelview_matrix[2][0] * projection_matrix[0][1] +
+              modelview_matrix[2][1] * projection_matrix[1][1] +
+              modelview_matrix[2][2] * projection_matrix[2][1] +
+              modelview_matrix[2][3] * projection_matrix[3][1];
 
-    c.m[ 2 ][2] = modelview_matrix->m[ 2 ][0] * projection_matrix->m[ 0 ][2] +
-                 modelview_matrix->m[ 2 ][1] * projection_matrix->m[ 1 ][2] +
-                 modelview_matrix->m[ 2 ][2] * projection_matrix->m[ 2 ][2] +
-                 modelview_matrix->m[ 2 ][3] * projection_matrix->m[ 3 ][2];
+    c[2][2] = modelview_matrix[2][0] * projection_matrix[0][2] +
+              modelview_matrix[2][1] * projection_matrix[1][2] +
+              modelview_matrix[2][2] * projection_matrix[2][2] +
+              modelview_matrix[2][3] * projection_matrix[3][2];
 
-    c.m[ 2 ][3] = modelview_matrix->m[ 2 ][0] * projection_matrix->m[ 0 ][3] +
-                 modelview_matrix->m[ 2 ][1] * projection_matrix->m[ 1 ][3] +
-                 modelview_matrix->m[ 2 ][2] * projection_matrix->m[ 2 ][3] +
-                 modelview_matrix->m[ 2 ][3] * projection_matrix->m[ 3 ][3];
+    c[2][3] = modelview_matrix[2][0] * projection_matrix[0][3] +
+              modelview_matrix[2][1] * projection_matrix[1][3] +
+              modelview_matrix[2][2] * projection_matrix[2][3] +
+              modelview_matrix[2][3] * projection_matrix[3][3];
 
-    c.m[ 3 ][0] = modelview_matrix->m[ 3 ][0] * projection_matrix->m[ 0 ][0] +
-                 modelview_matrix->m[ 3 ][1] * projection_matrix->m[ 1 ][0] +
-                 modelview_matrix->m[ 3 ][2] * projection_matrix->m[ 2 ][0] +
-                 modelview_matrix->m[ 3 ][3] * projection_matrix->m[ 3 ][0];
+    c[3][0] = modelview_matrix[3][0] * projection_matrix[0][0] +
+              modelview_matrix[3][1] * projection_matrix[1][0] +
+              modelview_matrix[3][2] * projection_matrix[2][0] +
+              modelview_matrix[3][3] * projection_matrix[3][0];
 
-    c.m[ 3 ][1] = modelview_matrix->m[ 3 ][0] * projection_matrix->m[ 0 ][1] +
-                 modelview_matrix->m[ 3 ][1] * projection_matrix->m[ 1 ][1] +
-                 modelview_matrix->m[ 3 ][2] * projection_matrix->m[ 2 ][1] +
-                 modelview_matrix->m[ 3 ][3] * projection_matrix->m[ 3 ][1];
+    c[3][1] = modelview_matrix[3][0] * projection_matrix[0][1] +
+              modelview_matrix[3][1] * projection_matrix[1][1] +
+              modelview_matrix[3][2] * projection_matrix[2][1] +
+              modelview_matrix[3][3] * projection_matrix[3][1];
 
-    c.m[ 3 ][2] = modelview_matrix->m[ 3 ][0] * projection_matrix->m[ 0 ][2] +
-                 modelview_matrix->m[ 3 ][1] * projection_matrix->m[ 1 ][2] +
-                 modelview_matrix->m[ 3 ][2] * projection_matrix->m[ 2 ][2] +
-                 modelview_matrix->m[ 3 ][3] * projection_matrix->m[ 3 ][2];
+    c[3][2] = modelview_matrix[3][0] * projection_matrix[0][2] +
+              modelview_matrix[3][1] * projection_matrix[1][2] +
+              modelview_matrix[3][2] * projection_matrix[2][2] +
+              modelview_matrix[3][3] * projection_matrix[3][2];
 
-    c.m[ 3 ][3] = modelview_matrix->m[ 3 ][0] * projection_matrix->m[ 0 ][3] +
-                 modelview_matrix->m[ 3 ][1] * projection_matrix->m[ 1 ][3] +
-                 modelview_matrix->m[ 3 ][2] * projection_matrix->m[ 2 ][3] +
-                 modelview_matrix->m[ 3 ][3] * projection_matrix->m[ 3 ][3];
-
-
-    frustum[ 0 ]->x = c.m[ 0 ]->w - c.m[ 0 ]->x ;
-    frustum[ 0 ]->y = c.m[ 1 ]->w - c.m[ 1 ]->x ;
-    frustum[ 0 ]->z = c.m[ 2 ]->w - c.m[ 2 ]->x ;
-    frustum[ 0 ]->w = c.m[ 3 ]->w - c.m[ 3 ]->x ;
-
-    t = 1.0f / sqrtf(frustum[ 0 ]->x * frustum[ 0 ]->x +
-                     frustum[ 0 ]->y * frustum[ 0 ]->y +
-                     frustum[ 0 ]->z * frustum[ 0 ]->z);
-
-    frustum[ 0 ]->x *= t;
-    frustum[ 0 ]->y *= t;
-    frustum[ 0 ]->z *= t;
-    frustum[ 0 ]->w *= t;
+    c[3][3] = modelview_matrix[3][0] * projection_matrix[0][3] +
+              modelview_matrix[3][1] * projection_matrix[1][3] +
+              modelview_matrix[3][2] * projection_matrix[2][3] +
+              modelview_matrix[3][3] * projection_matrix[3][3];
 
 
-    frustum[ 1 ]->x = c.m[ 0 ]->w + c.m[ 0 ]->x ;
-    frustum[ 1 ]->y = c.m[ 1 ]->w + c.m[ 1 ]->x ;
-    frustum[ 1 ]->z = c.m[ 2 ]->w + c.m[ 2 ]->x ;
-    frustum[ 1 ]->w = c.m[ 3 ]->w + c.m[ 3 ]->x ;
+    frustum[0]->x = c[0]->w - c[0]->x ;
+    frustum[0]->y = c[1]->w - c[1]->x ;
+    frustum[0]->z = c[2]->w - c[2]->x ;
+    frustum[0]->w = c[3]->w - c[3]->x ;
 
-    t = 1.0f / sqrtf(frustum[ 1 ]->x * frustum[ 1 ]->x +
-                     frustum[ 1 ]->y * frustum[ 1 ]->y +
-                     frustum[ 1 ]->z * frustum[ 1 ]->z);
+    t = 1.0f / sqrtf(frustum[0]->x * frustum[0]->x +
+                     frustum[0]->y * frustum[0]->y +
+                     frustum[0]->z * frustum[0]->z);
 
-    frustum[ 1 ]->x *= t;
-    frustum[ 1 ]->y *= t;
-    frustum[ 1 ]->z *= t;
-    frustum[ 1 ]->w *= t;
-
-
-    frustum[ 2 ]->x = c.m[ 0 ]->w + c.m[ 0 ]->y ;
-    frustum[ 2 ]->y = c.m[ 1 ]->w + c.m[ 1 ]->y ;
-    frustum[ 2 ]->z = c.m[ 2 ]->w + c.m[ 2 ]->y ;
-    frustum[ 2 ]->w = c.m[ 3 ]->w + c.m[ 3 ]->y ;
-
-    t = 1.0f / sqrtf(frustum[ 2 ]->x * frustum[ 2 ]->x +
-                     frustum[ 2 ]->y * frustum[ 2 ]->y +
-                     frustum[ 2 ]->z * frustum[ 2 ]->z);
-
-    frustum[ 2 ]->x *= t;
-    frustum[ 2 ]->y *= t;
-    frustum[ 2 ]->z *= t;
-    frustum[ 2 ]->w *= t;
+    frustum[0]->x *= t;
+    frustum[0]->y *= t;
+    frustum[0]->z *= t;
+    frustum[0]->w *= t;
 
 
-    frustum[ 3 ]->x = c.m[ 0 ]->w - c.m[ 0 ]->y ;
-    frustum[ 3 ]->y = c.m[ 1 ]->w - c.m[ 1 ]->y ;
-    frustum[ 3 ]->z = c.m[ 2 ]->w - c.m[ 2 ]->y ;
-    frustum[ 3 ]->w = c.m[ 3 ]->w - c.m[ 3 ]->y ;
+    frustum[1]->x = c[0]->w + c[0]->x ;
+    frustum[1]->y = c[1]->w + c[1]->x ;
+    frustum[1]->z = c[2]->w + c[2]->x ;
+    frustum[1]->w = c[3]->w + c[3]->x ;
 
-    t = 1.0f / sqrtf(frustum[ 3 ]->x * frustum[ 3 ]->x +
-                     frustum[ 3 ]->y * frustum[ 3 ]->y +
-                     frustum[ 3 ]->z * frustum[ 3 ]->z);
+    t = 1.0f / sqrtf(frustum[1]->x * frustum[1]->x +
+                     frustum[1]->y * frustum[1]->y +
+                     frustum[1]->z * frustum[1]->z);
 
-    frustum[ 3 ]->x *= t;
-    frustum[ 3 ]->y *= t;
-    frustum[ 3 ]->z *= t;
-    frustum[ 3 ]->w *= t;
+    frustum[1]->x *= t;
+    frustum[1]->y *= t;
+    frustum[1]->z *= t;
+    frustum[1]->w *= t;
 
 
-    frustum[ 4 ]->x = c.m[ 0 ]->w - c.m[ 0 ]->z ;
-    frustum[ 4 ]->y = c.m[ 1 ]->w - c.m[ 1 ]->z ;
-    frustum[ 4 ]->z = c.m[ 2 ]->w - c.m[ 2 ]->z ;
-    frustum[ 4 ]->w = c.m[ 3 ]->w - c.m[ 3 ]->z ;
+    frustum[2]->x = c[0]->w + c[0]->y ;
+    frustum[2]->y = c[1]->w + c[1]->y ;
+    frustum[2]->z = c[2]->w + c[2]->y ;
+    frustum[2]->w = c[3]->w + c[3]->y ;
 
-    t = 1.0f / sqrtf(frustum[ 4 ]->x * frustum[ 4 ]->x +
-                     frustum[ 4 ]->y * frustum[ 4 ]->y +
-                     frustum[ 4 ]->z * frustum[ 4 ]->z);
+    t = 1.0f / sqrtf(frustum[2]->x * frustum[2]->x +
+                     frustum[2]->y * frustum[2]->y +
+                     frustum[2]->z * frustum[2]->z);
+
+    frustum[2]->x *= t;
+    frustum[2]->y *= t;
+    frustum[2]->z *= t;
+    frustum[2]->w *= t;
+
+
+    frustum[3]->x = c[0]->w - c[0]->y ;
+    frustum[3]->y = c[1]->w - c[1]->y ;
+    frustum[3]->z = c[2]->w - c[2]->y ;
+    frustum[3]->w = c[3]->w - c[3]->y ;
+
+    t = 1.0f / sqrtf(frustum[3]->x * frustum[3]->x +
+                     frustum[3]->y * frustum[3]->y +
+                     frustum[3]->z * frustum[3]->z);
+
+    frustum[3]->x *= t;
+    frustum[3]->y *= t;
+    frustum[3]->z *= t;
+    frustum[3]->w *= t;
+
+
+    frustum[4]->x = c[0]->w - c[0]->z ;
+    frustum[4]->y = c[1]->w - c[1]->z ;
+    frustum[4]->z = c[2]->w - c[2]->z ;
+    frustum[4]->w = c[3]->w - c[3]->z ;
+
+    t = 1.0f / sqrtf(frustum[4]->x * frustum[4]->x +
+                     frustum[4]->y * frustum[4]->y +
+                     frustum[4]->z * frustum[4]->z);
     
-    frustum[ 4 ]->x *= t;
-    frustum[ 4 ]->y *= t;
-    frustum[ 4 ]->z *= t;
-    frustum[ 4 ]->w *= t;
-    
-    
-    frustum[ 5 ]->x = c.m[ 0 ]->w + c.m[ 0 ]->z ;
-    frustum[ 5 ]->y = c.m[ 1 ]->w + c.m[ 1 ]->z ;
-    frustum[ 5 ]->z = c.m[ 2 ]->w + c.m[ 2 ]->z ;
-    frustum[ 5 ]->w = c.m[ 3 ]->w + c.m[ 3 ]->z ;
+    frustum[4]->x *= t;
+    frustum[4]->y *= t;
+    frustum[4]->z *= t;
+    frustum[4]->w *= t;
     
     
-    t = 1.0f / sqrtf(frustum[ 5 ]->x * frustum[ 5 ]->x +
-                     frustum[ 5 ]->y * frustum[ 5 ]->y +
-                     frustum[ 5 ]->z * frustum[ 5 ]->z);
+    frustum[5]->x = c[0]->w + c[0]->z ;
+    frustum[5]->y = c[1]->w + c[1]->z ;
+    frustum[5]->z = c[2]->w + c[2]->z ;
+    frustum[5]->w = c[3]->w + c[3]->z ;
     
-    frustum[ 5 ]->x *= t;
-    frustum[ 5 ]->y *= t;
-    frustum[ 5 ]->z *= t;
-    frustum[ 5 ]->w *= t;
+    
+    t = 1.0f / sqrtf(frustum[5]->x * frustum[5]->x +
+                     frustum[5]->y * frustum[5]->y +
+                     frustum[5]->z * frustum[5]->z);
+    
+    frustum[5]->x *= t;
+    frustum[5]->y *= t;
+    frustum[5]->z *= t;
+    frustum[5]->w *= t;
 }
 
 
@@ -373,9 +373,9 @@ float sphere_distance_in_frustum( vec4  *frustum, vec3  *location, float radius 
 bool point_in_frustum( vec4 *frustum, vec3 *location )
 {
     for (int i=0; i!=6; ++i) {
-        if (frustum[i]->x * (*location)[0] +
-            frustum[i]->y * (*location)[1] +
-            frustum[i]->z * (*location)[2] +
+        if (frustum[i]->x * (*location)->x +
+            frustum[i]->y * (*location)->y +
+            frustum[i]->z * (*location)->z +
             frustum[i]->w < 0.0f )
             return false;
     }
@@ -390,80 +390,80 @@ bool box_in_frustum( vec4 *frustum, vec3 *location, vec3 *dimension )
 
     while( i != 6 )
     {
-        if (frustum[ i ]->x * ( (*location)[0] - (*dimension)[0] ) +
-            frustum[ i ]->y * ( (*location)[1] - (*dimension)[1] ) +
-            frustum[ i ]->z * ( (*location)[2] - (*dimension)[2] ) +
-            frustum[ i ]->w > 0.0f )
+        if (frustum[i]->x * ( (*location)->x - (*dimension)->x ) +
+            frustum[i]->y * ( (*location)->y - (*dimension)->y ) +
+            frustum[i]->z * ( (*location)->z - (*dimension)->z ) +
+            frustum[i]->w > 0.0f )
         {
             ++i;
             continue;
         }
 
 
-        if (frustum[ i ]->x * ( (*location)[0] + (*dimension)[0] ) +
-            frustum[ i ]->y * ( (*location)[1] - (*dimension)[1] ) +
-            frustum[ i ]->z * ( (*location)[2] - (*dimension)[2] ) +
-            frustum[ i ]->w > 0.0f )
+        if (frustum[i]->x * ( (*location)->x + (*dimension)->x ) +
+            frustum[i]->y * ( (*location)->y - (*dimension)->y ) +
+            frustum[i]->z * ( (*location)->z - (*dimension)->z ) +
+            frustum[i]->w > 0.0f )
         {
             ++i;
             continue;
         }
 
 
-        if (frustum[ i ]->x * ( (*location)[0] - (*dimension)[0] ) +
-            frustum[ i ]->y * ( (*location)[1] + (*dimension)[1] ) +
-            frustum[ i ]->z * ( (*location)[2] - (*dimension)[2] ) +
-            frustum[ i ]->w > 0.0f )
+        if (frustum[i]->x * ( (*location)->x - (*dimension)->x ) +
+            frustum[i]->y * ( (*location)->y + (*dimension)->y ) +
+            frustum[i]->z * ( (*location)->z - (*dimension)->z ) +
+            frustum[i]->w > 0.0f )
         {
             ++i;
             continue;
         }
 
 
-        if (frustum[ i ]->x * ( (*location)[0] + (*dimension)[0] ) +
-            frustum[ i ]->y * ( (*location)[1] + (*dimension)[1] ) +
-            frustum[ i ]->z * ( (*location)[2] - (*dimension)[2] ) +
-            frustum[ i ]->w > 0.0f )
+        if (frustum[i]->x * ( (*location)->x + (*dimension)->x ) +
+            frustum[i]->y * ( (*location)->y + (*dimension)->y ) +
+            frustum[i]->z * ( (*location)->z - (*dimension)->z ) +
+            frustum[i]->w > 0.0f )
         {
             ++i;
             continue;
         }
 
 
-        if (frustum[ i ]->x * ( (*location)[0] - (*dimension)[0] ) +
-            frustum[ i ]->y * ( (*location)[1] - (*dimension)[1] ) +
-            frustum[ i ]->z * ( (*location)[2] + (*dimension)[2] ) +
-            frustum[ i ]->w > 0.0f )
+        if (frustum[i]->x * ( (*location)->x - (*dimension)->x ) +
+            frustum[i]->y * ( (*location)->y - (*dimension)->y ) +
+            frustum[i]->z * ( (*location)->z + (*dimension)->z ) +
+            frustum[i]->w > 0.0f )
         {
             ++i;
             continue;
         }
 
 
-        if (frustum[ i ]->x * ( (*location)[0] + (*dimension)[0] ) +
-            frustum[ i ]->y * ( (*location)[1] + (*dimension)[1] ) +
-            frustum[ i ]->z * ( (*location)[2] + (*dimension)[2] ) +
-            frustum[ i ]->w > 0.0f )
+        if (frustum[i]->x * ( (*location)->x + (*dimension)->x ) +
+            frustum[i]->y * ( (*location)->y + (*dimension)->y ) +
+            frustum[i]->z * ( (*location)->z + (*dimension)->z ) +
+            frustum[i]->w > 0.0f )
         {
             ++i;
             continue;
         }
 
 
-        if (frustum[ i ]->x * ( (*location)[0] - (*dimension)[0] ) +
-            frustum[ i ]->y * ( (*location)[1] + (*dimension)[1] ) +
-            frustum[ i ]->z * ( (*location)[2] + (*dimension)[2] ) +
-            frustum[ i ]->w > 0.0f )
+        if (frustum[i]->x * ( (*location)->x - (*dimension)->x ) +
+            frustum[i]->y * ( (*location)->y + (*dimension)->y ) +
+            frustum[i]->z * ( (*location)->z + (*dimension)->z ) +
+            frustum[i]->w > 0.0f )
         {
             ++i;
             continue;
         }
         
         
-        if (frustum[ i ]->x * ( (*location)[0] + (*dimension)[0] ) +
-            frustum[ i ]->y * ( (*location)[1] + (*dimension)[1] ) +
-            frustum[ i ]->z * ( (*location)[2] + (*dimension)[2] ) +
-            frustum[ i ]->w > 0.0f )
+        if (frustum[i]->x * ( (*location)->x + (*dimension)->x ) +
+            frustum[i]->y * ( (*location)->y + (*dimension)->y ) +
+            frustum[i]->z * ( (*location)->z + (*dimension)->z ) +
+            frustum[i]->w > 0.0f )
         {
             ++i;
             continue;
@@ -481,9 +481,9 @@ InFrustum sphere_intersect_frustum( vec4  *frustum, vec3  *location, float radiu
     unsigned char c = 0;
 
     for (int i=0; i!=6; ++i) {
-        float   d = frustum[i]->x * (*location)[0] +
-        frustum[i]->y * (*location)[1] +
-        frustum[i]->z * (*location)[2] +
+        float   d = frustum[i]->x * (*location)->x +
+        frustum[i]->y * (*location)->y +
+        frustum[i]->z * (*location)->z +
         frustum[i]->w;
 
         if (d < -radius)
@@ -506,59 +506,59 @@ InFrustum box_intersect_frustum(vec4 *frustum,
     for (int i=0; i!=6; ++i) {
         c1 = 0;
 
-        if (frustum[ i ]->x * ( (*location)[0] - (*dimension)[0] ) +
-            frustum[ i ]->y * ( (*location)[1] - (*dimension)[1] ) +
-            frustum[ i ]->z * ( (*location)[2] - (*dimension)[2] ) +
-            frustum[ i ]->w > 0.0f )
+        if (frustum[i]->x * ( (*location)->x - (*dimension)->x ) +
+            frustum[i]->y * ( (*location)->y - (*dimension)->y ) +
+            frustum[i]->z * ( (*location)->z - (*dimension)->z ) +
+            frustum[i]->w > 0.0f )
         { ++c1; }
 
 
-        if (frustum[ i ]->x * ( (*location)[0] + (*dimension)[0] ) +
-            frustum[ i ]->y * ( (*location)[1] - (*dimension)[1] ) +
-            frustum[ i ]->z * ( (*location)[2] - (*dimension)[2] ) +
-            frustum[ i ]->w > 0.0f )
+        if (frustum[i]->x * ( (*location)->x + (*dimension)->x ) +
+            frustum[i]->y * ( (*location)->y - (*dimension)->y ) +
+            frustum[i]->z * ( (*location)->z - (*dimension)->z ) +
+            frustum[i]->w > 0.0f )
         { ++c1; }
 
 
-        if (frustum[ i ]->x * ( (*location)[0] - (*dimension)[0] ) +
-            frustum[ i ]->y * ( (*location)[1] + (*dimension)[1] ) +
-            frustum[ i ]->z * ( (*location)[2] - (*dimension)[2] ) +
-            frustum[ i ]->w > 0.0f )
+        if (frustum[i]->x * ( (*location)->x - (*dimension)->x ) +
+            frustum[i]->y * ( (*location)->y + (*dimension)->y ) +
+            frustum[i]->z * ( (*location)->z - (*dimension)->z ) +
+            frustum[i]->w > 0.0f )
         { ++c1; }
 
 
-        if (frustum[ i ]->x * ( (*location)[0] + (*dimension)[0] ) +
-            frustum[ i ]->y * ( (*location)[1] + (*dimension)[1] ) +
-            frustum[ i ]->z * ( (*location)[2] - (*dimension)[2] ) +
-            frustum[ i ]->w > 0.0f )
+        if (frustum[i]->x * ( (*location)->x + (*dimension)->x ) +
+            frustum[i]->y * ( (*location)->y + (*dimension)->y ) +
+            frustum[i]->z * ( (*location)->z - (*dimension)->z ) +
+            frustum[i]->w > 0.0f )
         { ++c1; }
 
 
-        if (frustum[ i ]->x * ( (*location)[0] - (*dimension)[0] ) +
-            frustum[ i ]->y * ( (*location)[1] - (*dimension)[1] ) +
-            frustum[ i ]->z * ( (*location)[2] + (*dimension)[2] ) +
-            frustum[ i ]->w > 0.0f )
+        if (frustum[i]->x * ( (*location)->x - (*dimension)->x ) +
+            frustum[i]->y * ( (*location)->y - (*dimension)->y ) +
+            frustum[i]->z * ( (*location)->z + (*dimension)->z ) +
+            frustum[i]->w > 0.0f )
         { ++c1; }
 
 
-        if (frustum[ i ]->x * ( (*location)[0] + (*dimension)[0] ) +
-            frustum[ i ]->y * ( (*location)[1] - (*dimension)[1] ) +
-            frustum[ i ]->z * ( (*location)[2] + (*dimension)[2] ) +
-            frustum[ i ]->w > 0.0f )
+        if (frustum[i]->x * ( (*location)->x + (*dimension)->x ) +
+            frustum[i]->y * ( (*location)->y - (*dimension)->y ) +
+            frustum[i]->z * ( (*location)->z + (*dimension)->z ) +
+            frustum[i]->w > 0.0f )
         { ++c1; }
 
 
-        if (frustum[ i ]->x * ( (*location)[0] - (*dimension)[0] ) +
-            frustum[ i ]->y * ( (*location)[1] + (*dimension)[1] ) +
-            frustum[ i ]->z * ( (*location)[2] + (*dimension)[2] ) +
-            frustum[ i ]->w > 0.0f )
+        if (frustum[i]->x * ( (*location)->x - (*dimension)->x ) +
+            frustum[i]->y * ( (*location)->y + (*dimension)->y ) +
+            frustum[i]->z * ( (*location)->z + (*dimension)->z ) +
+            frustum[i]->w > 0.0f )
         { ++c1; }
         
         
-        if (frustum[ i ]->x * ( (*location)[0] + (*dimension)[0] ) +
-            frustum[ i ]->y * ( (*location)[1] + (*dimension)[1] ) +
-            frustum[ i ]->z * ( (*location)[2] + (*dimension)[2] ) +
-            frustum[ i ]->w > 0.0f )
+        if (frustum[i]->x * ( (*location)->x + (*dimension)->x ) +
+            frustum[i]->y * ( (*location)->y + (*dimension)->y ) +
+            frustum[i]->z * ( (*location)->z + (*dimension)->z ) +
+            frustum[i]->w > 0.0f )
         { ++c1; }
         
         

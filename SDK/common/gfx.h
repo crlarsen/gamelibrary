@@ -145,6 +145,8 @@ as being the original software.
 #include <sys/time.h>
 #include <unistd.h>
 
+#include "glml.h"
+
 #include "types.h"
 #include "thread.h"
 #include "matrix.h"

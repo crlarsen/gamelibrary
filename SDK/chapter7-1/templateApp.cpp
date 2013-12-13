@@ -165,15 +165,15 @@ void templateAppDraw(void) {
                 c = cosf(r),
                 s = sinf(r);
 
-        direction[0] = c * forward[0] - s * forward[1];
-        direction[1] = s * forward[0] + c * forward[1];
+        direction->x = c * forward->x - s * forward->y;
+        direction->y = s * forward->x + c * forward->y;
         /* You now have a direction vector that is appropriately rotated to
          * the current coordinate system of the camera.  Add the direction
          * vector to the eye_location to make the camera move.  And use the
-         * touche_delta[0] as the speed factor.
+         * touche_delta->x as the speed factor.
          */
-        eye_location[0] += direction[0] * -touche_delta->x;
-        eye_location[1] += direction[1] * -touche_delta->x;
+        eye_location->x += direction->x * -touche_delta->x;
+        eye_location->y += direction->y * -touche_delta->x;
     }
 
     /* Rotate the matrix -90 degrees on the positive X axis to look
@@ -190,9 +190,9 @@ void templateAppDraw(void) {
 
         GFX_push_matrix();
 
-        GFX_translate(objmesh->location[0]-eye_location[0],
-                      objmesh->location[1]-eye_location[1],
-                      objmesh->location[2]-eye_location[2]);
+        GFX_translate(objmesh->location->x-eye_location->x,
+                      objmesh->location->y-eye_location->y,
+                      objmesh->location->z-eye_location->z);
 
         glUniformMatrix4fv(program->uniform_map["MODELVIEWPROJECTIONMATRIX"].location,
                            1,

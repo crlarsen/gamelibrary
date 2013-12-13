@@ -13,6 +13,7 @@
 		28AD733F0D9D9553002E5188 /* MainWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = 28AD733E0D9D9553002E5188 /* MainWindow.xib */; };
 		28FD15000DC6FC520079059D /* OpenGLES.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 28FD14FF0DC6FC520079059D /* OpenGLES.framework */; };
 		28FD15080DC6FC5B0079059D /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 28FD15070DC6FC5B0079059D /* QuartzCore.framework */; };
+		8309CC15185AB5BA00A36933 /* glml.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8309CC13185AB5BA00A36933 /* glml.cpp */; };
 		838DAEAA18159BE2003AF789 /* test.raw in Resources */ = {isa = PBXBuildFile; fileRef = 838DAEA918159BE2003AF789 /* test.raw */; };
 		83DF79A418159B3600C60EE1 /* Default-568h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 83DF79A318159B3600C60EE1 /* Default-568h@2x.png */; };
 		E002BCF5135BEC0A00FCFC0B /* EAGLView.mm in Sources */ = {isa = PBXBuildFile; fileRef = E002BCF0135BEC0A00FCFC0B /* EAGLView.mm */; };
@@ -252,6 +253,8 @@
 		28FD14FF0DC6FC520079059D /* OpenGLES.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGLES.framework; path = System/Library/Frameworks/OpenGLES.framework; sourceTree = SDKROOT; };
 		28FD15070DC6FC5B0079059D /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
 		29B97316FDCFA39411CA2CEA /* main.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = main.mm; sourceTree = "<group>"; };
+		8309CC13185AB5BA00A36933 /* glml.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = glml.cpp; sourceTree = "<group>"; };
+		8309CC14185AB5BA00A36933 /* glml.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = glml.h; sourceTree = "<group>"; };
 		838DAEA918159BE2003AF789 /* test.raw */ = {isa = PBXFileReference; lastKnownFileType = file; name = test.raw; path = ../test.raw; sourceTree = "<group>"; };
 		83DF79A318159B3600C60EE1 /* Default-568h@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-568h@2x.png"; sourceTree = "<group>"; };
 		E002BCEF135BEC0A00FCFC0B /* EAGLView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EAGLView.h; sourceTree = "<group>"; };
@@ -844,6 +847,15 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
+		8309CC12185AB5BA00A36933 /* glml */ = {
+			isa = PBXGroup;
+			children = (
+				8309CC13185AB5BA00A36933 /* glml.cpp */,
+				8309CC14185AB5BA00A36933 /* glml.h */,
+			);
+			path = glml;
+			sourceTree = "<group>";
+		};
 		E0D9B8B8146A63D600B19660 /* common */ = {
 			isa = PBXGroup;
 			children = (
@@ -855,6 +867,7 @@
 				E0D9BA0F146A63D600B19660 /* font.h */,
 				E0D9BA10146A63D600B19660 /* gfx.cpp */,
 				E0D9BA11146A63D600B19660 /* gfx.h */,
+				8309CC12185AB5BA00A36933 /* glml */,
 				E0D9BA15146A63D600B19660 /* light.cpp */,
 				E0D9BA16146A63D600B19660 /* light.h */,
 				E0D9BA17146A63D600B19660 /* matrix.cpp */,
@@ -1546,6 +1559,7 @@
 				E0D9BB10146A63D600B19660 /* btGeometryUtil.cpp in Sources */,
 				E0D9BB11146A63D600B19660 /* btGhostObject.cpp in Sources */,
 				E0D9BB12146A63D600B19660 /* btGImpactBvh.cpp in Sources */,
+				8309CC15185AB5BA00A36933 /* glml.cpp in Sources */,
 				E0D9BB13146A63D600B19660 /* btGImpactCollisionAlgorithm.cpp in Sources */,
 				E0D9BB14146A63D600B19660 /* btGImpactQuantizedBvh.cpp in Sources */,
 				E0D9BB15146A63D600B19660 /* btGImpactShape.cpp in Sources */,

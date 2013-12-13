@@ -478,12 +478,12 @@ void GFX_set_perspective( float fovy, float aspect_ratio, float clip_start, floa
 
     mat4_identity( mat );
 
-    mat.m[0][0] = c / aspect_ratio;
-    mat.m[1][1] = c;
-    mat.m[2][2] = -( clip_end + clip_start ) / d;
-    mat.m[2][3] = -1.0f;
-    mat.m[3][2] = -2.0f * clip_start * clip_end / d;
-    mat.m[3][3] =  0.0f;
+    mat[0][0] = c / aspect_ratio;
+    mat[1][1] = c;
+    mat[2][2] = -( clip_end + clip_start ) / d;
+    mat[2][3] = -1.0f;
+    mat[3][2] = -2.0f * clip_start * clip_end / d;
+    mat[3][3] =  0.0f;
 
     GFX_multiply_matrix( &mat );
 
@@ -511,21 +511,21 @@ void GFX_look_at( vec3 *eye, vec3 *center, vec3 *up )
 
     u = s.crossProduct(f);
 
-    mat.m[0][0] = s[0];
-    mat.m[1][0] = s[1];
-    mat.m[2][0] = s[2];
+    mat[0][0] = s->x;
+    mat[1][0] = s->y;
+    mat[2][0] = s->z;
 
-    mat.m[0][1] = u[0];
-    mat.m[1][1] = u[1];
-    mat.m[2][1] = u[2];
+    mat[0][1] = u->x;
+    mat[1][1] = u->y;
+    mat[2][1] = u->z;
 
-    mat.m[0][2] = -f[0];
-    mat.m[1][2] = -f[1];
-    mat.m[2][2] = -f[2];
+    mat[0][2] = -f->x;
+    mat[1][2] = -f->y;
+    mat[2][2] = -f->z;
     
     GFX_multiply_matrix( &mat );
     
-    GFX_translate( -(*eye)[0], -(*eye)[1], -(*eye)[2] );
+    GFX_translate( -(*eye)->x, -(*eye)->y, -(*eye)->z );
 }
 
 

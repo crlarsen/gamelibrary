@@ -263,21 +263,21 @@ void templateAppDraw(void) {
     }
     
     
-    if (move_delta[2]) {
+    if (move_delta->z) {
         vec3 forward;
 
         float   r = rotz * DEG_TO_RAD,
                 c = cosf(r),
                 s = sinf(r);
 
-        forward[0] = c * move_delta[1] - s * move_delta[0];
-        forward[1] = s * move_delta[1] + c * move_delta[0];
+        forward->x = c * move_delta->y - s * move_delta->x;
+        forward->y = s * move_delta->y + c * move_delta->x;
         /* Assign the linear velocity of the collision object and multiply
          * the delta by 6.7m/s (the average velocity that human's achieve while
          * running.
          */
-        camera->btrigidbody->setLinearVelocity(btVector3(forward[0] * move_delta[2] * 6.7f,
-                                                         forward[1] * move_delta[2] * 6.7f,
+        camera->btrigidbody->setLinearVelocity(btVector3(forward->x * move_delta->z * 6.7f,
+                                                         forward->y * move_delta->z * 6.7f,
                                                          0.0f));
         /* Make sure that the rigid body is activated; otherwise the
          * setLinearVelocity call above will have no effect, because the body
@@ -292,8 +292,8 @@ void templateAppDraw(void) {
 
     GFX_rotate(-rotz, 0.0f, 0.0f, 1.0f);
 
-    GFX_translate(-camera->location[0],
-                  -camera->location[1],
+    GFX_translate(-camera->location->x,
+                  -camera->location->y,
                   /* Give an offset on the Z axis since the location represents
                    * the position of the object pivot point.  You need to
                    * simulate a real human eye looking at the scene, so add to
@@ -301,7 +301,7 @@ void templateAppDraw(void) {
                    * bounding box, to simulate that the eye position is located
                    * at the top of the collision object.
                    */
-                  -camera->location[2] - (camera->dimension[2] * 0.5f));
+                  -camera->location->z - (camera->dimension->z * 0.5f));
 
     for (auto objmesh=obj->objmesh.begin();
          objmesh!=obj->objmesh.end(); ++objmesh) {
@@ -317,7 +317,7 @@ void templateAppDraw(void) {
          * to make sure the latest location will be used by the clipping
          * method (if any).
          */
-        objmesh->location = vec3(mat.m[3], true);
+        objmesh->location = vec3(mat[3], true);
         /* Multiply the matrix by the current modelview matrix. */
         GFX_multiply_matrix(&mat);
 
@@ -338,8 +338,8 @@ void templateAppDraw(void) {
 void templateAppToucheBegan(float x, float y, unsigned int tap_count)
 {
     if (y < (screen_size * 0.5f)) {
-        move_location[0] = x;
-        move_location[1] = y;
+        move_location->x = x;
+        move_location->y = y;
     } else {
         view_location->x = x;
         view_location->y = y;
@@ -351,12 +351,12 @@ void templateAppToucheMoved(float x, float y, unsigned int tap_count)
 {
     if (y > ((screen_size * 0.5f) - (screen_size * 0.05f)) &&
         y < ((screen_size * 0.5f) + (screen_size * 0.05f))) {
-        move_delta[2] =
+        move_delta->z =
         view_delta->x =
         view_delta->y = 0.0f;
 
-        move_location[0] = x;
-        move_location[1] = y;
+        move_location->x = x;
+        move_location->y = y;
 
         view_location->x = x;
         view_location->y = y;
@@ -367,7 +367,7 @@ void templateAppToucheMoved(float x, float y, unsigned int tap_count)
 
         move_delta.safeNormalize();
 
-        move_delta[2] = CLAMP((move_location-touche).length() / 128.0f,
+        move_delta->z = CLAMP((move_location-touche).length() / 128.0f,
                              0.0f,
                              1.0f);
     } else {
@@ -382,7 +382,7 @@ void templateAppToucheMoved(float x, float y, unsigned int tap_count)
 
 void templateAppToucheEnded(float x, float y, unsigned int tap_count)
 {
-    move_delta[2] = 0.0f;
+    move_delta->z = 0.0f;
 }
 
 

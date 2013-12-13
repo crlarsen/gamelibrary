@@ -311,7 +311,7 @@ void templateAppDraw(void) {
     }
 
     /* If you got a force comming from the left side of the screen. */
-    if (move_delta[2]) {
+    if (move_delta->z) {
         /* Temp. variable to calculate the direction (aka forward) vector. */
         vec3 direction;
         /* Rotate the coordinate system to fit the current Z rotation
@@ -321,12 +321,12 @@ void templateAppDraw(void) {
               c = cosf(r),
               s = sinf(r);
 
-        direction[0] = c * move_delta[1] - s * move_delta[0];
-        direction[1] = s * move_delta[1] + c * move_delta[0];
+        direction->x = c * move_delta->y - s * move_delta->x;
+        direction->y = s * move_delta->y + c * move_delta->x;
 
         /* Assign the direction vector to the angular velocity of the ball. */
-        player->btrigidbody->setAngularVelocity(btVector3(direction[1] * (move_delta[2] * 6.7f),
-                                                          -direction[0] * (move_delta[2] * 6.7f),
+        player->btrigidbody->setAngularVelocity(btVector3(direction->y * (move_delta->z * 6.7f),
+                                                          -direction->x * (move_delta->z * 6.7f),
                                                           0.0f));
         /* Make sure the state of the rigid body is active in order to
          * trigger the rotation.
@@ -334,20 +334,20 @@ void templateAppDraw(void) {
         player->btrigidbody->setActivationState(ACTIVE_TAG);
     }
 
-    next_eye[0] = player->location[0] +
-                 distance *
-                 cosf(rotx * DEG_TO_RAD) *
-                 sinf(rotz * DEG_TO_RAD);
+    next_eye->x = player->location->x +
+                  distance *
+                  cosf(rotx * DEG_TO_RAD) *
+                  sinf(rotz * DEG_TO_RAD);
 
-    next_eye[1] = player->location[1] -
-                 distance *
-                 cosf(rotx * DEG_TO_RAD) *
-                 cosf(rotz * DEG_TO_RAD);
+    next_eye->y = player->location->y -
+                  distance *
+                  cosf(rotx * DEG_TO_RAD) *
+                  cosf(rotz * DEG_TO_RAD);
 
 
-    next_eye[2] = player->location[2] +
-                 distance *
-                 sinf(rotx * DEG_TO_RAD);
+    next_eye->z = player->location->z +
+                  distance *
+                  sinf(rotx * DEG_TO_RAD);
 
     /* Declare the starting point and end point of the collision ray.
      * Basically, what you are trying to achieve is that the ray starts
@@ -357,13 +357,13 @@ void templateAppDraw(void) {
      * This will prevent the camera from seeing through walls and insure
      * that the ball is focused at all times.
      */
-    btVector3 p1(player->location[0],
-                 player->location[1],
-                 player->location[2]),
+    btVector3 p1(player->location->x,
+                 player->location->y,
+                 player->location->z),
 
-              p2(next_eye[0],
-                 next_eye[1],
-                 next_eye[2]);
+              p2(next_eye->x,
+                 next_eye->y,
+                 next_eye->z);
     /* Initialize the collision ray, passing in as parameters the ball rigid
      * body pointer and the start and end points of the ray.
      */
@@ -385,13 +385,13 @@ void templateAppDraw(void) {
          * the camera next_position will always be located in front of where
          * the collision ray hits.
          */
-        next_eye[0] =   back_ray.m_hitPointWorld.x() +
+        next_eye->x =   back_ray.m_hitPointWorld.x() +
         (back_ray.m_hitNormalWorld.x() * 0.1f);
 
-        next_eye[1] =   back_ray.m_hitPointWorld.y() +
+        next_eye->y =   back_ray.m_hitPointWorld.y() +
         (back_ray.m_hitNormalWorld.y()* 0.1f);
 
-        next_eye[2] =   back_ray.m_hitPointWorld.z() +
+        next_eye->z =   back_ray.m_hitPointWorld.z() +
         (back_ray.m_hitNormalWorld.z()* 0.1f);
     }
 
@@ -400,16 +400,14 @@ void templateAppDraw(void) {
     rotz = rotz * 0.9f + next_rotz * 0.1f;
 
     /* Same as for the rotation, but this time for the current eye position. */
-    eye[0] = eye[0] * 0.95f + next_eye[0] * 0.05f;
-    eye[1] = eye[1] * 0.95f + next_eye[1] * 0.05f;
-    eye[2] = eye[2] * 0.95f + next_eye[2] * 0.05f;
+    eye = eye * 0.95f + next_eye * 0.05f;
 
     /* Give an offset to the player Z location to make sure that the camera
      * is always looking at the top of the ball and not at it's center.  This
      * way, even in tight corners, the user will always be able to see in front
      * of the ball.
      */
-    player->location[2] += player->dimension[2] * 0.5f;
+    player->location->z += player->dimension->z * 0.5f;
 
     /* Feed the current eye position and player location to the GFX_look_at
      * function to be able to generate the view matrix.
@@ -427,7 +425,7 @@ void templateAppDraw(void) {
 
         objmesh->btrigidbody->getWorldTransform().getOpenGLMatrix((float *)&mat);
 
-        objmesh->location = vec3(mat.m[3], true);
+        objmesh->location = vec3(mat[3], true);
 
         GFX_multiply_matrix(&mat);
 
@@ -448,8 +446,8 @@ void templateAppDraw(void) {
 void templateAppToucheBegan(float x, float y, unsigned int tap_count)
 {
     if (y < (screen_size * 0.5f)) {
-        move_location[0] = x;
-        move_location[1] = y;
+        move_location->x = x;
+        move_location->y = y;
     } else {
         view_location->x = x;
         view_location->y = y;
@@ -462,12 +460,12 @@ void templateAppToucheMoved(float x, float y, unsigned int tap_count)
     if (y > ((screen_size * 0.5f) - (screen_size * 0.05f)) &&
         y < ((screen_size * 0.5f) + (screen_size * 0.05f))) {
 
-        move_delta[2] =
+        move_delta->z =
         view_delta->x =
         view_delta->y = 0.0f;
 
-        move_location[0] = x;
-        move_location[1] = y;
+        move_location->x = x;
+        move_location->y = y;
 
         view_location->x = x;
         view_location->y = y;
@@ -478,7 +476,7 @@ void templateAppToucheMoved(float x, float y, unsigned int tap_count)
 
         move_delta.safeNormalize();
 
-        move_delta[2] = CLAMP((move_location-touche).length() / 128.0f,
+        move_delta->z = CLAMP((move_location-touche).length() / 128.0f,
                              0.0f,
                              1.0f);
     } else {
@@ -493,7 +491,7 @@ void templateAppToucheMoved(float x, float y, unsigned int tap_count)
 
 void templateAppToucheEnded(float x, float y, unsigned int tap_count)
 {
-    move_delta[2] = 0.0f;
+    move_delta->z = 0.0f;
 }
 
 

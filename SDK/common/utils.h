@@ -60,7 +60,7 @@ void generate_color_from_index(unsigned int index, vec4 *color);
 
 void console_print(const char *str, ...);
 
-void build_frustum(vec4 frustum[6], mat4 *modelview_matrix, mat4 *projection_matrix);
+void build_frustum(vec4 frustum[6], const mat4 &modelview_matrix, const mat4 &projection_matrix);
 
 float sphere_distance_in_frustum(vec4 *frustum, vec3  *location, float radius);
 

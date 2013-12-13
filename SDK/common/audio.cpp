@@ -105,15 +105,15 @@ void AUDIO_error( void )
 }
 
 
-void AUDIO_set_listener( vec3 *location, vec3 *direction, vec3 *up )
+void AUDIO_set_listener( vec3 &location, vec3 &direction, vec3 &up )
 {
-	float orientation[ 6 ] = { (*direction)[0], (*direction)[1], (*direction)[2],
-							   (*up)[0], (*up)[1], (*up)[2] };
+	float orientation[ 6 ] = { direction->x, direction->y, direction->z,
+							   up->x, up->y, up->z };
 
 	alListener3f( AL_POSITION,
-				  (*location)[0],
-				  (*location)[1],
-				  (*location)[2] );
+				  location->x,
+				  location->y,
+				  location->z );
 
 	alListenerfv( AL_ORIENTATION, &orientation[ 0 ] );
 }

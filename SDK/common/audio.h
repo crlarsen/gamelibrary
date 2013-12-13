@@ -44,7 +44,7 @@ void AUDIO_stop( void );
 
 void AUDIO_error( void );
 
-void AUDIO_set_listener( vec3 *location, vec3 *direction, vec3 *up );
+void AUDIO_set_listener(vec3 &location, vec3 &direction, vec3 &up);
 
 size_t AUDIO_ogg_read( void *ptr, size_t size, size_t read, void *memory_ptr );
 

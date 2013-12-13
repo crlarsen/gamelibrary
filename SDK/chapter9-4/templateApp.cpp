@@ -389,7 +389,7 @@ void load_level(void)
          objmesh!=obj->objmesh.end(); ++objmesh) {
 
         if (strstr(objmesh->name, "gem")) {
-            objmesh->rotation[2] = (float)(random() % 360);
+            objmesh->rotation->z = (float)(random() % 360);
 
             objmesh->btrigidbody->setCollisionFlags(objmesh->btrigidbody->getCollisionFlags() |
                                                     btCollisionObject::CF_CUSTOM_MATERIAL_CALLBACK);
@@ -673,43 +673,43 @@ void templateAppDraw(void) {
                 c = cosf(r),
                 s = sinf(r);
 
-        direction[0] = c * forward[1] - s * forward[0];
-        direction[1] = s * forward[1] + c * forward[0];
+        direction->x = c * forward->y - s * forward->x;
+        direction->y = s * forward->y + c * forward->x;
 
         float speed = CLAMP((-next_accelerometer->x * sensitivity) * ball_speed,
                             -ball_speed,
                             ball_speed);
 
-        player->btrigidbody->setAngularVelocity(btVector3(direction[0] * speed,
-                                                          direction[1] * speed,
+        player->btrigidbody->setAngularVelocity(btVector3(direction->x * speed,
+                                                          direction->y * speed,
                                                           0.0f));
         
         player->btrigidbody->setActivationState(ACTIVE_TAG);
     }
 
-    next_eye[0] = player->location[0] +
+    next_eye->x = player->location->x +
                   distance *
                   cosf(rotx * DEG_TO_RAD) *
                   sinf(rotz * DEG_TO_RAD);
 
-    next_eye[1] = player->location[1] -
+    next_eye->y = player->location->y -
                   distance *
                   cosf(rotx * DEG_TO_RAD) *
                   cosf(rotz * DEG_TO_RAD);
 
-    next_eye[2] = player->location[2] +
+    next_eye->z = player->location->z +
                   distance *
                   sinf(rotx * DEG_TO_RAD);
 
-    player->location[2] += player->dimension[2];
+    player->location->z += player->dimension->z;
 
-    btVector3 p1(player->location[0],
-                 player->location[1],
-                 player->location[2]),
+    btVector3 p1(player->location->x,
+                 player->location->y,
+                 player->location->z),
 
-    p2(next_eye[0],
-       next_eye[1],
-       next_eye[2]);
+    p2(next_eye->x,
+       next_eye->y,
+       next_eye->z);
 
     ClosestNotMeRayResultCallback back_ray(player->btrigidbody,
                                            p1,
@@ -722,13 +722,13 @@ void templateAppDraw(void) {
     if (back_ray.hasHit()) {
         back_ray.m_hitNormalWorld.normalize();
 
-        next_eye[0] = back_ray.m_hitPointWorld.x() +
+        next_eye->x = back_ray.m_hitPointWorld.x() +
         (back_ray.m_hitNormalWorld.x() * 0.1f);
 
-        next_eye[1] = back_ray.m_hitPointWorld.y() +
+        next_eye->y = back_ray.m_hitPointWorld.y() +
         (back_ray.m_hitNormalWorld.y()* 0.1f);
 
-        next_eye[2] = back_ray.m_hitPointWorld.z() +
+        next_eye->z = back_ray.m_hitPointWorld.z() +
         (back_ray.m_hitNormalWorld.z()* 0.1f);
     }
     
@@ -738,15 +738,15 @@ void templateAppDraw(void) {
 
     direction.safeNormalize();
 
-    AUDIO_set_listener(&eye, &direction, &up);
+    AUDIO_set_listener(eye, direction, up);
 
     GFX_look_at(&eye,
                 &player->location,
                 &up);
 
     build_frustum(frustum,
-                  GFX_get_modelview_matrix(),
-                  GFX_get_projection_matrix());
+                  *GFX_get_modelview_matrix(),
+                  *GFX_get_projection_matrix());
     
     
     for (auto objmesh=obj->objmesh.begin();
@@ -760,25 +760,25 @@ void templateAppDraw(void) {
             GFX_push_matrix();
 
             if (strstr(objmesh->name, "gem")) {
-                GFX_translate(objmesh->location[0],
-                              objmesh->location[1],
-                              objmesh->location[2]);
+                GFX_translate(objmesh->location->x,
+                              objmesh->location->y,
+                              objmesh->location->z);
 
-                objmesh->rotation[2] += 1.0f;
+                objmesh->rotation->z += 1.0f;
 
-                GFX_rotate(objmesh->rotation[2], 0.0f, 0.0f, 1.0f);
+                GFX_rotate(objmesh->rotation->z, 0.0f, 0.0f, 1.0f);
             } else if (objmesh->btrigidbody) {
                 mat4 mat;
 
                 objmesh->btrigidbody->getWorldTransform().getOpenGLMatrix((float *)&mat);
 
-                objmesh->location = vec3(mat.m[3], true);
+                objmesh->location = vec3(mat[3], true);
 
                 GFX_multiply_matrix(&mat);
             } else {
-                GFX_translate(objmesh->location[0],
-                              objmesh->location[1],
-                              objmesh->location[2]);
+                GFX_translate(objmesh->location->x,
+                              objmesh->location->y,
+                              objmesh->location->z);
             }
             
             objmesh->draw();
@@ -881,14 +881,14 @@ void templateAppAccelerometer(float x, float y, float z)
 
     tmp.safeNormalize();
 
-    accelerometer->x = tmp[0] + 0.35f;
+    accelerometer->x = tmp->x + 0.35f;
 
 #ifndef __IPHONE_4_0
 
-    accelerometer->y = tmp[1] + 0.35f;
+    accelerometer->y = tmp->y + 0.35f;
 #else
 
-    accelerometer->y = tmp[1];
+    accelerometer->y = tmp->y;
 #endif
 }
 

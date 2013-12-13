@@ -13,6 +13,7 @@
 		28AD733F0D9D9553002E5188 /* MainWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = 28AD733E0D9D9553002E5188 /* MainWindow.xib */; };
 		28FD15000DC6FC520079059D /* OpenGLES.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 28FD14FF0DC6FC520079059D /* OpenGLES.framework */; };
 		28FD15080DC6FC5B0079059D /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 28FD15070DC6FC5B0079059D /* QuartzCore.framework */; };
+		8309CC11185AB52E00A36933 /* glml.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8309CC0F185AB52E00A36933 /* glml.cpp */; };
 		830AF8BF18187BE70056C7BF /* maze.png in Resources */ = {isa = PBXBuildFile; fileRef = 830AF8BE18187BE70056C7BF /* maze.png */; };
 		8362E51E1815929700E3FC65 /* point_frag.glsl in Resources */ = {isa = PBXBuildFile; fileRef = 8362E51C1815929700E3FC65 /* point_frag.glsl */; };
 		8362E51F1815929700E3FC65 /* point_vert.glsl in Resources */ = {isa = PBXBuildFile; fileRef = 8362E51D1815929700E3FC65 /* point_vert.glsl */; };
@@ -263,6 +264,8 @@
 		28FD14FF0DC6FC520079059D /* OpenGLES.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGLES.framework; path = System/Library/Frameworks/OpenGLES.framework; sourceTree = SDKROOT; };
 		28FD15070DC6FC5B0079059D /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
 		29B97316FDCFA39411CA2CEA /* main.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = main.mm; sourceTree = "<group>"; };
+		8309CC0F185AB52E00A36933 /* glml.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = glml.cpp; sourceTree = "<group>"; };
+		8309CC10185AB52E00A36933 /* glml.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = glml.h; sourceTree = "<group>"; };
 		830AF8BE18187BE70056C7BF /* maze.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = maze.png; path = ../maze.png; sourceTree = "<group>"; };
 		8362E51C1815929700E3FC65 /* point_frag.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = point_frag.glsl; path = ../point_frag.glsl; sourceTree = "<group>"; };
 		8362E51D1815929700E3FC65 /* point_vert.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = point_vert.glsl; path = ../point_vert.glsl; sourceTree = "<group>"; };
@@ -877,6 +880,15 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
+		8309CC0E185AB52E00A36933 /* glml */ = {
+			isa = PBXGroup;
+			children = (
+				8309CC0F185AB52E00A36933 /* glml.cpp */,
+				8309CC10185AB52E00A36933 /* glml.h */,
+			);
+			path = glml;
+			sourceTree = "<group>";
+		};
 		E0EBC6EF13650F3600336FBA /* templateApp */ = {
 			isa = PBXGroup;
 			children = (
@@ -897,6 +909,7 @@
 				E0FAE62814676264003E74F6 /* font.h */,
 				E0FAE62914676264003E74F6 /* gfx.cpp */,
 				E0FAE62A14676264003E74F6 /* gfx.h */,
+				8309CC0E185AB52E00A36933 /* glml */,
 				E0FAE62E14676264003E74F6 /* light.cpp */,
 				E0FAE62F14676264003E74F6 /* light.h */,
 				E0FAE63014676264003E74F6 /* matrix.cpp */,
@@ -1590,6 +1603,7 @@
 				E0FAE72914676265003E74F6 /* btGeometryUtil.cpp in Sources */,
 				E0FAE72A14676265003E74F6 /* btGhostObject.cpp in Sources */,
 				E0FAE72B14676265003E74F6 /* btGImpactBvh.cpp in Sources */,
+				8309CC11185AB52E00A36933 /* glml.cpp in Sources */,
 				E0FAE72C14676265003E74F6 /* btGImpactCollisionAlgorithm.cpp in Sources */,
 				E0FAE72D14676265003E74F6 /* btGImpactQuantizedBvh.cpp in Sources */,
 				E0FAE72E14676265003E74F6 /* btGImpactShape.cpp in Sources */,

@@ -351,9 +351,9 @@ void templateAppDraw(void) {
 
             GFX_multiply_matrix(&mat);
         } else {
-            GFX_translate(objmesh->location[0],
-                          objmesh->location[1],
-                          objmesh->location[2]);
+            GFX_translate(objmesh->location->x,
+                          objmesh->location->y,
+                          objmesh->location->z);
         }
 
         glUniformMatrix4fv(program->uniform_map["MODELVIEWPROJECTIONMATRIX"].location,

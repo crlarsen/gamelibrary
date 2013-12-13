@@ -173,9 +173,9 @@ void templateAppDraw(void)
         /* Translate the model view matrix use the location XYZ of the
          * current mesh.
          */
-        GFX_translate(objmesh->location[0],
-                      objmesh->location[1],
-                      objmesh->location[2]);
+        GFX_translate(objmesh->location->x,
+                      objmesh->location->y,
+                      objmesh->location->z);
 
         /* Draw the mesh and its associated material(s) onscreen. */
         objmesh->draw();

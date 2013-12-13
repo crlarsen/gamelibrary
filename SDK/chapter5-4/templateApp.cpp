@@ -219,10 +219,10 @@ void templateAppDraw(void) {
          objmesh!=obj->objmesh.end(); ++objmesh) {
         GFX_push_matrix();
 
-        if (auto_rotate) rot_angle[2] += 2.0f;
+        if (auto_rotate) rot_angle->z += 2.0f;
 
-        GFX_rotate(rot_angle[0], 1.0f, 0.0f, 0.0f);
-        GFX_rotate(rot_angle[2], 0.0f, 0.0f, 1.0f);
+        GFX_rotate(rot_angle->x, 1.0f, 0.0f, 0.0f);
+        GFX_rotate(rot_angle->z, 0.0f, 0.0f, 1.0f);
 
         objmesh->draw();
 
@@ -240,8 +240,8 @@ void templateAppToucheBegan(float x, float y, unsigned int tap_count) {
 void templateAppToucheMoved(float x, float y, unsigned int tap_count) {
     auto_rotate = false;
     
-    rot_angle[2] += -(touche->x - x);
-    rot_angle[0] += -(touche->y - y);
+    rot_angle->z += -(touche->x - x);
+    rot_angle->x += -(touche->y - y);
     
     touche->x = x;
     touche->y = y;

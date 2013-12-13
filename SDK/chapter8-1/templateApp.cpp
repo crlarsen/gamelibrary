@@ -317,28 +317,26 @@ void templateAppDraw(void) {
 
 
 
-    eye[0] = center[0] +
-            distance *
-            cosf(rotx * DEG_TO_RAD) *
-            sinf(rotz * DEG_TO_RAD);
+    eye->x = center->x +
+             distance *
+             cosf(rotx * DEG_TO_RAD) *
+             sinf(rotz * DEG_TO_RAD);
 
-    eye[1] = center[1] -
-            distance *
-            cosf(rotx * DEG_TO_RAD) *
-            cosf(rotz * DEG_TO_RAD);
+    eye->y = center->y -
+             distance *
+             cosf(rotx * DEG_TO_RAD) *
+             cosf(rotz * DEG_TO_RAD);
 
 
-    eye[2] = center[2] +
-            distance *
-            sinf(rotx * DEG_TO_RAD);
+    eye->z = center->z +
+             distance *
+             sinf(rotx * DEG_TO_RAD);
     
     
     rotx = rotx * 0.9f + next_rotx * 0.1f;
     rotz = rotz * 0.9f + next_rotz * 0.1f;
     
-    center[0] = maze->location[0];
-    center[1] = maze->location[1];
-    center[2] = maze->location[2];
+    center = maze->location;
 
     GFX_look_at(&eye,
                 &center,
@@ -358,7 +356,7 @@ void templateAppDraw(void) {
 
         objmesh->btrigidbody->getWorldTransform().getOpenGLMatrix((float *)&mat);
 
-        objmesh->location = vec3(mat.m[3], true);
+        objmesh->location = vec3(mat[3], true);
         GFX_multiply_matrix(&mat);
 
         glUniformMatrix4fv(program->get_uniform_location((char *)"MODELVIEWPROJECTIONMATRIX"),

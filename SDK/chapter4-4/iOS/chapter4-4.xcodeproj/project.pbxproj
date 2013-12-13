@@ -14,6 +14,7 @@
 		28FD15000DC6FC520079059D /* OpenGLES.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 28FD14FF0DC6FC520079059D /* OpenGLES.framework */; };
 		28FD15080DC6FC5B0079059D /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 28FD15070DC6FC5B0079059D /* QuartzCore.framework */; };
 		8301A9D618122B31006606BA /* Default-568h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 8301A9D518122B31006606BA /* Default-568h@2x.png */; };
+		835E28AB185AAD830058A810 /* glml.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 835E28A9185AAD830058A810 /* glml.cpp */; };
 		83C3201518122A15009242E9 /* background.png in Resources */ = {isa = PBXBuildFile; fileRef = 83C3200D18122A15009242E9 /* background.png */; };
 		83C3201618122A15009242E9 /* balloon.png in Resources */ = {isa = PBXBuildFile; fileRef = 83C3200E18122A15009242E9 /* balloon.png */; };
 		83C3201718122A15009242E9 /* grass.png in Resources */ = {isa = PBXBuildFile; fileRef = 83C3200F18122A15009242E9 /* grass.png */; };
@@ -262,6 +263,8 @@
 		28FD15070DC6FC5B0079059D /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
 		29B97316FDCFA39411CA2CEA /* main.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = main.mm; sourceTree = "<group>"; };
 		8301A9D518122B31006606BA /* Default-568h@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-568h@2x.png"; sourceTree = "<group>"; };
+		835E28A9185AAD830058A810 /* glml.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = glml.cpp; sourceTree = "<group>"; };
+		835E28AA185AAD830058A810 /* glml.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = glml.h; sourceTree = "<group>"; };
 		83C3200D18122A15009242E9 /* background.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = background.png; path = ../background.png; sourceTree = "<group>"; };
 		83C3200E18122A15009242E9 /* balloon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = balloon.png; path = ../balloon.png; sourceTree = "<group>"; };
 		83C3200F18122A15009242E9 /* grass.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = grass.png; path = ../grass.png; sourceTree = "<group>"; };
@@ -871,6 +874,15 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
+		835E28A8185AAD830058A810 /* glml */ = {
+			isa = PBXGroup;
+			children = (
+				835E28A9185AAD830058A810 /* glml.cpp */,
+				835E28AA185AAD830058A810 /* glml.h */,
+			);
+			path = glml;
+			sourceTree = "<group>";
+		};
 		E0D9B8B8146A63D600B19660 /* common */ = {
 			isa = PBXGroup;
 			children = (
@@ -882,6 +894,7 @@
 				E0D9BA0F146A63D600B19660 /* font.h */,
 				E0D9BA10146A63D600B19660 /* gfx.cpp */,
 				E0D9BA11146A63D600B19660 /* gfx.h */,
+				835E28A8185AAD830058A810 /* glml */,
 				E0D9BA15146A63D600B19660 /* light.cpp */,
 				E0D9BA16146A63D600B19660 /* light.h */,
 				E0D9BA17146A63D600B19660 /* matrix.cpp */,
@@ -1582,6 +1595,7 @@
 				E0D9BB10146A63D600B19660 /* btGeometryUtil.cpp in Sources */,
 				E0D9BB11146A63D600B19660 /* btGhostObject.cpp in Sources */,
 				E0D9BB12146A63D600B19660 /* btGImpactBvh.cpp in Sources */,
+				835E28AB185AAD830058A810 /* glml.cpp in Sources */,
 				E0D9BB13146A63D600B19660 /* btGImpactCollisionAlgorithm.cpp in Sources */,
 				E0D9BB14146A63D600B19660 /* btGImpactQuantizedBvh.cpp in Sources */,
 				E0D9BB15146A63D600B19660 /* btGImpactShape.cpp in Sources */,

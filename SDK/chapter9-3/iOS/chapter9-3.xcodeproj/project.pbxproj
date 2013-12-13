@@ -13,6 +13,7 @@
 		28AD733F0D9D9553002E5188 /* MainWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = 28AD733E0D9D9553002E5188 /* MainWindow.xib */; };
 		28FD15000DC6FC520079059D /* OpenGLES.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 28FD14FF0DC6FC520079059D /* OpenGLES.framework */; };
 		28FD15080DC6FC5B0079059D /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 28FD15070DC6FC5B0079059D /* QuartzCore.framework */; };
+		8309CC1D185AB68F00A36933 /* glml.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8309CC1B185AB68F00A36933 /* glml.cpp */; };
 		8311C92618159DE80011C383 /* Default-568h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 8311C92518159DE80011C383 /* Default-568h@2x.png */; };
 		E000A2B014046A350062DF0B /* audio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E000A29514046A350062DF0B /* audio.cpp */; };
 		E000A2B114046A350062DF0B /* font.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E000A29714046A350062DF0B /* font.cpp */; };
@@ -271,6 +272,8 @@
 		28FD14FF0DC6FC520079059D /* OpenGLES.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGLES.framework; path = System/Library/Frameworks/OpenGLES.framework; sourceTree = SDKROOT; };
 		28FD15070DC6FC5B0079059D /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
 		29B97316FDCFA39411CA2CEA /* main.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = main.mm; sourceTree = "<group>"; };
+		8309CC1B185AB68F00A36933 /* glml.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = glml.cpp; sourceTree = "<group>"; };
+		8309CC1C185AB68F00A36933 /* glml.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = glml.h; sourceTree = "<group>"; };
 		8311C92518159DE80011C383 /* Default-568h@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-568h@2x.png"; sourceTree = "<group>"; };
 		E000A29514046A350062DF0B /* audio.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = audio.cpp; sourceTree = "<group>"; };
 		E000A29614046A350062DF0B /* audio.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = audio.h; sourceTree = "<group>"; };
@@ -901,6 +904,15 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
+		8309CC1A185AB68F00A36933 /* glml */ = {
+			isa = PBXGroup;
+			children = (
+				8309CC1B185AB68F00A36933 /* glml.cpp */,
+				8309CC1C185AB68F00A36933 /* glml.h */,
+			);
+			path = glml;
+			sourceTree = "<group>";
+		};
 		E000A2BD14046A420062DF0B /* bullet */ = {
 			isa = PBXGroup;
 			children = (
@@ -1430,6 +1442,7 @@
 				E000A29814046A350062DF0B /* font.h */,
 				E000A29914046A350062DF0B /* gfx.cpp */,
 				E000A29A14046A350062DF0B /* gfx.h */,
+				8309CC1A185AB68F00A36933 /* glml */,
 				E000A29B14046A350062DF0B /* matrix.cpp */,
 				E000A29C14046A350062DF0B /* matrix.h */,
 				E000A29D14046A350062DF0B /* memory.cpp */,
@@ -1656,6 +1669,7 @@
 				E000A4DD14046A420062DF0B /* btPoint2PointConstraint.cpp in Sources */,
 				E000A4DE14046A420062DF0B /* btPolyhedralContactClipping.cpp in Sources */,
 				E000A4DF14046A420062DF0B /* btPolyhedralConvexShape.cpp in Sources */,
+				8309CC1D185AB68F00A36933 /* glml.cpp in Sources */,
 				E000A4E014046A420062DF0B /* btQuantizedBvh.cpp in Sources */,
 				E000A4E114046A420062DF0B /* btQuickprof.cpp in Sources */,
 				E000A4E214046A420062DF0B /* btRaycastCallback.cpp in Sources */,

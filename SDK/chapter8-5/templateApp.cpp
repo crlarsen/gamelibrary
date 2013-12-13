@@ -354,7 +354,7 @@ void draw_navigation_points(NAVIGATIONPATHDATA *navigationpathdata, vec3 *color)
      * the floor of the maze.
      */
     for (int i=0; i!=navigationpathdata->path_point_count + 1; ++i)
-        navigationpathdata->path_point_array[i][2] = 1.0f;
+        navigationpathdata->path_point_array[i]->z = 1.0f;
 
     /* Reset the VAO and VBO indices since you are about to draw using
      * glDrawArrays.  The data is always dynamic, so there's no need to
@@ -420,8 +420,8 @@ void move_entity(OBJMESH *objmesh,
     /* Set the Z location of the mesh to be 0.  (You are only interested in
      * the X and Y position to compute the forward direction vector.)
      */
-    objmesh->location[2] =
-        navigationpathdata->path_point_array[*next_point][2] = 0.0f;
+    objmesh->location->z =
+        navigationpathdata->path_point_array[*next_point]->z = 0.0f;
     /* Calculate the distance between the mesh location and the way point. */
     float distance =
         (objmesh->location - navigationpathdata->path_point_array[*next_point]).length();
@@ -452,8 +452,8 @@ void move_entity(OBJMESH *objmesh,
          * body pointer attached to the mesh multiplied by the speed passed
          * in the parameter to this function.
          */
-        objmesh->btrigidbody->setLinearVelocity(btVector3(direction[0] * speed,
-                                                          direction[1] * speed,
+        objmesh->btrigidbody->setLinearVelocity(btVector3(direction->x * speed,
+                                                          direction->y * speed,
                                                           0.0f));
         /* Activate the rigid body so that linear velocity will be affected. */
         objmesh->btrigidbody->setActivationState(ACTIVE_TAG);
@@ -508,17 +508,17 @@ void templateAppDraw(void) {
     rotx = rotx * 0.9f + next_rotx * 0.1f;
     rotz = rotz * 0.9f + next_rotz * 0.1f;
 
-    eye[0] = center[0] +
+    eye->x = center->x +
              distance *
              cosf(rotx * DEG_TO_RAD) *
              sinf(rotz * DEG_TO_RAD);
 
-    eye[1] = center[1] -
+    eye->y = center->y -
              distance *
              cosf(rotx * DEG_TO_RAD) *
              cosf(rotz * DEG_TO_RAD);
 
-    eye[2] = center[2] +
+    eye->z = center->z +
              distance *
              sinf(rotx * DEG_TO_RAD);
 
@@ -538,7 +538,7 @@ void templateAppDraw(void) {
          * to a 3D point in space.  The return value is 1 or 0, depending on
          * whether or not the query is successful.  It's a GFX helper, but built
          * basically the same way as the standard gluUnproject
-         * (http://www.opengl.org/sdk/docs/man/xhtml/gluUnproject[0]ml)
+         * (http://www.opengl.org/sdk/docs/man/xhtml/gluUnproject.xml)
          * function.
          */
         if (GFX_unproject(view_location->x,
@@ -560,24 +560,24 @@ void templateAppDraw(void) {
                           GFX_get_modelview_matrix(),
                           GFX_get_projection_matrix(),
                           viewport_matrix,
-                          &location[0],
-                          &location[1],
-                          &location[2])) {
+                          &location->x,
+                          &location->y,
+                          &location->z)) {
 
             /* Now that you have the XYZ location on the far plane, you can
              * create the collision ray.  Begin by creating the starting point,
              * which is basically the current camera eye position.
              */
-            btVector3 ray_from(eye[0],
-                               eye[1],
-                               eye[2]),
+            btVector3 ray_from(eye->x,
+                               eye->y,
+                               eye->z),
             /* Translate the resulting location of GFX_unproject based on the
              * current eye location to make sure that the coordinate system
              * will fit with what the player currently sees onscreen.
              */
-            ray_to(location[0] + eye[0],
-                   location[1] + eye[1],
-                   location[2] + eye[2]);
+            ray_to(location->x + eye->x,
+                   location->y + eye->y,
+                   location->z + eye->z);
             /* Create the collision ray. */
             btCollisionWorld::ClosestRayResultCallback collision_ray(ray_from,
                                                                      ray_to);
@@ -605,9 +605,9 @@ void templateAppDraw(void) {
                     /* Then simply use the collision ray hit position XYZ as
                      * the end point of the path query.
                      */
-                    navigationpath_player.end_location[0] = collision_ray.m_hitPointWorld.x();
-                    navigationpath_player.end_location[1] = collision_ray.m_hitPointWorld.y();
-                    navigationpath_player.end_location[2] = collision_ray.m_hitPointWorld.z();
+                    navigationpath_player.end_location->x = collision_ray.m_hitPointWorld.x();
+                    navigationpath_player.end_location->y = collision_ray.m_hitPointWorld.y();
+                    navigationpath_player.end_location->z = collision_ray.m_hitPointWorld.z();
                     /* The query is ready to be sent to Detour, so send it over.
                      * If Detour was able to find a path, the function will
                      * return 1 and will store the way points information
@@ -634,9 +634,9 @@ void templateAppDraw(void) {
                         for (int i=0; i!=navigationpathdata_player.path_point_count + 1; ++i)
                             console_print("%d: %f %f %f\n",
                                           i,
-                                          navigationpathdata_player.path_point_array[i][0],
-                                          navigationpathdata_player.path_point_array[i][1],
-                                          navigationpathdata_player.path_point_array[i][2]);
+                                          navigationpathdata_player.path_point_array[i]->x,
+                                          navigationpathdata_player.path_point_array[i]->y,
+                                          navigationpathdata_player.path_point_array[i]->z);
                         printf("\n");
                     }
                 }
@@ -716,7 +716,7 @@ void templateAppDraw(void) {
 
         objmesh->btrigidbody->getWorldTransform().getOpenGLMatrix((float *)&mat);
 
-        objmesh->location = vec3(mat.m[3], true);
+        objmesh->location = vec3(mat[3], true);
 
         GFX_multiply_matrix(&mat);
 

@@ -47,7 +47,7 @@ as being the original software.
 
 
 struct FONT {
-    char            name[MAX_CHAR];
+    char            name[MAX_CHAR] = "";
 
     stbtt_bakedchar *character_data;
 

@@ -389,13 +389,13 @@ void OBJMESH::update_bounds()
          objvertexdata!=this->objvertexdata.end(); ++objvertexdata) {
         index = objvertexdata->vertex_index;
 
-        if (this->parent->indexed_vertex[index][0] < this->min[0]) this->min[0] = this->parent->indexed_vertex[index][0];
-        if (this->parent->indexed_vertex[index][1] < this->min[1]) this->min[1] = this->parent->indexed_vertex[index][1];
-        if (this->parent->indexed_vertex[index][2] < this->min[2]) this->min[2] = this->parent->indexed_vertex[index][2];
+        if (this->parent->indexed_vertex[index]->x < this->min->x) this->min->x = this->parent->indexed_vertex[index]->x;
+        if (this->parent->indexed_vertex[index]->y < this->min->y) this->min->y = this->parent->indexed_vertex[index]->y;
+        if (this->parent->indexed_vertex[index]->z < this->min->z) this->min->z = this->parent->indexed_vertex[index]->z;
 
-        if (this->parent->indexed_vertex[index][0] > this->max[0]) this->max[0] = this->parent->indexed_vertex[index][0];
-        if (this->parent->indexed_vertex[index][1] > this->max[1]) this->max[1] = this->parent->indexed_vertex[index][1];
-        if (this->parent->indexed_vertex[index][2] > this->max[2]) this->max[2] = this->parent->indexed_vertex[index][2];
+        if (this->parent->indexed_vertex[index]->x > this->max->x) this->max->x = this->parent->indexed_vertex[index]->x;
+        if (this->parent->indexed_vertex[index]->y > this->max->y) this->max->y = this->parent->indexed_vertex[index]->y;
+        if (this->parent->indexed_vertex[index]->z > this->max->z) this->max->z = this->parent->indexed_vertex[index]->z;
     }
 
 
@@ -408,13 +408,13 @@ void OBJMESH::update_bounds()
 
 
     // Bounding sphere radius
-    this->radius = this->dimension[0] > this->dimension[1] ?
-                   this->dimension[0]:
-                   this->dimension[1];
+    this->radius = this->dimension->x > this->dimension->y ?
+                   this->dimension->x:
+                   this->dimension->y;
 
-    this->radius = this->radius > this->dimension[2] ?
+    this->radius = this->radius > this->dimension->z ?
                    this->radius * 0.5f:
-                   this->dimension[2] * 0.5f;
+                   this->dimension->z * 0.5f;
 
     /*
      objmesh->radius = (objmesh->max - objmesh->min).length() * 0.5f;
@@ -923,17 +923,17 @@ void OBJMESH::draw3(OBJMESH *objmesh)
         if (&this->parent->objmesh[i] == objmesh) {
             GFX_push_matrix();
 
-            GFX_translate(objmesh->location[0],
-                          objmesh->location[1],
-                          objmesh->location[2]);
+            GFX_translate(objmesh->location->x,
+                          objmesh->location->y,
+                          objmesh->location->z);
 
-            GFX_rotate(objmesh->rotation[2], 0.0f, 0.0f, 1.0f);
-            GFX_rotate(objmesh->rotation[1], 0.0f, 1.0f, 0.0f);
-            GFX_rotate(objmesh->rotation[0], 1.0f, 0.0f, 0.0f);
+            GFX_rotate(objmesh->rotation->z, 0.0f, 0.0f, 1.0f);
+            GFX_rotate(objmesh->rotation->y, 0.0f, 1.0f, 0.0f);
+            GFX_rotate(objmesh->rotation->x, 1.0f, 0.0f, 0.0f);
 
-            GFX_scale(objmesh->scale[0],
-                      objmesh->scale[1],
-                      objmesh->scale[2]);
+            GFX_scale(objmesh->scale->x,
+                      objmesh->scale->y,
+                      objmesh->scale->z);
 
             objmesh->draw();
 
@@ -982,25 +982,25 @@ bool OBJ::load_mtl(char *filename, const bool relative_path)
             this->objmaterial.push_back(OBJMATERIAL(str, this));
 
             objmaterial = &this->objmaterial.back();
-        } else if (sscanf(line, "Ka %f %f %f", &v[0], &v[1], &v[2]) == 3) {
+        } else if (sscanf(line, "Ka %f %f %f", &v->x, &v->y, &v->z) == 3) {
             memcpy(&objmaterial->ambient, &v, sizeof(vec3));
-        } else if (sscanf(line, "Kd %f %f %f", &v[0], &v[1], &v[2]) == 3) {
+        } else if (sscanf(line, "Kd %f %f %f", &v->x, &v->y, &v->z) == 3) {
             memcpy(&objmaterial->diffuse, &v, sizeof(vec3));
-        } else if (sscanf(line, "Ks %f %f %f", &v[0], &v[1], &v[2]) == 3) {
+        } else if (sscanf(line, "Ks %f %f %f", &v->x, &v->y, &v->z) == 3) {
             memcpy(&objmaterial->specular, &v, sizeof(vec3));
-        } else if (sscanf(line, "Tf %f %f %f", &v[0], &v[1], &v[2]) == 3) {
+        } else if (sscanf(line, "Tf %f %f %f", &v->x, &v->y, &v->z) == 3) {
             memcpy(&objmaterial->transmission_filter, &v, sizeof(vec3));
-        } else if (sscanf(line, "illum %f", &v[0]) == 1) {
-            objmaterial->illumination_model = (int)v[0];
-        } else if (sscanf(line, "d %f", &v[0]) == 1) {
-            objmaterial->ambient->w  = v[0];
-            objmaterial->diffuse->w  = v[0];
-            objmaterial->specular->w = v[0];
-            objmaterial->dissolve   = v[0];
-        } else if (sscanf(line, "Ns %f", &v[0]) == 1) {
-            objmaterial->specular_exponent = v[0];
-        } else if (sscanf(line, "Ni %f", &v[0]) == 1) {
-            objmaterial->optical_density = v[0];
+        } else if (sscanf(line, "illum %f", &v->x) == 1) {
+            objmaterial->illumination_model = (int)v->x;
+        } else if (sscanf(line, "d %f", &v->x) == 1) {
+            objmaterial->ambient->w  = v->x;
+            objmaterial->diffuse->w  = v->x;
+            objmaterial->specular->w = v->x;
+            objmaterial->dissolve   = v->x;
+        } else if (sscanf(line, "Ns %f", &v->x) == 1) {
+            objmaterial->specular_exponent = v->x;
+        } else if (sscanf(line, "Ni %f", &v->x) == 1) {
+            objmaterial->optical_density = v->x;
         } else if (sscanf(line, "map_Ka %s", str) == 1) {
             get_file_name(str, objmaterial->map_ambient);
 
@@ -1181,7 +1181,7 @@ OBJ::OBJ(char *filename, const bool relative_path)
 
 
                 objtrianglelist->objtriangleindex.push_back(OBJTRIANGLEINDEX(vertex_index, uv_index));
-            } else if (sscanf(line, "v %f %f %f", &v[0], &v[1], &v[2]) == 3) {
+            } else if (sscanf(line, "v %f %f %f", &v->x, &v->y, &v->z) == 3) {
                 // Vertex
                 this->indexed_vertex.push_back(v);
 
@@ -1194,12 +1194,12 @@ OBJ::OBJ(char *filename, const bool relative_path)
 
                 // Tangent
                 this->indexed_tangent.push_back(zero);
-            } else if (sscanf(line, "vn %f %f %f", &v[0], &v[1], &v[2]) == 3) {
+            } else if (sscanf(line, "vn %f %f %f", &v->x, &v->y, &v->z) == 3) {
                 // Drop the normals.
                 goto next_obj_line;
 
-            } else if (sscanf(line, "vt %f %f", &v[0], &v[1]) == 2) {
-                this->indexed_uv.push_back(vec2(v[0], 1.0f-v[1]));
+            } else if (sscanf(line, "vt %f %f", &v->x, &v->y) == 2) {
+                this->indexed_uv.push_back(vec2(v->x, 1.0f-v->y));
             } else if (line[0] == 'v' && line[1] == 'n') {
                 goto next_obj_line;
             } else if (sscanf(line, "usemtl %s", str) == 1) {

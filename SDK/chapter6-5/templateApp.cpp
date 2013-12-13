@@ -128,9 +128,9 @@ void add_rigid_body(OBJMESH *objmesh, ShapeType bound, float mass, bool dynamic_
          */
         case BOX:
         {
-            btcollisionshape = new btBoxShape(btVector3(objmesh->dimension[0] * 0.5f,
-                                                        objmesh->dimension[1] * 0.5f,
-                                                        objmesh->dimension[2] * 0.5f));
+            btcollisionshape = new btBoxShape(btVector3(objmesh->dimension->x * 0.5f,
+                                                        objmesh->dimension->y * 0.5f,
+                                                        objmesh->dimension->z * 0.5f));
             break;
         }
         /* If it's a sphere, initialize a new sphere shape, passing in as a
@@ -147,9 +147,9 @@ void add_rigid_body(OBJMESH *objmesh, ShapeType bound, float mass, bool dynamic_
          */
         case CYLINDER:
         {
-            btcollisionshape = new btCylinderShapeZ(btVector3(objmesh->dimension[0] * 0.5f,
-                                                              objmesh->dimension[1] * 0.5f,
-                                                              objmesh->dimension[2] * 0.5f));
+            btcollisionshape = new btCylinderShapeZ(btVector3(objmesh->dimension->x * 0.5f,
+                                                              objmesh->dimension->y * 0.5f,
+                                                              objmesh->dimension->z * 0.5f));
             break;
         }
     }
@@ -162,9 +162,9 @@ void add_rigid_body(OBJMESH *objmesh, ShapeType bound, float mass, bool dynamic_
      * the pivot XYZ location of the object.  Note that the origin should always be
      * the center of the bounding box of the object in world space coordinates.
      */
-    bttransform.setOrigin(btVector3(objmesh->location[0],
-                                    objmesh->location[1],
-                                    objmesh->location[2]));
+    bttransform.setOrigin(btVector3(objmesh->location->x,
+                                    objmesh->location->y,
+                                    objmesh->location->z));
 
     btDefaultMotionState *btdefaultmotionstate = NULL;
 
@@ -428,8 +428,8 @@ void load_game(void)
 
     momo_index  = 0;
     momo_launch = false;
-    center[0] =
-    eye[0]    = 3.5f;
+    center->x =
+    eye->x    = 3.5f;
 
     get_next_momo();
 }
@@ -480,12 +480,12 @@ void templateAppDraw(void) {
         /* Linearly interpolate the camera eye position with the current
          * location of momo on the X axis.
          */
-        eye[0] = eye[0] * 0.98f + momo->location[0] * 0.02f;
+        eye->x = eye->x * 0.98f + momo->location->x * 0.02f;
         /* Clamp the camera X position to be in the range of -2 to 3.5.
          * That way, even if Momo is going off screen, you will stop tracking it.
          */
-        center[0] =
-        eye[0]    = CLAMP(eye[0], -2.0f, 3.5f);
+        center->x =
+        eye->x    = CLAMP(eye->x, -2.0f, 3.5f);
     }
 
     GFX_look_at(&eye, &center, &up);
@@ -502,16 +502,16 @@ void templateAppDraw(void) {
             objmesh->btrigidbody->getWorldTransform().getOpenGLMatrix((float *)&mat);
             /* Up date the X location based on the current OpenGL matrix value. */
             // Why?  CRL
-            objmesh->location[0] = mat.m[3]->x;
+            objmesh->location->x = mat[3]->x;
             /* Add Bullet's calculation of the object's position/orientation
              * to the "stack" of transformations contained in the modelview
              * matrix.
              */
             GFX_multiply_matrix(&mat);
         } else {
-            GFX_translate(objmesh->location[0],
-                          objmesh->location[1],
-                          objmesh->location[2]);
+            GFX_translate(objmesh->location->x,
+                          objmesh->location->y,
+                          objmesh->location->z);
         }
 
         glUniformMatrix4fv(program->uniform_map["MODELVIEWPROJECTIONMATRIX"].location,
@@ -533,8 +533,8 @@ void templateAppDraw(void) {
 
     if (!momo || !banana) {
         gameover->visible = true;
-        gameover->location[0] = eye[0];
-        gameover->location[2] = eye[2];
+        gameover->location->x = eye->x;
+        gameover->location->z = eye->z;
     }
 }
 

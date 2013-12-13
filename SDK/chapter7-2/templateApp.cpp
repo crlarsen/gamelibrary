@@ -167,15 +167,15 @@ void templateAppDraw(void) {
                 c = cosf(r),
                 s = sinf(r);
 
-        direction[0] = c * forward[0] - s * forward[1];
-        direction[1] = s * forward[0] + c * forward[1];
+        direction->x = c * forward->x - s * forward->y;
+        direction->y = s * forward->x + c * forward->y;
         /* You now have a direction vector that is appropriately rotated to
          * the current coordinate system of the camera.  Add the direction
          * vector to the eye_location to make the camera move.  And use the
-         * touche_delta[0] as the speed factor.
+         * touche_delta->x as the speed factor.
          */
-        eye_location[0] += direction[0] * -touche_delta->x;
-        eye_location[1] += direction[1] * -touche_delta->x;
+        eye_location->x += direction->x * -touche_delta->x;
+        eye_location->y += direction->y * -touche_delta->x;
     }
 
     /* Rotate the matrix -90 degrees on the positive X axis to look
@@ -190,17 +190,17 @@ void templateAppDraw(void) {
     // calculating the frustum, and into the loop to be merged with the
     // other translation operation.
     /* First translate the model view matrix. */
-    GFX_translate(-eye_location[0],
-                  -eye_location[1],
-                  -eye_location[2]);
+    GFX_translate(-eye_location->x,
+                  -eye_location->y,
+                  -eye_location->z);
 
     /* Build the frustum planes.  Always make sure that you call the
      * function after the model view and project matrix have been fully updated.
      * otherwise, the frustum calculation will be wrong.
      */
     build_frustum(frustum,
-                  GFX_get_modelview_matrix(),
-                  GFX_get_projection_matrix());
+                  *GFX_get_modelview_matrix(),
+                  *GFX_get_projection_matrix());
 
     unsigned int n = 0;
 
@@ -217,9 +217,9 @@ void templateAppDraw(void) {
         if (objmesh->distance) {
             GFX_push_matrix();
 
-        GFX_translate(objmesh->location[0],
-                      objmesh->location[1],
-                      objmesh->location[2]);
+            GFX_translate(objmesh->location->x,
+                          objmesh->location->y,
+                          objmesh->location->z);
 
             glUniformMatrix4fv(program->uniform_map["MODELVIEWPROJECTIONMATRIX"].location,
                                1,
