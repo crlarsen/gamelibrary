@@ -108,7 +108,7 @@ void program_draw(void *ptr)
             glUniformMatrix4fv(uniform.location,
                                1,
                                GL_FALSE,
-                               (float *)GFX_get_modelview_projection_matrix());
+                               GFX_get_modelview_projection_matrix().m());
         } else if (name == TM_Diffuse_String) {
             glUniform1i(uniform.location, TM_Diffuse);
 
@@ -122,24 +122,24 @@ void program_draw(void *ptr)
             glUniformMatrix4fv(uniform.location,
                                1,
                                GL_FALSE,
-                               (float *)GFX_get_modelview_matrix());
+                               GFX_get_modelview_matrix().m());
         } else if (name == "PROJECTIONMATRIX") {
             glUniformMatrix4fv(uniform.location,
                                1,
                                GL_FALSE,
-                               (float *)GFX_get_projection_matrix());
+                               GFX_get_projection_matrix().m());
 
             uniform.constant = true;
         } else if (name == "NORMALMATRIX") {
             glUniformMatrix3fv(uniform.location,
                                1,
                                GL_FALSE,
-                               (float *)GFX_get_normal_matrix());
+                               GFX_get_normal_matrix().m());
         } else if (name == "MATERIAL.ambient") {
             // Material Data
             glUniform4fv(uniform.location,
                          1,
-                         (float *)&objmesh->current_material->ambient);
+                         objmesh->current_material->ambient.v());
             /* In this scene, all the materials (in this case, there are
              * only two) have the exact same properties, so simply tag the
              * uniforms for the current material to be constant.  This will
@@ -153,11 +153,11 @@ void program_draw(void *ptr)
 
                 glUniform4fv(uniform.location,
                              1,
-                             (float *)&black);
+                             black.v());
             } else {
                 glUniform4fv(uniform.location,
                              1,
-                             (float *)&objmesh->current_material->diffuse);
+                             objmesh->current_material->diffuse.v());
             }
         } else if (name == "MATERIAL.specular") {
             if (pass == 2) {
@@ -167,16 +167,16 @@ void program_draw(void *ptr)
                 (objmesh->current_material->specular.x * 0.5f,
                  objmesh->current_material->specular.y * 0.5f,
                  objmesh->current_material->specular.z * 0.5f,
-                 1.0f };
+                 1.0f);
                  */
 
                 glUniform4fv(uniform.location,
                              1,
-                             (float *)&black);
+                             black.v());
             } else {
                 glUniform4fv(uniform.location,
                              1,
-                             (float *)&objmesh->current_material->specular);
+                             objmesh->current_material->specular.v());
             }
         } else if (name == "MATERIAL.shininess") {
             glUniform1f(uniform.location,
@@ -239,7 +239,7 @@ void templateAppInit(int width, int height) {
                           obj->program_path);
     }
 
-	for (auto objmaterial=obj->objmaterial.begin();
+    for (auto objmaterial=obj->objmaterial.begin();
          objmaterial!=obj->objmaterial.end(); ++objmaterial) {
 		objmaterial->build(NULL);
     }
@@ -310,10 +310,8 @@ void draw_scene(void)
 
         GFX_push_matrix();
 
-        GFX_translate(objmesh->location->x,
-                      objmesh->location->y,
-                      objmesh->location->z);
-        
+        GFX_translate(objmesh->location);
+
         objmesh->draw();
         
         GFX_pop_matrix();
@@ -371,9 +369,9 @@ void fullscreen_pass(void)
     GFX_load_identity();
 
     GFX_set_orthographic_2d(-half_width,
-                            half_width,
+                             half_width,
                             -half_height,
-                            half_height);
+                             half_height);
 
     GFX_set_matrix_mode(MODELVIEW_MATRIX);
     GFX_load_identity();
@@ -413,7 +411,7 @@ void fullscreen_pass(void)
 
         glUniform2fv(program->get_uniform_location((char *)"BLUR_RADIUS"),
                      1,
-                     (float *)&radius);
+                     radius.v());
 
         auto objmesh = obj->get_mesh("fullscreen", false);
         objmesh->draw();
@@ -424,7 +422,7 @@ void fullscreen_pass(void)
 
         glUniform2fv(program->get_uniform_location((char *)"BLUR_RADIUS"),
                      1,
-                     (float *)&radius);
+                     radius.v());
 
         
         

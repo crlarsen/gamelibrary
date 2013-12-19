@@ -338,9 +338,9 @@ void templateAppDraw(void) {
     
     center = maze->location;
 
-    GFX_look_at(&eye,
-                &center,
-                &up);
+    GFX_look_at(eye,
+                center,
+                up);
 
 
     program->draw();
@@ -354,15 +354,15 @@ void templateAppDraw(void) {
 
         mat4 mat;
 
-        objmesh->btrigidbody->getWorldTransform().getOpenGLMatrix((float *)&mat);
+        objmesh->btrigidbody->getWorldTransform().getOpenGLMatrix(mat.m());
 
         objmesh->location = vec3(mat[3], true);
-        GFX_multiply_matrix(&mat);
+        GFX_multiply_matrix(mat);
 
         glUniformMatrix4fv(program->get_uniform_location((char *)"MODELVIEWPROJECTIONMATRIX"),
                            1,
                            GL_FALSE,
-                           (float *)GFX_get_modelview_projection_matrix());
+                           GFX_get_modelview_projection_matrix().m());
 
         objmesh->draw();
         

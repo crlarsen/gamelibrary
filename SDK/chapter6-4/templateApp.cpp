@@ -144,7 +144,7 @@ void add_rigid_body(OBJMESH *objmesh, float mass)
          rotz(0.0f, 0.0f, 1.0f, objmesh->rotation->z);
 
     /* Set up the identity matrix to makesure the matrix is clean. */
-    mat4_identity(mat);
+    mat.loadIdentity();
 
     mat4_translate(mat, mat, objmesh->location);
 
@@ -157,7 +157,7 @@ void add_rigid_body(OBJMESH *objmesh, float mass)
     /* Assign the current transformation matrix that you create using the
      * standard "OpenGL way" and send it over to the Bullet transform variable.
      */
-    bttransform.setFromOpenGLMatrix((float *)&mat);
+    bttransform.setFromOpenGLMatrix(mat.m());
 
     /* Create a new motion state in order for Bullet to be able to
      * maintain and interpolate the object transformation.
@@ -309,7 +309,7 @@ void templateAppDraw(void) {
                 c(-3.4f,  2.8f, 0.0f),
                 u( 0.0f,  0.0f, 1.0f);
 
-        GFX_look_at(&e, &c, &u);
+        GFX_look_at(e, c, u);
     }
 
     for (auto objmesh=obj->objmesh.begin();
@@ -318,13 +318,13 @@ void templateAppDraw(void) {
         GFX_push_matrix();
 
         mat4 mat;
-        objmesh->btrigidbody->getWorldTransform().getOpenGLMatrix((float *)&mat);
-        GFX_multiply_matrix(&mat);
+        objmesh->btrigidbody->getWorldTransform().getOpenGLMatrix(mat.m());
+        GFX_multiply_matrix(mat);
 
         glUniformMatrix4fv(program->uniform_map["MODELVIEWPROJECTIONMATRIX"].location,
                            1,
                            GL_FALSE,
-                           (float *)GFX_get_modelview_projection_matrix());
+                           GFX_get_modelview_projection_matrix().m());
 
         objmesh->draw();
 

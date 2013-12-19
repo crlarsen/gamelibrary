@@ -1,3 +1,4 @@
+
 /*
 
 GFX Lightweight OpenGLES 2.0 Game and Graphics Engine
@@ -216,40 +217,72 @@ void GFX_push_matrix( void );
 
 void GFX_pop_matrix( void );
 
-void GFX_load_matrix( mat4 *m );
+void GFX_load_matrix(const mat4 &m);
 
-void GFX_multiply_matrix( mat4 *m );
+void GFX_multiply_matrix(const mat4 &m);
 
-void GFX_translate( float x, float y, float z );
+void GFX_translate(const float x, const float y, const float z);
 
-void GFX_rotate( float angle, float x, float y, float z );
+void GFX_translate(const vec3 &t);
 
-void GFX_scale( float x, float y, float z );
+void GFX_rotate(const float angle, const float x, const float y, const float z);
 
-mat4 *GFX_get_modelview_matrix( void );
+void GFX_scale(const float x, const float y, const float z);
 
-mat4 *GFX_get_projection_matrix( void );
+void GFX_scale(const vec3 &v);
 
-mat4 *GFX_get_texture_matrix( void );
+mat4 &GFX_get_modelview_matrix( void );
 
-mat4 *GFX_get_modelview_projection_matrix( void );
+mat4 &GFX_get_projection_matrix( void );
 
-mat3 *GFX_get_normal_matrix( void );
+mat4 &GFX_get_texture_matrix( void );
 
-void GFX_ortho( float left, float right, float bottom, float top, float clip_start, float clip_end );
+mat4 &GFX_get_modelview_projection_matrix( void );
 
-void GFX_set_orthographic_2d( float left, float right, float bottom, float top );
+mat3 &GFX_get_normal_matrix( void );
 
-void GFX_set_orthographic( float screen_ratio, float scale, float aspect_ratio, float clip_start, float clip_end, float screen_orientation );
+void GFX_ortho(const float left, const float right,
+               const float bottom, const float top,
+               const float clip_start, const float clip_end);
 
-void GFX_set_perspective( float fovy, float aspect_ratio, float clip_start, float clip_end, float screen_orientation );
+void GFX_set_orthographic_2d(const float left, const float right,
+                             const float bottom, const float top);
 
-void GFX_look_at( vec3 *eye, vec3 *center, vec3 *up );
+void GFX_set_orthographic(const float screen_ratio, float scale,
+                          const float aspect_ratio,
+                          const float clip_start, const float clip_end,
+                          const float screen_orientation);
+
+void GFX_set_perspective(const float fovy, const float aspect_ratio,
+                         const float clip_start, const float clip_end,
+                         const float screen_orientation);
+
+void GFX_look_at(const vec3 &eye, const vec3 &center, const vec3 &up);
 
 void GFX_clear_color( float r, float g, float b, float a );
 
-bool GFX_project( float objx, float objy, float objz, mat4 *modelview_matrix, mat4 *projection_matrix, int *viewport_matrix, float *winx, float *winy, float *winz );
+bool GFX_project(float objx, float objy, float objz,
+                 mat4 *modelview_matrix,
+                 mat4 *projection_matrix,
+                 int *viewport_matrix,
+                 float *winx, float *winy, float *winz );
 
-bool GFX_unproject( float winx, float winy, float winz, mat4 *modelview_matrix, mat4 *projection_matrix, int *viewport_matrix, float *objx, float *objy, float *objz );
+bool GFX_project(const vec3 &obj,
+                 const mat4 &modelview_matrix,
+                 const mat4 &projection_matrix,
+                 const int *viewport_matrix,
+                 float *winx, float *winy, float *winz);
+
+bool GFX_unproject(const float winx, const float winy, const float winz,
+                   const mat4 &modelview_matrix,
+                   const mat4 &projection_matrix,
+                   const int *viewport_matrix,
+                   float *objx, float *objy, float *objz);
+
+bool GFX_unproject(const float winx, const float winy, const float winz,
+                   const mat4 &modelview_matrix,
+                   const mat4 &projection_matrix,
+                   const int *viewport_matrix,
+                   vec3 &obj);
 
 #endif

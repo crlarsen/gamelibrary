@@ -336,7 +336,7 @@ void templateAppDraw(void) {
                 c(0.0f, -20.36f, 19.22f),
                 u(0.0f,    0.0f,  1.0f );
 
-        GFX_look_at(&e, &c, &u);
+        GFX_look_at(e, c, u);
     }
 
     for (auto objmesh=obj->objmesh.begin();
@@ -347,19 +347,17 @@ void templateAppDraw(void) {
         if (objmesh->btrigidbody) {
             mat4 mat;
 
-            objmesh->btrigidbody->getWorldTransform().getOpenGLMatrix((float *)&mat);
+            objmesh->btrigidbody->getWorldTransform().getOpenGLMatrix(mat.m());
 
-            GFX_multiply_matrix(&mat);
+            GFX_multiply_matrix(mat);
         } else {
-            GFX_translate(objmesh->location->x,
-                          objmesh->location->y,
-                          objmesh->location->z);
+            GFX_translate(objmesh->location);
         }
 
         glUniformMatrix4fv(program->uniform_map["MODELVIEWPROJECTIONMATRIX"].location,
                            1,
                            GL_FALSE,
-                           (float *)GFX_get_modelview_projection_matrix());
+                           GFX_get_modelview_projection_matrix().m());
 
         objmesh->draw();
 

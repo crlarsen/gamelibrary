@@ -78,30 +78,30 @@ void material_draw_callback(void *ptr)
              * projection matrix.
              */
             glUniformMatrix4fv(uniform.location, 1, GL_FALSE,
-                               (float *)GFX_get_modelview_projection_matrix());
+                               GFX_get_modelview_projection_matrix().m());
         } else if (name == MP_Dissolve) {   // aka alpha
             glUniform1f(uniform.location, objmaterial->dissolve);
         } else if (name == MP_Ambient) {
             glUniform3fv(uniform.location, 1,
-                         (float *)&objmaterial->ambient);
+                         objmaterial->ambient.v());
         } else if (name == MP_Diffuse) {
             glUniform3fv(uniform.location, 1,
-                         (float *)&objmaterial->diffuse);
+                         objmaterial->diffuse.v());
         } else if (name == MP_Specular) {
             glUniform3fv(uniform.location, 1,
-                         (float *)&objmaterial->specular);
+                         objmaterial->specular.v());
         } else if (name == MP_Shininess) {
             glUniform1f(uniform.location,
                         objmaterial->specular_exponent * 0.128f);
         } else if (name == "MODELVIEWMATRIX") {
             glUniformMatrix4fv(uniform.location, 1, GL_FALSE,
-                               (float *)GFX_get_modelview_matrix());
+                               GFX_get_modelview_matrix().m());
         } else if (name == "PROJECTIONMATRIX") {
             glUniformMatrix4fv(uniform.location, 1, GL_FALSE,
-                               (float *)GFX_get_projection_matrix());
+                               GFX_get_projection_matrix().m());
         } else if (name == "NORMALMATRIX") {
             glUniformMatrix3fv(uniform.location, 1, GL_FALSE,
-                               (float *)GFX_get_normal_matrix());
+                               GFX_get_normal_matrix().m());
         } else if (name == "LIGHTPOSITION") {
             /* The light position in world space coordinates. */
             vec3 position   (0.0f, -3.0f, 10.0f);
@@ -111,7 +111,7 @@ void material_draw_callback(void *ptr)
             vec3_multiply_mat4(eyeposition, position,
                                gfx.modelview_matrix[gfx.modelview_matrix_index-1]);
             glUniform3fv(uniform.location, 1,
-                         (float *)&eyeposition);
+                         eyeposition.v());
         }
     }
 }
@@ -260,7 +260,7 @@ void templateAppDraw(void)
          c(0.0f, -5.0f, 1.35f), /* Where the camera is looking. */
          u(0.0f,  0.0f, 1.0f);
 
-     GFX_look_at(&e, &c, &u);
+     GFX_look_at(e, c, u);
 
     /* Solid Objects */
     for (auto objmesh=obj->objmesh.begin();
@@ -277,9 +277,7 @@ void templateAppDraw(void)
         /* Is it a solid object? */
         if (objmaterial->dissolve == 1.0f) {
             GFX_push_matrix();
-            GFX_translate(objmesh->location->x,
-                          objmesh->location->y,
-                          objmesh->location->z);
+            GFX_translate(objmesh->location);
             objmesh->draw();
             GFX_pop_matrix();
         }
@@ -303,9 +301,7 @@ void templateAppDraw(void)
          */
         if (objmaterial->dissolve != 1.0f) {
             GFX_push_matrix();
-            GFX_translate(objmesh->location->x,
-                          objmesh->location->y,
-                          objmesh->location->z);
+            GFX_translate(objmesh->location);
             glCullFace(GL_FRONT);
             objmesh->draw();
             glCullFace(GL_BACK);

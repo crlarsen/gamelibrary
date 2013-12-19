@@ -221,15 +221,15 @@ void templateAppDraw(void) {
             location->z += forward->z * move_delta->z * 0.1f;
     }
 
-	GFX_rotate(-rotx, 1.0f, 0.0f, 0.0f);
+    GFX_rotate(-rotx, 1.0f, 0.0f, 0.0f);
 
-	GFX_rotate(-rotz, 0.0f, 0.0f, 1.0f);
+    GFX_rotate(-rotz, 0.0f, 0.0f, 1.0f);
 
-	GFX_translate(-location->x, -location->y, -location->z);
+    GFX_translate(-location);
 
     build_frustum(frustum,
-                  *GFX_get_modelview_matrix(),
-                  *GFX_get_projection_matrix());
+                  GFX_get_modelview_matrix(),
+                  GFX_get_projection_matrix());
 
     for (auto objmesh=obj->objmesh.begin();
          objmesh!=obj->objmesh.end(); ++objmesh) {
@@ -241,14 +241,12 @@ void templateAppDraw(void) {
         if (objmesh->distance > 0.0f) {
             GFX_push_matrix();
 
-            GFX_translate(objmesh->location->x,
-                          objmesh->location->y,
-                          objmesh->location->z);
+            GFX_translate(objmesh->location);
 
             glUniformMatrix4fv(program->uniform_map["MODELVIEWPROJECTIONMATRIX"].location,
                                1,
                                GL_FALSE,
-                               (float *)GFX_get_modelview_projection_matrix());
+                               GFX_get_modelview_projection_matrix().m());
             
             objmesh->draw();
             

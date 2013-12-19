@@ -224,7 +224,7 @@ void program_draw(void *ptr)
             glUniformMatrix4fv(uniform.location,
                                1,
                                GL_FALSE,
-                               (float *)GFX_get_modelview_projection_matrix());
+                               GFX_get_modelview_projection_matrix().m());
         } else if(name == "TEXTUREMATRIX") {
             static vec2 scroll(0.0f, 0.0f);
 
@@ -240,7 +240,7 @@ void program_draw(void *ptr)
             glUniformMatrix4fv(uniform.location,
                                1,
                                GL_FALSE,
-                               (float *)GFX_get_texture_matrix());
+                               GFX_get_texture_matrix().m());
             
             GFX_pop_matrix();
             
@@ -660,9 +660,8 @@ void templateAppDraw(void) {
     GFX_load_identity();
 
 
-    next_accelerometer->x = accelerometer->x * 0.1f + next_accelerometer->x * 0.9f;
-    next_accelerometer->y = accelerometer->y * 0.1f + next_accelerometer->y * 0.9f;
-    
+    next_accelerometer = accelerometer * 0.1f + next_accelerometer * 0.9f;
+
     rotz += next_accelerometer->y * sensitivity;
     
     vec3    forward(0.0f, 1.0f, 0.0f),
@@ -740,13 +739,13 @@ void templateAppDraw(void) {
 
     AUDIO_set_listener(eye, direction, up);
 
-    GFX_look_at(&eye,
-                &player->location,
-                &up);
+    GFX_look_at(eye,
+                player->location,
+                up);
 
     build_frustum(frustum,
-                  *GFX_get_modelview_matrix(),
-                  *GFX_get_projection_matrix());
+                  GFX_get_modelview_matrix(),
+                  GFX_get_projection_matrix());
     
     
     for (auto objmesh=obj->objmesh.begin();
@@ -760,9 +759,7 @@ void templateAppDraw(void) {
             GFX_push_matrix();
 
             if (strstr(objmesh->name, "gem")) {
-                GFX_translate(objmesh->location->x,
-                              objmesh->location->y,
-                              objmesh->location->z);
+                GFX_translate(objmesh->location);
 
                 objmesh->rotation->z += 1.0f;
 
@@ -770,15 +767,13 @@ void templateAppDraw(void) {
             } else if (objmesh->btrigidbody) {
                 mat4 mat;
 
-                objmesh->btrigidbody->getWorldTransform().getOpenGLMatrix((float *)&mat);
+                objmesh->btrigidbody->getWorldTransform().getOpenGLMatrix(mat.m());
 
                 objmesh->location = vec3(mat[3], true);
 
-                GFX_multiply_matrix(&mat);
+                GFX_multiply_matrix(mat);
             } else {
-                GFX_translate(objmesh->location->x,
-                              objmesh->location->y,
-                              objmesh->location->z);
+                GFX_translate(objmesh->location);
             }
             
             objmesh->draw();

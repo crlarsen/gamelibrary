@@ -923,9 +923,7 @@ void OBJMESH::draw3(OBJMESH *objmesh)
         if (&this->parent->objmesh[i] == objmesh) {
             GFX_push_matrix();
 
-            GFX_translate(objmesh->location->x,
-                          objmesh->location->y,
-                          objmesh->location->z);
+            GFX_translate(objmesh->location);
 
             GFX_rotate(objmesh->rotation->z, 0.0f, 0.0f, 1.0f);
             GFX_rotate(objmesh->rotation->y, 0.0f, 1.0f, 0.0f);
@@ -983,20 +981,28 @@ bool OBJ::load_mtl(char *filename, const bool relative_path)
 
             objmaterial = &this->objmaterial.back();
         } else if (sscanf(line, "Ka %f %f %f", &v->x, &v->y, &v->z) == 3) {
-            memcpy(&objmaterial->ambient, &v, sizeof(vec3));
+            objmaterial->ambient->x = v->x;
+            objmaterial->ambient->y = v->y;
+            objmaterial->ambient->z = v->z;
         } else if (sscanf(line, "Kd %f %f %f", &v->x, &v->y, &v->z) == 3) {
-            memcpy(&objmaterial->diffuse, &v, sizeof(vec3));
+            objmaterial->diffuse->x = v->x;
+            objmaterial->diffuse->y = v->y;
+            objmaterial->diffuse->z = v->z;
         } else if (sscanf(line, "Ks %f %f %f", &v->x, &v->y, &v->z) == 3) {
-            memcpy(&objmaterial->specular, &v, sizeof(vec3));
+            objmaterial->specular->x = v->x;
+            objmaterial->specular->y = v->y;
+            objmaterial->specular->z = v->z;
         } else if (sscanf(line, "Tf %f %f %f", &v->x, &v->y, &v->z) == 3) {
-            memcpy(&objmaterial->transmission_filter, &v, sizeof(vec3));
+            objmaterial->transmission_filter->x = v->x;
+            objmaterial->transmission_filter->y = v->y;
+            objmaterial->transmission_filter->z = v->z;
         } else if (sscanf(line, "illum %f", &v->x) == 1) {
             objmaterial->illumination_model = (int)v->x;
         } else if (sscanf(line, "d %f", &v->x) == 1) {
-            objmaterial->ambient->w  = v->x;
-            objmaterial->diffuse->w  = v->x;
-            objmaterial->specular->w = v->x;
-            objmaterial->dissolve   = v->x;
+            objmaterial->ambient->w  =
+            objmaterial->diffuse->w  =
+            objmaterial->specular->w =
+            objmaterial->dissolve    = v->x;
         } else if (sscanf(line, "Ns %f", &v->x) == 1) {
             objmaterial->specular_exponent = v->x;
         } else if (sscanf(line, "Ni %f", &v->x) == 1) {

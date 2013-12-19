@@ -86,7 +86,7 @@ void program_draw(void *ptr)
             glUniformMatrix4fv(uniform.location,
                                1,
                                GL_FALSE,
-                               (float *)GFX_get_modelview_projection_matrix());
+                               GFX_get_modelview_projection_matrix().m());
         } else if (name == TM_Diffuse_String) {
             glUniform1i(uniform.location, TM_Diffuse);
 
@@ -100,24 +100,24 @@ void program_draw(void *ptr)
             glUniformMatrix4fv(uniform.location,
                                1,
                                GL_FALSE,
-                               (float *)GFX_get_modelview_matrix());
+                               GFX_get_modelview_matrix().m());
         } else if (name == "PROJECTIONMATRIX") {
             glUniformMatrix4fv(uniform.location,
                                1,
                                GL_FALSE,
-                               (float *)GFX_get_projection_matrix());
+                               GFX_get_projection_matrix().m());
 
             uniform.constant = true;
         } else if (name == "NORMALMATRIX") {
             glUniformMatrix3fv(uniform.location,
                                1,
                                GL_FALSE,
-                               (float *)GFX_get_normal_matrix());
+                               GFX_get_normal_matrix().m());
         } else if (name == "MATERIAL.ambient") {
             // Material Data
             glUniform4fv(uniform.location,
                          1,
-                         (float *)&objmesh->current_material->ambient);
+                         objmesh->current_material->ambient.v());
             /* In this scene, all the materials (in this case, there are
              * only two) have the exact same properties, so simply tag the
              * uniforms for the current material to be constant.  This will
@@ -128,11 +128,11 @@ void program_draw(void *ptr)
         } else if (name == "MATERIAL.diffuse") {
             glUniform4fv(uniform.location,
                          1,
-                         (float *)&objmesh->current_material->diffuse);
+                         objmesh->current_material->diffuse.v());
         } else if (name == "MATERIAL.specular") {
             glUniform4fv(uniform.location,
                          1,
-                         (float *)&objmesh->current_material->specular);
+                         objmesh->current_material->specular.v());
         } else if (name == "MATERIAL.shininess") {
             glUniform1f(uniform.location,
                         objmesh->current_material->specular_exponent * 0.128f);
@@ -228,9 +228,7 @@ void templateAppDraw(void)
 
         GFX_push_matrix();
 
-        GFX_translate(objmesh->location->x,
-                      objmesh->location->y,
-                      objmesh->location->z);
+        GFX_translate(objmesh->location);
 
         /* If the current object name is the sphere. */
         if (strstr(objmesh->name, "sphere")) {
@@ -250,7 +248,7 @@ void templateAppDraw(void)
             glBlendEquation(GL_FUNC_ADD);
             glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 
-            /* Rotate all the points around the orjbect origin. */
+            /* Rotate all the points around the object origin. */
             objmesh->rotation->x += 0.5f;
             objmesh->rotation->y += 0.5f;
             objmesh->rotation->z += 0.5f;

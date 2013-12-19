@@ -91,17 +91,17 @@ void program_draw_callback(void *ptr)
         auto    &uniform = it->second;
         if(name == "MODELVIEWMATRIX") {
             glUniformMatrix4fv(uniform.location,
-                               1, GL_FALSE, (float *)GFX_get_modelview_matrix());
+                               1, GL_FALSE, GFX_get_modelview_matrix().m());
         } else if(name == "PROJECTIONMATRIX") {
             glUniformMatrix4fv(uniform.location,
-                               1, GL_FALSE, (float *)GFX_get_projection_matrix());
+                               1, GL_FALSE, GFX_get_projection_matrix().m());
         } else if(name == "NORMALMATRIX") {
             glUniformMatrix3fv(uniform.location,
-                               1, GL_FALSE, (float *)GFX_get_normal_matrix());
+                               1, GL_FALSE, GFX_get_normal_matrix().m());
         } else if(name == "LIGHTPOSITION") {
             /* Set the light position in eye space to be at the same location as the viewer. */
             vec3 l(0.0f, 0.0f, 0.0f);
-            glUniform3fv(uniform.location, 1, (float *)&l);
+            glUniform3fv(uniform.location, 1, l.v());
         } else if((name == "DIFFUSE") && !uniform.constant) {
             /* Specify that the uniform is constant and will not change
              * over time, in order to always have to bind the same
@@ -291,7 +291,7 @@ void templateAppDraw(void)
         vec3 e(0.0f, -4.0f, 0.0f),
              c(0.0f,  0.0f, 0.0f),
              u(0.0f,  0.0f, 1.0f);
-        GFX_look_at(&e, &c, &u);
+        GFX_look_at(e, c, u);
     }
 
     glBindVertexArrayOES(objmesh->vao);

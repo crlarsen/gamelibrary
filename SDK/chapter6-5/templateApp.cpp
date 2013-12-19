@@ -488,7 +488,7 @@ void templateAppDraw(void) {
         eye->x    = CLAMP(eye->x, -2.0f, 3.5f);
     }
 
-    GFX_look_at(&eye, &center, &up);
+    GFX_look_at(eye, center, up);
 
     for (auto objmesh=obj->objmesh.begin();
          objmesh!=obj->objmesh.end(); ++objmesh) {
@@ -499,25 +499,23 @@ void templateAppDraw(void) {
         if (objmesh->btrigidbody) {
             mat4 mat;
             /* Get the current transformation matrix from Bullet. */
-            objmesh->btrigidbody->getWorldTransform().getOpenGLMatrix((float *)&mat);
+            objmesh->btrigidbody->getWorldTransform().getOpenGLMatrix(mat.m());
             /* Up date the X location based on the current OpenGL matrix value. */
             // Why?  CRL
-            objmesh->location->x = mat[3]->x;
+            objmesh->location->x = mat[3][0];
             /* Add Bullet's calculation of the object's position/orientation
              * to the "stack" of transformations contained in the modelview
              * matrix.
              */
-            GFX_multiply_matrix(&mat);
+            GFX_multiply_matrix(mat);
         } else {
-            GFX_translate(objmesh->location->x,
-                          objmesh->location->y,
-                          objmesh->location->z);
+            GFX_translate(objmesh->location);
         }
 
         glUniformMatrix4fv(program->uniform_map["MODELVIEWPROJECTIONMATRIX"].location,
                            1,
                            GL_FALSE,
-                           (float *)GFX_get_modelview_projection_matrix());
+                           GFX_get_modelview_projection_matrix().m());
 
         objmesh->draw();
 

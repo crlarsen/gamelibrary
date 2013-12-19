@@ -98,7 +98,7 @@ struct LAMP {
         /* Get the uniform location and send over the current lamp color. */
         glUniform4fv(program->get_uniform_location(tmp),
                      1,
-                     (float *)&this->color);
+                     this->color.v());
     }
 };
 
@@ -148,7 +148,7 @@ public:
 
         glUniform3fv(program->get_uniform_location(tmp),
                      1,
-                     (float *)&direction);
+                     direction.v());
     }
 };
 
@@ -206,7 +206,7 @@ void program_draw(void *ptr)
             glUniformMatrix4fv(uniform.location,
                                1,
                                GL_FALSE,
-                               (float *)GFX_get_modelview_projection_matrix());
+                               GFX_get_modelview_projection_matrix().m());
         } else if (name == TM_Diffuse_String) {
             glUniform1i(uniform.location, TM_Diffuse);
 
@@ -220,24 +220,24 @@ void program_draw(void *ptr)
             glUniformMatrix4fv(uniform.location,
                                1,
                                GL_FALSE,
-                               (float *)GFX_get_modelview_matrix());
+                               GFX_get_modelview_matrix().m());
         } else if (name == "PROJECTIONMATRIX") {
             glUniformMatrix4fv(uniform.location,
                                1,
                                GL_FALSE,
-                               (float *)GFX_get_projection_matrix());
+                               GFX_get_projection_matrix().m());
 
             uniform.constant = true;
         } else if (name == "NORMALMATRIX") {
             glUniformMatrix3fv(uniform.location,
                                1,
                                GL_FALSE,
-                               (float *)GFX_get_normal_matrix());
+                               GFX_get_normal_matrix().m());
         } else if (name == "MATERIAL.ambient") {
             // Material Data
             glUniform4fv(uniform.location,
                          1,
-                         (float *)&objmesh->current_material->ambient);
+                         objmesh->current_material->ambient.v());
             /* In this scene, all the materials (in this case, there are
              * only two) have the exact same properties, so simply tag the
              * uniforms for the current material to be constant.  This will
@@ -248,13 +248,13 @@ void program_draw(void *ptr)
         } else if (name == "MATERIAL.diffuse") {
             glUniform4fv(uniform.location,
                          1,
-                         (float *)&objmesh->current_material->diffuse);
+                         objmesh->current_material->diffuse.v());
 
             uniform.constant = true;
         } else if (name == "MATERIAL.specular") {
             glUniform4fv(uniform.location,
                          1,
-                         (float *)&objmesh->current_material->specular);
+                         objmesh->current_material->specular.v());
 
             uniform.constant = true;
         } else if (name == "MATERIAL.shininess") {
@@ -351,10 +351,8 @@ void templateAppDraw(void)
 
         GFX_push_matrix();
 
-        GFX_translate(objmesh->location->x,
-                      objmesh->location->y,
-                      objmesh->location->z);
-        
+        GFX_translate(objmesh->location);
+
         objmesh->draw();
         
         GFX_pop_matrix();

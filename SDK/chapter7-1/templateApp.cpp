@@ -190,14 +190,12 @@ void templateAppDraw(void) {
 
         GFX_push_matrix();
 
-        GFX_translate(objmesh->location->x-eye_location->x,
-                      objmesh->location->y-eye_location->y,
-                      objmesh->location->z-eye_location->z);
+        GFX_translate(objmesh->location-eye_location);
 
         glUniformMatrix4fv(program->uniform_map["MODELVIEWPROJECTIONMATRIX"].location,
                            1,
                            GL_FALSE,
-                           (float *)GFX_get_modelview_projection_matrix());
+                           GFX_get_modelview_projection_matrix().m());
         
         objmesh->draw();
         

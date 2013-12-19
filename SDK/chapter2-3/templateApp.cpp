@@ -124,7 +124,7 @@ void templateAppDraw( void )
     vec3    e(0.0f, -3.0f, 0.0f), /* The position in world space where the eye is looking. */
             c(0.0f,  0.0f, 0.0f),  /* Use the positive Z axis as the up vector. */
             u(0.0f,  0.0f, 1.0f);
-    GFX_look_at(&e, &c, &u);
+    GFX_look_at(e, c, u);
 
     static float y = 0.0f;
 
@@ -146,11 +146,11 @@ void templateAppDraw( void )
         glUniformMatrix4fv(uniform,     // The location value of the uniform.
                            1,           // How many 4x4 matrices
                            GL_FALSE,    // Specify to do not transpose the matrix.
-                           (float *)GFX_get_modelview_projection_matrix()); // Use the GFX helper function
-                                                                            // to calculate the result of the
-                                                                            // current model view matrix
-                                                                            // multiplied by the current
-                                                                            // projection matrix.
+                           GFX_get_modelview_projection_matrix().m());  // Use the GFX helper function
+                                                                        // to calculate the result of the
+                                                                        // current model view matrix
+                                                                        // multiplied by the current
+                                                                        // projection matrix.
 
         attribute = program->get_vertex_attrib_location((char *)"POSITION");
         glEnableVertexAttribArray(attribute);

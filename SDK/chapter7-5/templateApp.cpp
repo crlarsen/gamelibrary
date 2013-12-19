@@ -275,9 +275,9 @@ void templateAppDraw(void) {
      */
     center = center * 0.975f + player->location * 0.025f;
 
-    GFX_look_at(&eye,
-                &center,
-                &up);
+    GFX_look_at(eye,
+                center,
+                up);
 
     for (auto objmesh=obj->objmesh.begin();
          objmesh!=obj->objmesh.end(); ++objmesh) {
@@ -286,16 +286,16 @@ void templateAppDraw(void) {
 
         mat4 mat;
 
-        objmesh->btrigidbody->getWorldTransform().getOpenGLMatrix((float *)&mat);
+        objmesh->btrigidbody->getWorldTransform().getOpenGLMatrix(mat.m());
 
         objmesh->location = vec3(mat[3], true);
 
-        GFX_multiply_matrix(&mat);
+        GFX_multiply_matrix(mat);
 
         glUniformMatrix4fv(program->uniform_map["MODELVIEWPROJECTIONMATRIX"].location,
                            1,
                            GL_FALSE,
-                           (float *)GFX_get_modelview_projection_matrix());
+                           GFX_get_modelview_projection_matrix().m());
 
         objmesh->draw();
         

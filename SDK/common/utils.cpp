@@ -170,176 +170,71 @@ void build_frustum(vec4 frustum[6], const mat4 &modelview_matrix, const mat4 &pr
 
     float t;
 
-    c[0][0] = modelview_matrix[0][0] * projection_matrix[0][0] +
-              modelview_matrix[0][1] * projection_matrix[1][0] +
-              modelview_matrix[0][2] * projection_matrix[2][0] +
-              modelview_matrix[0][3] * projection_matrix[3][0];
-
-    c[0][1] = modelview_matrix[0][0] * projection_matrix[0][1] +
-              modelview_matrix[0][1] * projection_matrix[1][1] +
-              modelview_matrix[0][2] * projection_matrix[2][1] +
-              modelview_matrix[0][3] * projection_matrix[3][1];
-
-    c[0][2] = modelview_matrix[0][0] * projection_matrix[0][2] +
-              modelview_matrix[0][1] * projection_matrix[1][2] +
-              modelview_matrix[0][2] * projection_matrix[2][2] +
-              modelview_matrix[0][3] * projection_matrix[3][2];
-
-    c[0][3] = modelview_matrix[0][0] * projection_matrix[0][3] +
-              modelview_matrix[0][1] * projection_matrix[1][3] +
-              modelview_matrix[0][2] * projection_matrix[2][3] +
-              modelview_matrix[0][3] * projection_matrix[3][3];
-
-    c[1][0] = modelview_matrix[1][0] * projection_matrix[0][0] +
-              modelview_matrix[1][1] * projection_matrix[1][0] +
-              modelview_matrix[1][2] * projection_matrix[2][0] +
-              modelview_matrix[1][3] * projection_matrix[3][0];
-
-    c[1][1] = modelview_matrix[1][0] * projection_matrix[0][1] +
-              modelview_matrix[1][1] * projection_matrix[1][1] +
-              modelview_matrix[1][2] * projection_matrix[2][1] +
-              modelview_matrix[1][3] * projection_matrix[3][1];
-
-    c[1][2] = modelview_matrix[1][0] * projection_matrix[0][2] +
-              modelview_matrix[1][1] * projection_matrix[1][2] +
-              modelview_matrix[1][2] * projection_matrix[2][2] +
-              modelview_matrix[1][3] * projection_matrix[3][2];
-
-    c[1][3] = modelview_matrix[1][0] * projection_matrix[0][3] +
-              modelview_matrix[1][1] * projection_matrix[1][3] +
-              modelview_matrix[1][2] * projection_matrix[2][3] +
-              modelview_matrix[1][3] * projection_matrix[3][3];
-
-    c[2][0] = modelview_matrix[2][0] * projection_matrix[0][0] +
-              modelview_matrix[2][1] * projection_matrix[1][0] +
-              modelview_matrix[2][2] * projection_matrix[2][0] +
-              modelview_matrix[2][3] * projection_matrix[3][0];
-
-    c[2][1] = modelview_matrix[2][0] * projection_matrix[0][1] +
-              modelview_matrix[2][1] * projection_matrix[1][1] +
-              modelview_matrix[2][2] * projection_matrix[2][1] +
-              modelview_matrix[2][3] * projection_matrix[3][1];
-
-    c[2][2] = modelview_matrix[2][0] * projection_matrix[0][2] +
-              modelview_matrix[2][1] * projection_matrix[1][2] +
-              modelview_matrix[2][2] * projection_matrix[2][2] +
-              modelview_matrix[2][3] * projection_matrix[3][2];
-
-    c[2][3] = modelview_matrix[2][0] * projection_matrix[0][3] +
-              modelview_matrix[2][1] * projection_matrix[1][3] +
-              modelview_matrix[2][2] * projection_matrix[2][3] +
-              modelview_matrix[2][3] * projection_matrix[3][3];
-
-    c[3][0] = modelview_matrix[3][0] * projection_matrix[0][0] +
-              modelview_matrix[3][1] * projection_matrix[1][0] +
-              modelview_matrix[3][2] * projection_matrix[2][0] +
-              modelview_matrix[3][3] * projection_matrix[3][0];
-
-    c[3][1] = modelview_matrix[3][0] * projection_matrix[0][1] +
-              modelview_matrix[3][1] * projection_matrix[1][1] +
-              modelview_matrix[3][2] * projection_matrix[2][1] +
-              modelview_matrix[3][3] * projection_matrix[3][1];
-
-    c[3][2] = modelview_matrix[3][0] * projection_matrix[0][2] +
-              modelview_matrix[3][1] * projection_matrix[1][2] +
-              modelview_matrix[3][2] * projection_matrix[2][2] +
-              modelview_matrix[3][3] * projection_matrix[3][2];
-
-    c[3][3] = modelview_matrix[3][0] * projection_matrix[0][3] +
-              modelview_matrix[3][1] * projection_matrix[1][3] +
-              modelview_matrix[3][2] * projection_matrix[2][3] +
-              modelview_matrix[3][3] * projection_matrix[3][3];
+    // Calculate matrix "c" as the transpose of the product
+    // modelview_matrix * projection_matrix.
+    for (int i=0; i!=modelview_matrix.nRows(); ++i) {
+        for (int j=0; j!=projection_matrix.nCols(); ++j) {
+            c[j][i] = modelview_matrix[i][0] * projection_matrix[0][j];
+            for (int k=1; k!=modelview_matrix.nCols(); ++k) {
+                c[j][i] += modelview_matrix[i][k] * projection_matrix[k][j];
+            }
+        }
+    }
 
 
-    frustum[0]->x = c[0]->w - c[0]->x ;
-    frustum[0]->y = c[1]->w - c[1]->x ;
-    frustum[0]->z = c[2]->w - c[2]->x ;
-    frustum[0]->w = c[3]->w - c[3]->x ;
+    frustum[0] = c[3] - c[0];
 
     t = 1.0f / sqrtf(frustum[0]->x * frustum[0]->x +
                      frustum[0]->y * frustum[0]->y +
                      frustum[0]->z * frustum[0]->z);
 
-    frustum[0]->x *= t;
-    frustum[0]->y *= t;
-    frustum[0]->z *= t;
-    frustum[0]->w *= t;
+    frustum[0] *= t;
 
 
-    frustum[1]->x = c[0]->w + c[0]->x ;
-    frustum[1]->y = c[1]->w + c[1]->x ;
-    frustum[1]->z = c[2]->w + c[2]->x ;
-    frustum[1]->w = c[3]->w + c[3]->x ;
+    frustum[1] = c[3] + c[0];
 
     t = 1.0f / sqrtf(frustum[1]->x * frustum[1]->x +
                      frustum[1]->y * frustum[1]->y +
                      frustum[1]->z * frustum[1]->z);
 
-    frustum[1]->x *= t;
-    frustum[1]->y *= t;
-    frustum[1]->z *= t;
-    frustum[1]->w *= t;
+    frustum[1] *= t;
 
 
-    frustum[2]->x = c[0]->w + c[0]->y ;
-    frustum[2]->y = c[1]->w + c[1]->y ;
-    frustum[2]->z = c[2]->w + c[2]->y ;
-    frustum[2]->w = c[3]->w + c[3]->y ;
+    frustum[2] = c[3] + c[1];
 
     t = 1.0f / sqrtf(frustum[2]->x * frustum[2]->x +
                      frustum[2]->y * frustum[2]->y +
                      frustum[2]->z * frustum[2]->z);
 
-    frustum[2]->x *= t;
-    frustum[2]->y *= t;
-    frustum[2]->z *= t;
-    frustum[2]->w *= t;
+    frustum[2] *= t;
 
 
-    frustum[3]->x = c[0]->w - c[0]->y ;
-    frustum[3]->y = c[1]->w - c[1]->y ;
-    frustum[3]->z = c[2]->w - c[2]->y ;
-    frustum[3]->w = c[3]->w - c[3]->y ;
+    frustum[3] = c[3] - c[1];
 
     t = 1.0f / sqrtf(frustum[3]->x * frustum[3]->x +
                      frustum[3]->y * frustum[3]->y +
                      frustum[3]->z * frustum[3]->z);
 
-    frustum[3]->x *= t;
-    frustum[3]->y *= t;
-    frustum[3]->z *= t;
-    frustum[3]->w *= t;
+    frustum[3] *= t;
 
 
-    frustum[4]->x = c[0]->w - c[0]->z ;
-    frustum[4]->y = c[1]->w - c[1]->z ;
-    frustum[4]->z = c[2]->w - c[2]->z ;
-    frustum[4]->w = c[3]->w - c[3]->z ;
+    frustum[4] = c[3] - c[2];
 
     t = 1.0f / sqrtf(frustum[4]->x * frustum[4]->x +
                      frustum[4]->y * frustum[4]->y +
                      frustum[4]->z * frustum[4]->z);
     
-    frustum[4]->x *= t;
-    frustum[4]->y *= t;
-    frustum[4]->z *= t;
-    frustum[4]->w *= t;
+    frustum[4] *= t;
+
     
-    
-    frustum[5]->x = c[0]->w + c[0]->z ;
-    frustum[5]->y = c[1]->w + c[1]->z ;
-    frustum[5]->z = c[2]->w + c[2]->z ;
-    frustum[5]->w = c[3]->w + c[3]->z ;
-    
+    frustum[5] = c[3] + c[2];
+
     
     t = 1.0f / sqrtf(frustum[5]->x * frustum[5]->x +
                      frustum[5]->y * frustum[5]->y +
                      frustum[5]->z * frustum[5]->z);
     
-    frustum[5]->x *= t;
-    frustum[5]->y *= t;
-    frustum[5]->z *= t;
-    frustum[5]->w *= t;
+    frustum[5] *= t;
 }
 
 
@@ -347,7 +242,7 @@ void build_frustum(vec4 frustum[6], const mat4 &modelview_matrix, const mat4 &pr
 // Note that if the sphere is in the frustum the return value is always
 // dependent on the last iteration through the loop.  What is stored in
 // the last position of frustum which makes it especially meaningful?
-// Is this by design or is a max()/min()  evaluation missing from the
+// Is this by design or is a max()/min() evaluation missing from the
 // function?  That is, is this an oversight?
 float sphere_distance_in_frustum( vec4  *frustum, vec3  *location, float radius )
 {
@@ -372,11 +267,10 @@ float sphere_distance_in_frustum( vec4  *frustum, vec3  *location, float radius 
 
 bool point_in_frustum( vec4 *frustum, vec3 *location )
 {
+    vec4 loc(*location, 1.0f);
+
     for (int i=0; i!=6; ++i) {
-        if (frustum[i]->x * (*location)->x +
-            frustum[i]->y * (*location)->y +
-            frustum[i]->z * (*location)->z +
-            frustum[i]->w < 0.0f )
+        if (frustum[i].dotProduct(loc) < 0.0f )
             return false;
     }
     
@@ -441,7 +335,7 @@ bool box_in_frustum( vec4 *frustum, vec3 *location, vec3 *dimension )
 
 
         if (frustum[i]->x * ( (*location)->x + (*dimension)->x ) +
-            frustum[i]->y * ( (*location)->y + (*dimension)->y ) +
+            frustum[i]->y * ( (*location)->y - (*dimension)->y ) +
             frustum[i]->z * ( (*location)->z + (*dimension)->z ) +
             frustum[i]->w > 0.0f )
         {
@@ -478,13 +372,12 @@ bool box_in_frustum( vec4 *frustum, vec3 *location, vec3 *dimension )
 
 InFrustum sphere_intersect_frustum( vec4  *frustum, vec3  *location, float radius )
 {
+    vec4 loc(*location, 1.0f);
+
     unsigned char c = 0;
 
     for (int i=0; i!=6; ++i) {
-        float   d = frustum[i]->x * (*location)->x +
-        frustum[i]->y * (*location)->y +
-        frustum[i]->z * (*location)->z +
-        frustum[i]->w;
+        float   d = frustum[i].dotProduct(loc);
 
         if (d < -radius)
             return IF_Outside;
@@ -626,7 +519,7 @@ void create_direction_vector( vec3 *dst, vec3 *up_axis, float rotx, float roty, 
 
     mat4 m;
 
-    mat4_identity( m );
+    m.loadIdentity();
 
     rotation->z = 1.0f;
     rotation->x =

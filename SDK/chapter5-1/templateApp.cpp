@@ -86,19 +86,19 @@ void material_draw_callback(void *ptr)
             glUniformMatrix4fv(uniform.location,
                                1,
                                GL_FALSE,
-                               (float *)GFX_get_modelview_matrix());
+                               GFX_get_modelview_matrix().m());
         } else if (name == "PROJECTIONMATRIX") {
             glUniformMatrix4fv(uniform.location,
                                1,
                                GL_FALSE,
-                               (float *)GFX_get_projection_matrix());
+                               GFX_get_projection_matrix().m());
         } else if ((name == TM_Diffuse_String) && !uniform.constant) {
             uniform.constant = true;
             glUniform1i(uniform.location, TM_Diffuse);
         } else if (name == MP_Diffuse) {
             glUniform3fv(uniform.location,
                          1,
-                         (float *)&objmaterial->diffuse);
+                         objmaterial->diffuse.v());
         }
     }
 }
@@ -182,7 +182,7 @@ void templateAppDraw(void) {
                 c(0.0f, 0.0f, 0.0f),
                 u(0.0f, 0.0f, 1.0f);
 
-        GFX_look_at(&e, &c, &u);
+        GFX_look_at(e, c, u);
     }
 
     for (auto objmesh=obj->objmesh.begin();

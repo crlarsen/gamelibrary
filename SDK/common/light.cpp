@@ -84,7 +84,7 @@ void DirectionalLight::push_to_shader(PROGRAM *program) {
 
     glUniform3fv(program->get_uniform_location(tmp),
                  1,
-                 (float *)&direction);
+                 direction.v());
 }
 
 PointLight::PointLight(const char *name, const vec4 &color, const vec3 &position) : LIGHT(name, color, LIGHT_POINT)
@@ -123,7 +123,7 @@ void PointLight::push_to_shader(PROGRAM *program) {
 
     glUniform3fv(program->get_uniform_location(tmp),
                  1,
-                 (float *)&position);
+                 position.v());
 }
 
 AttenuatedPointLight::AttenuatedPointLight(const char *name, const vec4 &color,
@@ -150,7 +150,7 @@ void AttenuatedPointLight::push_to_shader(PROGRAM *program) {
 
     glUniform3fv(program->get_uniform_location(tmp),
                  1,
-                 (float *)&position);
+                 position.v());
 
     sprintf(tmp, "LIGHT_FS.distance");
     glUniform1f(program->get_uniform_location(tmp),
@@ -234,7 +234,7 @@ void SpotLight::push_to_shader(PROGRAM *program) {
 
     glUniform3fv(program->get_uniform_location(tmp),
                  1,
-                 (float *)&direction);
+                 direction.v());
     /* Send the spot cos cutoff to let the shader determine if a
      * specific fragment is inside or outside the cone of light.
      */
@@ -289,19 +289,11 @@ void PointLight::get_position_in_eye_space(mat4 *m, vec4 *position)
     /* Multiply the position by the matrix received in parameters and
      * assign the result to the position vector.
      */
-    vec4_multiply_mat4(*position,
-                       this->position,
-                       *m);
+    *position = this->position * *m;
 }
 
 void SpotLight::get_direction_in_object_space(mat4 *m, vec3 *direction)
 {
-    mat4 invert;
-
-    mat4_copy_mat4(invert, *m);
-
-    mat4_invert(invert);
-
     vec3_multiply_mat4(*direction,
                        this->spot_direction,
                        *m);

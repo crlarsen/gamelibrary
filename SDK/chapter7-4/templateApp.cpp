@@ -312,19 +312,19 @@ void templateAppDraw(void) {
         /* Ask Bullet to return the OpenGL matrix for the current mesh and store
          * it inside a 4x4 matrix.
          */
-        objmesh->btrigidbody->getWorldTransform().getOpenGLMatrix((float *)&mat);
+        objmesh->btrigidbody->getWorldTransform().getOpenGLMatrix(mat.m());
         /* Update the mesh location by copying the last row of the matrix,
          * to make sure the latest location will be used by the clipping
          * method (if any).
          */
         objmesh->location = vec3(mat[3], true);
         /* Multiply the matrix by the current modelview matrix. */
-        GFX_multiply_matrix(&mat);
+        GFX_multiply_matrix(mat);
 
         glUniformMatrix4fv(program->uniform_map["MODELVIEWPROJECTIONMATRIX"].location,
                            1,
                            GL_FALSE,
-                           (float *)GFX_get_modelview_projection_matrix());
+                           GFX_get_modelview_projection_matrix().m());
         
         objmesh->draw();
         

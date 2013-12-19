@@ -87,12 +87,12 @@ void program_draw_callback( void *ptr )
         auto    &uniform = it->second;
         if (name == "MODELVIEWPROJECTIONMATRIX") {
             /* Update the matrix. */
-            glUniformMatrix4fv(uniform.location,                                // The uniform location.
-                               1,                                               // Number of matrices.
-                               GL_FALSE,                                        // Don't transpose the matrix.
-                               (float *)GFX_get_modelview_projection_matrix()); // The result of the current projection
-                                                                                // matrix multiplied by the model view
-                                                                                // matrix.
+            glUniformMatrix4fv(uniform.location,                            // The uniform location.
+                               1,                                           // Number of matrices.
+                               GL_FALSE,                                    // Don't transpose the matrix.
+                               GFX_get_modelview_projection_matrix().m());  // The result of the current projection
+                                                                            // matrix multiplied by the model view
+                                                                            // matrix.
         } /* End if */
     }
 }
@@ -239,7 +239,7 @@ void templateAppDraw(void)
         vec3 e(0.0f, -4.0f, 0.0f),
              c(0.0f,  0.0f, 0.0f),
              u(0.0f,  0.0f, 1.0f);
-        GFX_look_at( &e, &c, &u );
+        GFX_look_at( e, c, u );
     }
 
     glBindVertexArrayOES(objmesh->vao);

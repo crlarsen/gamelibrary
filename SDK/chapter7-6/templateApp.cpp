@@ -385,14 +385,14 @@ void templateAppDraw(void) {
          * the camera next_position will always be located in front of where
          * the collision ray hits.
          */
-        next_eye->x =   back_ray.m_hitPointWorld.x() +
-        (back_ray.m_hitNormalWorld.x() * 0.1f);
+        next_eye->x = back_ray.m_hitPointWorld.x() +
+                      (back_ray.m_hitNormalWorld.x() * 0.1f);
 
-        next_eye->y =   back_ray.m_hitPointWorld.y() +
-        (back_ray.m_hitNormalWorld.y()* 0.1f);
+        next_eye->y = back_ray.m_hitPointWorld.y() +
+                      (back_ray.m_hitNormalWorld.y() * 0.1f);
 
-        next_eye->z =   back_ray.m_hitPointWorld.z() +
-        (back_ray.m_hitNormalWorld.z()* 0.1f);
+        next_eye->z = back_ray.m_hitPointWorld.z() +
+                      (back_ray.m_hitNormalWorld.z() * 0.1f);
     }
 
     /* Linearly interpolate the rotation between the current and the next. */
@@ -412,9 +412,9 @@ void templateAppDraw(void) {
     /* Feed the current eye position and player location to the GFX_look_at
      * function to be able to generate the view matrix.
      */
-    GFX_look_at(&eye,
-                &player->location,
-                &up);
+    GFX_look_at(eye,
+                player->location,
+                up);
 
     for (auto objmesh=obj->objmesh.begin();
          objmesh!=obj->objmesh.end(); ++objmesh) {
@@ -423,16 +423,16 @@ void templateAppDraw(void) {
 
         mat4 mat;
 
-        objmesh->btrigidbody->getWorldTransform().getOpenGLMatrix((float *)&mat);
+        objmesh->btrigidbody->getWorldTransform().getOpenGLMatrix(mat.m());
 
         objmesh->location = vec3(mat[3], true);
 
-        GFX_multiply_matrix(&mat);
+        GFX_multiply_matrix(mat);
 
         glUniformMatrix4fv(program->uniform_map["MODELVIEWPROJECTIONMATRIX"].location,
                            1,
                            GL_FALSE,
-                           (float *)GFX_get_modelview_projection_matrix());
+                           GFX_get_modelview_projection_matrix().m());
 
         objmesh->draw();
         

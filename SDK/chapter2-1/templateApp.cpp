@@ -67,8 +67,8 @@ void templateAppInit(int width, int height)
     /* Insert your initialization code here */
     GFX_set_matrix_mode(PROJECTION_MATRIX);
 
-    float   half_width = static_cast<float>(width) * 0.5f,
-    half_height = static_cast<float>(height) * 0.5f;
+    float   half_width  = static_cast<float>(width)  * 0.5f,
+            half_height = static_cast<float>(height) * 0.5f;
 
     GFX_load_identity();
 
@@ -131,11 +131,11 @@ void templateAppDraw(void)
         glUniformMatrix4fv(uniform,     // The location value of the uniform.
                            1,           // How many 4x4 matrices
                            GL_FALSE,    // Specify to do not transpose the matrix.
-                           (float *)GFX_get_modelview_projection_matrix()); // Use the GFX helper function
-                                                                            // to calculate the result of the
-                                                                            // current model view matrix
-                                                                            // multiplied by the current
-                                                                            // projection matrix.
+                           GFX_get_modelview_projection_matrix().m());  // Use the GFX helper function
+                                                                        // to calculate the result of the
+                                                                        // current model view matrix
+                                                                        // multiplied by the current
+                                                                        // projection matrix.
 
         attribute = program->get_vertex_attrib_location((char *)"POSITION");
         glEnableVertexAttribArray(attribute);

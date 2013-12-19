@@ -326,22 +326,22 @@ bool NAVIGATION::get_path(NAVIGATIONPATH *navigationpath, NAVIGATIONPATHDATA *na
 
     vec3_to_recast(&end_location);
 
-    navigationpath->start_reference = this->dtnavmesh->findNearestPoly((float *)&start_location,
-                                                                       (float *)&this->tolerance,
+    navigationpath->start_reference = this->dtnavmesh->findNearestPoly(start_location.v(),
+                                                                       this->tolerance.v(),
                                                                        &navigationpath->path_filter,
                                                                        0);
 
 
-    navigationpath->end_reference = this->dtnavmesh->findNearestPoly((float *)&end_location,
-                                                                     (float *)&this->tolerance,
+    navigationpath->end_reference = this->dtnavmesh->findNearestPoly(end_location.v(),
+                                                                     this->tolerance.v(),
                                                                      &navigationpath->path_filter,
                                                                      0);
 
 
     navigationpath->poly_count = this->dtnavmesh->findPath(navigationpath->start_reference,
                                                            navigationpath->end_reference,
-                                                           (float *)&start_location,
-                                                           (float *)&end_location,
+                                                           start_location.v(),
+                                                           end_location.v(),
                                                            &navigationpath->path_filter,
                                                            navigationpath->poly_array,
                                                            NAVIGATION_MAX_POLY);
@@ -351,15 +351,15 @@ bool NAVIGATION::get_path(NAVIGATIONPATH *navigationpath, NAVIGATIONPATHDATA *na
 
         if (navigationpath->poly_array[navigationpath->poly_count - 1] != navigationpath->end_reference) {
             this->dtnavmesh->closestPointOnPoly(navigationpath->poly_array[navigationpath->poly_count - 1],
-                                                (float *)&end_location,
-                                                (float *)&closest_end);
+                                                end_location.v(),
+                                                closest_end.v());
         } else {
             closest_end = navigationpath->end_location;
         }
 
 
-        navigationpathdata->path_point_count = this->dtnavmesh->findStraightPath((float *)&start_location,
-                                                                                 (float *)&closest_end,
+        navigationpathdata->path_point_count = this->dtnavmesh->findStraightPath(start_location.v(),
+                                                                                 closest_end.v(),
                                                                                  navigationpath->poly_array,
                                                                                  navigationpath->poly_count,
                                                                                  (float *)navigationpathdata->path_point_array,
@@ -421,7 +421,7 @@ void NAVIGATION::draw()
     glUniformMatrix4fv(this->program->get_uniform_location((char *)"MODELVIEWPROJECTIONMATRIX"),
                        1,
                        GL_FALSE,
-                       (float *)GFX_get_modelview_projection_matrix());
+                       GFX_get_modelview_projection_matrix().m());
 
     glEnableVertexAttribArray(vertex_attribute);
 

@@ -86,7 +86,7 @@ struct LIGHT {
         /* Get the uniform location and send over the current lamp color. */
         glUniform4fv(program->get_uniform_location(tmp),
                      1,
-                     (float *)&this->color);
+                     this->color.v());
     }
 };
 

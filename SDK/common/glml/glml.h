@@ -21,9 +21,11 @@
 
 #include <iostream>
 
-// Test to see if __cplusplus < 201103L to make the following
-// #define conditional.
+// Test to see if the compiler version is less than C++ 11 to make the
+// following #define conditional.
+#if __cplusplus < 201103L
 #define constexpr
+#endif  /* __cplusplus < 201103L */
 
 // Create math library to emulate GLSL vector and matrix capabilities
 // For all classes created we need
@@ -108,10 +110,7 @@ template <typename Type, int nelems>
 class vec {
 public:
     typedef Type    eType;
-private:
-    // Used below to enable the use of named components
-    typedef struct { eType x, y, z, w; } _CRL_v;
-public:
+
     vec() {}
     ~vec() {}
     vec &operator=(const vec &src) {
@@ -125,18 +124,6 @@ public:
         for (int i=0; i!=nElems(); ++i)
             _v[i] = src._v[i];
     }
-    // We're probably converting out of homogeneous space so, if possible (W≠0)
-    // and needed (W≠1), we divide by W.
-    // If W=0 then argXYZW probably represents a direction, not a location, and
-    // this is also a valid use of 4-tuples.
-    explicit vec(const vec<eType,4> &argXYZW, const bool truncate=false) {
-        for (int i=0; i!=nElems(); ++i)
-            _v[i] = argXYZW[i];
-        if (!truncate && argXYZW[3]!=0.0f && argXYZW[3]!=1.0f) {
-            for (int i=0; i!=nElems(); ++i)
-                _v[i] /= argXYZW[3];
-        }
-    }
 
 protected:
     Type    _v[nelems];
@@ -144,6 +131,7 @@ protected:
 public:
     constexpr const int nElems(void) const { return nelems; }
     const Type *v(void) const { return _v; }
+    Type *v(void) { return _v; }
     const Type operator[](const int i) const {
         assert(0<=i && i<nElems());
         return _v[i];
@@ -152,8 +140,6 @@ public:
         assert(0<=i && i<nElems());
         return _v[i];
     }
-    _CRL_v *operator->() { return (_CRL_v *)this; }
-    const _CRL_v *operator->() const { return (const _CRL_v *)this; }
     vec &operator+=(const vec &rhs) {
         for (int i=0; i!=nElems(); ++i) {
             this->_v[i] += rhs._v[i];
@@ -735,6 +721,11 @@ inline const mat<Type,nrc,nrc> matNxN<Type,nrc>::inverse(void) const
     return a / det;
 }
 
+template <typename Type, int nrc>
+inline const mat<Type, nrc, nrc> inverse(const mat<Type, nrc, nrc> &m) {
+    return ((matNxN<Type, nrc> *)(&m))->inverse();
+}
+
 template <typename Type, int nelems>
 inline vec<Type,nelems> &vec<Type,nelems>::operator/=(const matNxN<Type,nelems> &rhs)
 {
@@ -830,7 +821,7 @@ public:
     // and needed (W≠1), we divide by W.
     // If W=0 then argXYZW probably represents a direction, not a location, and
     // this is also a valid use of 4-tuples.
-    explicit vec2(const vec<eType,4> &argXYZW, const bool truncate=true) : vec<eType,2>(argXYZW, truncate) {}
+    explicit vec2(const vec4 &argXYZW, const bool truncate=false);
     // Copy Constructor
     vec2(const vec2 &argXY) {	// Copy Constructor
         for (int i=0; i!=nElems(); ++i)
@@ -864,11 +855,11 @@ public:
         for (int i=0; i!=nElems(); ++i)
             _v[i] = argXYZ[i];
     }
-    // We're probably converting out of homogeneous space so, if
-    // possible (W≠0), and needed (W≠1), we divide by W.  If W=0 then
-    // argXYZW probably represents a direction, not a location, and this
-    // is also a valid use of 4-tuples.
-    explicit dvec2(const vec<eType,4> &argXYZW, const bool truncate=true) : vec<eType,2>(argXYZW, truncate) {}
+    // We're probably converting out of homogeneous space so, if possible (W≠0)
+    // and needed (W≠1), we divide by W.
+    // If W=0 then argXYZW probably represents a direction, not a location, and
+    // this is also a valid use of 4-tuples.
+    explicit dvec2(const vec4 &argXYZW, const bool truncate=false);
     // Copy Constructor
     dvec2(const dvec2 &argXY) {	// Copy Constructor
         for (int i=0; i!=nElems(); ++i)
@@ -880,7 +871,7 @@ public:
     _CRL_vd2 *operator->() { return reinterpret_cast<_CRL_vd2 *>(this); }
     const _CRL_vd2 *operator->() const { return reinterpret_cast<const _CRL_vd2 *>(this); }
 };
-    
+
 class vec3 : public cpvec<float> {
 private:
     // Used below to enable the use of named components
@@ -1012,7 +1003,16 @@ public:
     _CRL_vf4 *operator->() { return reinterpret_cast<_CRL_vf4 *>(this); }
     const _CRL_vf4 *operator->() const { return reinterpret_cast<const _CRL_vf4 *>(this); }
 };
-    
+
+inline vec2::vec2(const vec4 &argXYZW, const bool truncate) {
+    for (int i=0; i!=nElems(); ++i)
+        _v[i] = argXYZW[i];
+    if (!truncate && argXYZW[3]!=0.0f && argXYZW[3]!=1.0f) {
+        for (int i=0; i!=nElems(); ++i)
+            _v[i] /= argXYZW[3];
+    }
+}
+
 typedef vec4 fvec4;
 
 class dvec4 : public vec<double,4> {
@@ -1088,6 +1088,16 @@ public:
     _CRL_vd4 *operator->() { return reinterpret_cast<_CRL_vd4 *>(this); }
     const _CRL_vd4 *operator->() const { return reinterpret_cast<const _CRL_vd4 *>(this); }
 };
+
+inline dvec2::dvec2(const vec4 &argXYZW, const bool truncate) {
+    for (int i=0; i!=nElems(); ++i)
+        _v[i] = argXYZW[i];
+    if (!truncate && argXYZW[3]!=0.0f && argXYZW[3]!=1.0f) {
+        for (int i=0; i!=nElems(); ++i)
+            _v[i] /= argXYZW[3];
+    }
+}
+
 // The default constructors for each of the matrix classes (mat2, mat3,
 // and mat4) don't do anything.  In too many cases, as soon as the
 // object is created any default value I might have chosen doesn't match

@@ -119,24 +119,24 @@ void material_draw(void *ptr)
             glUniformMatrix4fv(uniform.location,
                                1,
                                GL_FALSE,
-                               (float *)GFX_get_modelview_matrix());
+                               GFX_get_modelview_matrix().m());
         } else if (name == "PROJECTIONMATRIX") {
             glUniformMatrix4fv(uniform.location,
                                1,
                                GL_FALSE,
-                               (float *)GFX_get_projection_matrix());
+                               GFX_get_projection_matrix().m());
 
             uniform.constant = true;
         } else if (name == "NORMALMATRIX") {
             glUniformMatrix3fv(uniform.location,
                                1,
                                GL_FALSE,
-                               (float *)GFX_get_normal_matrix());
+                               GFX_get_normal_matrix().m());
         } else if (name == "MATERIAL.ambient") {
             // Material Data
             glUniform4fv(uniform.location,
                          1,
-                         (float *)&objmaterial->ambient);
+                         objmaterial->ambient.v());
             /* In this scene, all the materials (in this case, there are
              * only two) have the exact same properties, so simply tag the
              * uniforms for the current material to be constant.  This will
@@ -147,11 +147,11 @@ void material_draw(void *ptr)
         } else if (name == "MATERIAL.diffuse") {
             glUniform4fv(uniform.location,
                          1,
-                         (float *)&objmaterial->diffuse);
+                         objmaterial->diffuse.v());
         } else if (name == "MATERIAL.specular") {
             glUniform4fv(uniform.location,
                          1,
-                         (float *)&objmaterial->specular);
+                         objmaterial->specular.v());
         } else if (name == "MATERIAL.shininess") {
             glUniform1f(uniform.location,
                         objmaterial->specular_exponent * 0.128f);
@@ -228,7 +228,7 @@ void templateAppInit(int width, int height)
     /* Convert the triangles to triangle strips. */
     md5->optimize(128);
 
-    /* Build the VBO and VA) and construct the normals and tangents for
+    /* Build the VBO and VAO and construct the normals and tangents for
      * each face of the meshes.
      */
     md5->build();

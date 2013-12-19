@@ -76,7 +76,7 @@ void material_draw_callback(void *ptr)
             /* Send over the current model view matrix multiplied by the
              * projection matrix.
              */
-            glUniformMatrix4fv(uniform.location, 1, GL_FALSE, (float *)GFX_get_modelview_projection_matrix());
+            glUniformMatrix4fv(uniform.location, 1, GL_FALSE, GFX_get_modelview_projection_matrix().m());
         }
     }
 }
@@ -221,7 +221,7 @@ void templateAppDraw(void)
          c(0.0f, -5.0f, 1.35f), /* Where the camera is looking. */
          u(0.0f,  0.0f, 1.0f);
     
-     GFX_look_at(&e, &c, &u);
+     GFX_look_at(e, c, u);
 
     /* Solid Objects */
     for (auto objmesh=obj->objmesh.begin();
@@ -238,9 +238,7 @@ void templateAppDraw(void)
         /* Is it a solid object? */
         if (objmaterial->dissolve == 1.0f) {
             GFX_push_matrix();
-            GFX_translate(objmesh->location->x,
-                          objmesh->location->y,
-                          objmesh->location->z);
+            GFX_translate(objmesh->location);
             objmesh->draw();
             GFX_pop_matrix();
         }
@@ -252,9 +250,7 @@ void templateAppDraw(void)
         OBJMATERIAL *objmaterial = objmesh->objtrianglelist[0].objmaterial;
         if (!objmaterial->dissolve) {
             GFX_push_matrix();
-            GFX_translate(objmesh->location->x,
-                          objmesh->location->y,
-                          objmesh->location->z);
+            GFX_translate(objmesh->location);
             glCullFace(GL_FRONT);
             objmesh->draw();
             glCullFace(GL_BACK);
@@ -281,9 +277,7 @@ void templateAppDraw(void)
          */
         if (objmaterial->dissolve>0.0f && objmaterial->dissolve<1.0f) {
             GFX_push_matrix();
-            GFX_translate(objmesh->location->x,
-                          objmesh->location->y,
-                          objmesh->location->z);
+            GFX_translate(objmesh->location);
             glCullFace(GL_FRONT);
             objmesh->draw();
             glCullFace(GL_BACK);

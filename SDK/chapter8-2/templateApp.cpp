@@ -348,15 +348,15 @@ void templateAppDraw(void) {
     
     center = maze->location;
 
-    GFX_look_at(&eye,
-                &center,
-                &up);
+    GFX_look_at(eye,
+                center,
+                up);
     
     if (double_tap) {
         /* Variable to hold the 3D location on the far plane of the frustum. */
         vec3 location;
         /* This function converts a 2D point from the screen coordinates
-         * to a 3D point in space.  The return value is 1 or 0, depending on
+         * to a 3D point in space.  The return value is true or false, depending on
          * whether or not the query is successful.  It's a GFX helper, but built
          * basically the same way as the standard gluUnproject
          * (http://www.opengl.org/sdk/docs/man/xhtml/gluUnproject.xml)
@@ -381,9 +381,7 @@ void templateAppDraw(void) {
                           GFX_get_modelview_matrix(),
                           GFX_get_projection_matrix(),
                           viewport_matrix,
-                          &location->x,
-                          &location->y,
-                          &location->z)) {
+                          location)) {
 
             /* Now that you have the XYZ location on the far plane, you can
              * create the collision ray.  Begin by creating the starting point,
@@ -476,16 +474,16 @@ void templateAppDraw(void) {
 
         mat4 mat;
 
-        objmesh->btrigidbody->getWorldTransform().getOpenGLMatrix((float *)&mat);
+        objmesh->btrigidbody->getWorldTransform().getOpenGLMatrix(mat.m());
 
         objmesh->location = vec3(mat[3], true);
 
-        GFX_multiply_matrix(&mat);
+        GFX_multiply_matrix(mat);
 
         glUniformMatrix4fv(program->get_uniform_location((char *)"MODELVIEWPROJECTIONMATRIX"),
                            1,
                            GL_FALSE,
-                           (float *)GFX_get_modelview_projection_matrix());
+                           GFX_get_modelview_projection_matrix().m());
 
         objmesh->draw();
 

@@ -111,7 +111,7 @@ void program_draw(void *ptr)
             glUniformMatrix4fv(uniform.location,
                                1,
                                GL_FALSE,
-                               (float *)GFX_get_modelview_projection_matrix());
+                               GFX_get_modelview_projection_matrix().m());
         } else if (name == "PROJECTOR") {
             glUniform1i(uniform.location,
                         0);
@@ -130,29 +130,29 @@ void program_draw(void *ptr)
             glUniformMatrix4fv(uniform.location,
                                1,
                                GL_FALSE,
-                               (float *)GFX_get_modelview_matrix());
+                               GFX_get_modelview_matrix().m());
         } else if (name == "PROJECTIONMATRIX") {
             glUniformMatrix4fv(uniform.location,
                                1,
                                GL_FALSE,
-                               (float *)GFX_get_projection_matrix());
+                               GFX_get_projection_matrix().m());
 
             uniform.constant = true;
         } else if (name == "NORMALMATRIX") {
             glUniformMatrix3fv(uniform.location,
                                1,
                                GL_FALSE,
-                               (float *)GFX_get_normal_matrix());
+                               GFX_get_normal_matrix().m());
         } else if (name == "PROJECTORMATRIX") {
             glUniformMatrix4fv(uniform.location,
                                1,
                                GL_FALSE,
-                               (float *)&projector_matrix);
+                               projector_matrix.m());
         } else if (name == "MATERIAL.ambient") {
             // Material Data
             glUniform4fv(uniform.location,
                          1,
-                         (float *)&objmesh->current_material->ambient);
+                         objmesh->current_material->ambient.v());
             /* In this scene, all the materials (in this case, there are
              * only two) have the exact same properties, so simply tag the
              * uniforms for the current material to be constant.  This will
@@ -163,13 +163,13 @@ void program_draw(void *ptr)
         } else if (name == "MATERIAL.diffuse") {
             glUniform4fv(uniform.location,
                          1,
-                         (float *)&objmesh->current_material->diffuse);
+                         objmesh->current_material->diffuse.v());
 
             uniform.constant = true;
         } else if (name == "MATERIAL.specular") {
             glUniform4fv(uniform.location,
                          1,
-                         (float *)&objmesh->current_material->specular);
+                         objmesh->current_material->specular.v());
 
             uniform.constant = true;
         } else if (name == "MATERIAL.shininess") {
@@ -342,7 +342,7 @@ void draw_scene_from_projector(void)
      * drawing anything, just gather the necessary matrices to be able to
      * project the texture from the spot.
      */
-    GFX_look_at((vec3 *)&light->position, &center, &up_axis);
+    GFX_look_at(*(vec3 *)&light->position, center, up_axis);
 
     projector_matrix[0][0] = 0.5f;
     projector_matrix[0][1] = 0.0f;
@@ -364,8 +364,9 @@ void draw_scene_from_projector(void)
     projector_matrix[3][2] = 0.5f;
     projector_matrix[3][3] = 1.0f;
 
-    mat4_multiply_mat4(projector_matrix, projector_matrix, *GFX_get_modelview_projection_matrix());
-    
+    projector_matrix =
+        GFX_get_modelview_projection_matrix() * projector_matrix;
+
     /* Bind the shadowmap buffer to redirect the drawing to the shadowmap
      * frame buffer.
      */
@@ -391,7 +392,7 @@ void draw_scene_from_projector(void)
     PROGRAM *program = obj->get_program("writedepth", false);
 
     /* Assign the shader to all materials. */
-	for (auto objmaterial=obj->objmaterial.begin();
+    for (auto objmaterial=obj->objmaterial.begin();
          objmaterial!=obj->objmaterial.end(); ++objmaterial) {
         objmaterial->program = program;
     }
@@ -404,9 +405,7 @@ void draw_scene_from_projector(void)
 
         GFX_push_matrix();
 
-        GFX_translate(objmesh->location->x,
-                      objmesh->location->y,
-                      objmesh->location->z);
+        GFX_translate(objmesh->location);
 
         objmesh->draw();
 
@@ -447,7 +446,7 @@ void draw_scene(void)
 
     mat4 projector_matrix_copy;
     
-    mat4_copy_mat4(projector_matrix_copy, projector_matrix);
+    projector_matrix_copy = projector_matrix;
     
     /* Get the lighting shader program. */
     PROGRAM *program = obj->get_program("lighting", false);
@@ -470,11 +469,9 @@ void draw_scene(void)
 
         GFX_push_matrix();
 
-        GFX_translate(objmesh->location->x,
-                      objmesh->location->y,
-                      objmesh->location->z);
+        GFX_translate(objmesh->location);
 
-        mat4_copy_mat4(projector_matrix, projector_matrix_copy);
+        projector_matrix = projector_matrix_copy;
 
         mat4_translate(projector_matrix, projector_matrix, objmesh->location);
 

@@ -139,21 +139,21 @@ void GFX_load_identity( void )
 	{
 		case MODELVIEW_MATRIX:
 		{
-			mat4_identity( *GFX_get_modelview_matrix() );
+			GFX_get_modelview_matrix().loadIdentity();
 			
 			break;
 		}
 		
 		case PROJECTION_MATRIX:
 		{
-			mat4_identity( *GFX_get_projection_matrix() );
+			GFX_get_projection_matrix().loadIdentity();
 			
 			break;
 		}
 		
 		case TEXTURE_MATRIX:
 		{
-			mat4_identity( *GFX_get_texture_matrix() );
+			GFX_get_texture_matrix().loadIdentity();
 			
 			break;
 		}		
@@ -163,38 +163,38 @@ void GFX_load_identity( void )
 
 void GFX_push_matrix( void )
 {
-	switch( gfx.matrix_mode )
-	{
-		case MODELVIEW_MATRIX:
-		{
-			mat4_copy_mat4( gfx.modelview_matrix[ gfx.modelview_matrix_index + 1 ],
-							gfx.modelview_matrix[ gfx.modelview_matrix_index	  ] );
-		
-			++gfx.modelview_matrix_index;
-			
-			break;
-		}
+    switch( gfx.matrix_mode )
+    {
+        case MODELVIEW_MATRIX:
+        {
+            gfx.modelview_matrix[gfx.modelview_matrix_index + 1] =
+                gfx.modelview_matrix[gfx.modelview_matrix_index];
 
-		case PROJECTION_MATRIX:
-		{
-			mat4_copy_mat4( gfx.projection_matrix[ gfx.projection_matrix_index + 1 ],
-							gfx.projection_matrix[ gfx.projection_matrix_index	    ] );
-			
-			++gfx.projection_matrix_index;
-			
-			break;
-		}
-		
-		case TEXTURE_MATRIX:
-		{
-			mat4_copy_mat4( gfx.texture_matrix[ gfx.texture_matrix_index + 1 ],
-							gfx.texture_matrix[ gfx.texture_matrix_index     ] );
-			
-			++gfx.texture_matrix_index;
-			
-			break;
-		}		
-	}
+            ++gfx.modelview_matrix_index;
+
+            break;
+        }
+
+        case PROJECTION_MATRIX:
+        {
+            gfx.projection_matrix[gfx.projection_matrix_index + 1] =
+                gfx.projection_matrix[gfx.projection_matrix_index];
+
+            ++gfx.projection_matrix_index;
+
+            break;
+        }
+
+        case TEXTURE_MATRIX:
+        {
+            gfx.texture_matrix[gfx.texture_matrix_index + 1] =
+                gfx.texture_matrix[gfx.texture_matrix_index];
+
+            ++gfx.texture_matrix_index;
+            
+            break;
+        }		
+    }
 }
 
 
@@ -226,27 +226,27 @@ void GFX_pop_matrix( void )
 }
 
 
-void GFX_load_matrix( mat4 *m )
+void GFX_load_matrix(const mat4 &m)
 {
 	switch( gfx.matrix_mode )
 	{
 		case MODELVIEW_MATRIX:
 		{
-			mat4_copy_mat4( *GFX_get_modelview_matrix(), *m );
+			GFX_get_modelview_matrix() = m;
 			
 			break;
 		}
 	
 		case PROJECTION_MATRIX:
 		{
-			mat4_copy_mat4( *GFX_get_projection_matrix(), *m );
+			GFX_get_projection_matrix() = m;
 			
 			break;
 		}
 		
 		case TEXTURE_MATRIX:
 		{
-			mat4_copy_mat4( *GFX_get_texture_matrix(), *m );
+			GFX_get_texture_matrix() = m;
 			
 			break;
 		}		
@@ -254,65 +254,71 @@ void GFX_load_matrix( mat4 *m )
 }
 
 
-void GFX_multiply_matrix( mat4 *m )
+void GFX_multiply_matrix(const mat4 &m)
 {
 	switch( gfx.matrix_mode )
 	{
 		case MODELVIEW_MATRIX:
 		{
-			mat4_multiply_mat4( *GFX_get_modelview_matrix(), *GFX_get_modelview_matrix(), *m );
+                    GFX_get_modelview_matrix() = m * GFX_get_modelview_matrix();
 
 			break;
 		}
 			
 		case PROJECTION_MATRIX:
 		{
-			mat4_multiply_mat4( *GFX_get_projection_matrix(), *GFX_get_projection_matrix(), *m );
-			
+                    GFX_get_projection_matrix() = m * GFX_get_projection_matrix();
+
 			break;
 		}
 		
 		case TEXTURE_MATRIX:
 		{
-			mat4_multiply_mat4( *GFX_get_texture_matrix(), *GFX_get_texture_matrix(), *m );
-			
+                    GFX_get_texture_matrix() = m * GFX_get_texture_matrix();
+
 			break;
 		}		
 	}
 }
 
 
-void GFX_translate( float x, float y, float z )
+void GFX_translate(const float x, const float y, const float z)
 {
     vec3 v(x, y, z);
-	
+
+    GFX_translate(v);
+}
+
+
+void GFX_translate(const vec3 &t)
+{
     switch( gfx.matrix_mode )
     {
         case MODELVIEW_MATRIX:
         {
-            mat4_translate( *GFX_get_modelview_matrix(), *GFX_get_modelview_matrix(), v );
+            mat4_translate(GFX_get_modelview_matrix(), GFX_get_modelview_matrix(), t);
 
             break;
         }
 
         case PROJECTION_MATRIX:
         {
-            mat4_translate( *GFX_get_projection_matrix(), *GFX_get_projection_matrix(), v );
+            mat4_translate(GFX_get_projection_matrix(), GFX_get_projection_matrix(), t);
 
             break;
         }
 
         case TEXTURE_MATRIX:
         {
-            mat4_translate( *GFX_get_texture_matrix(), *GFX_get_texture_matrix(), v );
-            
+            mat4_translate(GFX_get_texture_matrix(), GFX_get_texture_matrix(), t);
+
             break;
         }		
     }
 }
 
 
-void GFX_rotate( float angle, float x, float y, float z )
+void GFX_rotate(const float angle, const float x, const float y, const float z)
 {
 	if( !angle ) return;
 	
@@ -322,21 +328,21 @@ void GFX_rotate( float angle, float x, float y, float z )
 	{
 		case MODELVIEW_MATRIX:
 		{
-			mat4_rotate( *GFX_get_modelview_matrix(), *GFX_get_modelview_matrix(), v );
+			mat4_rotate(GFX_get_modelview_matrix(), GFX_get_modelview_matrix(), v);
 			
 			break;
 		}
 	
 		case PROJECTION_MATRIX:
 		{
-			mat4_rotate( *GFX_get_projection_matrix(), *GFX_get_projection_matrix(), v );
+			mat4_rotate(GFX_get_projection_matrix(), GFX_get_projection_matrix(), v);
 			
 			break;
 		}
 
 		case TEXTURE_MATRIX:
 		{
-			mat4_rotate( *GFX_get_texture_matrix(), *GFX_get_texture_matrix(), v );
+			mat4_rotate(GFX_get_texture_matrix(), GFX_get_texture_matrix(), v);
 			
 			break;
 		}		
@@ -344,13 +350,22 @@ void GFX_rotate( float angle, float x, float y, float z )
 }
 
 
-void GFX_scale( float x, float y, float z )
+void GFX_scale(const float x, const float y, const float z)
 {
     static vec3 scale(1.0f, 1.0f, 1.0f);
 
     vec3 v(x, y, z);
 
-//    if( !memcmp( &v, &scale, sizeof( vec3 ) ) ) return;
+    if (v == scale) return;
+
+    GFX_scale(v);
+}
+
+
+void GFX_scale(const vec3 &v)
+{
+    static vec3 scale(1.0f, 1.0f, 1.0f);
+
     if (v == scale) return;
 
 
@@ -358,87 +373,84 @@ void GFX_scale( float x, float y, float z )
     {
         case MODELVIEW_MATRIX:
         {
-            mat4_scale( *GFX_get_modelview_matrix(), *GFX_get_modelview_matrix(), v );
+            mat4_scale(GFX_get_modelview_matrix(), GFX_get_modelview_matrix(), v);
 
             break;
         }
 
         case PROJECTION_MATRIX:
         {
-            mat4_scale( *GFX_get_projection_matrix(), *GFX_get_projection_matrix(), v );
+            mat4_scale(GFX_get_projection_matrix(), GFX_get_projection_matrix(), v );
 
             break;
         }
-            
+
         case TEXTURE_MATRIX:
         {
-            mat4_scale( *GFX_get_texture_matrix(), *GFX_get_texture_matrix(), v );
-            
+            mat4_scale(GFX_get_texture_matrix(), GFX_get_texture_matrix(), v);
+
             break;
         }		
     }
 }
 
 
-mat4 *GFX_get_modelview_matrix( void )
-{ return &gfx.modelview_matrix[ gfx.modelview_matrix_index ]; }
+mat4 &GFX_get_modelview_matrix( void )
+{ return gfx.modelview_matrix[ gfx.modelview_matrix_index ]; }
 
 
-mat4 *GFX_get_projection_matrix( void )
-{ return &gfx.projection_matrix[ gfx.projection_matrix_index ]; }
+mat4 &GFX_get_projection_matrix( void )
+{ return gfx.projection_matrix[ gfx.projection_matrix_index ]; }
 
 
-mat4 *GFX_get_texture_matrix( void )
-{ return &gfx.texture_matrix[ gfx.texture_matrix_index ]; }
+mat4 &GFX_get_texture_matrix( void )
+{ return gfx.texture_matrix[ gfx.texture_matrix_index ]; }
 
 
-mat4 *GFX_get_modelview_projection_matrix( void )
+mat4 &GFX_get_modelview_projection_matrix( void )
 {
-	mat4_multiply_mat4( gfx.modelview_projection_matrix,
-						*GFX_get_projection_matrix(),
-						*GFX_get_modelview_matrix() );
-	
-	return &gfx.modelview_projection_matrix; 
+    gfx.modelview_projection_matrix =
+        GFX_get_modelview_matrix() * GFX_get_projection_matrix();
+
+    return gfx.modelview_projection_matrix;
 }
 
 
-mat3 *GFX_get_normal_matrix( void )
+mat3 &GFX_get_normal_matrix( void )
 {
-	mat4 mat;
-	
-	mat4_copy_mat4( mat, *GFX_get_modelview_matrix() );
+    mat4 mat;
 
-	mat4_invert_full( mat );
+    mat = GFX_get_modelview_matrix().inverse().transpose();
 
-	mat4_transpose( mat );
-	
-	mat3_copy_mat4( gfx.normal_matrix, mat );
-
-	return &gfx.normal_matrix;
+    mat3_copy_mat4( gfx.normal_matrix, mat );
+    
+    return gfx.normal_matrix;
 }
 
 
-void GFX_ortho( float left, float right, float bottom, float top, float clip_start, float clip_end )
+void GFX_ortho(const float left, const float right,
+               const float bottom, const float top,
+               const float clip_start, const float clip_end)
 {
 	switch( gfx.matrix_mode )
 	{
 		case MODELVIEW_MATRIX:
 		{
-			mat4_ortho( GFX_get_modelview_matrix(), left, right, bottom, top, clip_start, clip_end ); 
+			mat4_ortho(GFX_get_modelview_matrix(), left, right, bottom, top, clip_start, clip_end); 
 			
 			break;
 		}
 	
 		case PROJECTION_MATRIX:
 		{
-			mat4_ortho( GFX_get_projection_matrix(), left, right, bottom, top, clip_start, clip_end );
+			mat4_ortho(GFX_get_projection_matrix(), left, right, bottom, top, clip_start, clip_end);
 			
 			break;
 		}
 
 		case TEXTURE_MATRIX:
 		{
-			mat4_ortho( GFX_get_texture_matrix(), left, right, bottom, top, clip_start, clip_end );
+			mat4_ortho(GFX_get_texture_matrix(), left, right, bottom, top, clip_start, clip_end);
 			
 			break;
 		}		
@@ -446,11 +458,12 @@ void GFX_ortho( float left, float right, float bottom, float top, float clip_sta
 }
 
 
-void GFX_set_orthographic_2d( float left, float right, float bottom, float top )
+void GFX_set_orthographic_2d(const float left, const float right,
+                             const float bottom, const float top)
 { GFX_ortho( left, right, bottom, top, -1.0f, 1.0f ); }
 
 
-void GFX_set_orthographic( float screen_ratio, float scale, float aspect_ratio, float clip_start, float clip_end, float screen_orientation )
+void GFX_set_orthographic(const float screen_ratio, float scale, const float aspect_ratio, const float clip_start, const float clip_end, const float screen_orientation)
 {
     scale = ( scale * 0.5f ) * aspect_ratio;
 
@@ -467,16 +480,18 @@ void GFX_set_orthographic( float screen_ratio, float scale, float aspect_ratio, 
 }
 
 
-void GFX_set_perspective( float fovy, float aspect_ratio, float clip_start, float clip_end, float screen_orientation )
+void GFX_set_perspective(const float fovy, const float aspect_ratio,
+                         const float clip_start, const float clip_end,
+                         const float screen_orientation)
 {
     mat4 mat;
 
-    float d = clip_end - clip_start,
-    r = ( fovy * 0.5f ) * DEG_TO_RAD,
-    s = sinf( r ),
-    c = cosf( r ) / s;
+    float   d = clip_end - clip_start,
+            r = ( fovy * 0.5f ) * DEG_TO_RAD,
+            s = sinf( r ),
+            c = cosf( r ) / s;
 
-    mat4_identity( mat );
+    mat.loadIdentity();
 
     mat[0][0] = c / aspect_ratio;
     mat[1][1] = c;
@@ -485,13 +500,13 @@ void GFX_set_perspective( float fovy, float aspect_ratio, float clip_start, floa
     mat[3][2] = -2.0f * clip_start * clip_end / d;
     mat[3][3] =  0.0f;
 
-    GFX_multiply_matrix( &mat );
+    GFX_multiply_matrix(mat);
 
     if( screen_orientation ) GFX_rotate( screen_orientation, 0.0f, 0.0f, 1.0f );
 }
 
 
-void GFX_look_at( vec3 *eye, vec3 *center, vec3 *up )
+void GFX_look_at(const vec3 &eye, const vec3 &center, const vec3 &up)
 {
     vec3    f,
             s,
@@ -499,13 +514,13 @@ void GFX_look_at( vec3 *eye, vec3 *center, vec3 *up )
 
     mat4 mat;
 
-    mat4_identity( mat );
+    mat.loadIdentity();
 
-    f = *center - *eye;
+    f = center - eye;
 
     f.safeNormalize();
 
-    s = f.crossProduct(*up);
+    s = f.crossProduct(up);
 
     s.safeNormalize();
 
@@ -523,25 +538,37 @@ void GFX_look_at( vec3 *eye, vec3 *center, vec3 *up )
     mat[1][2] = -f->y;
     mat[2][2] = -f->z;
     
-    GFX_multiply_matrix( &mat );
+    GFX_multiply_matrix(mat);
     
-    GFX_translate( -(*eye)->x, -(*eye)->y, -(*eye)->z );
+    GFX_translate(-eye);
 }
 
 
-bool GFX_project( float objx, float objy, float objz, mat4 *modelview_matrix, mat4 *projection_matrix, int *viewport_matrix, float *winx, float *winy, float *winz )
+bool GFX_project(const float objx, const float objy, const float objz,
+                 const mat4 &modelview_matrix,
+                 const mat4 &projection_matrix,
+                 const int *viewport_matrix,
+                 float *winx, float *winy, float *winz)
 {
-    vec4    vin,
+    return GFX_project(vec3(objx, objy, objz),
+                       modelview_matrix,
+                       projection_matrix,
+                       viewport_matrix,
+                       winx, winy, winz);
+}
+
+bool GFX_project(const vec3 &obj,
+                 const mat4 &modelview_matrix,
+                 const mat4 &projection_matrix,
+                 const int *viewport_matrix,
+                 float *winx, float *winy, float *winz)
+{
+    vec4    vin(obj, 1.0f),
             vout;
 
-    vin->x = objx;
-    vin->y = objy;
-    vin->z = objz;
-    vin->w = 1.0f;
+    vout = vin * modelview_matrix;
 
-    vec4_multiply_mat4( vout, vin, *modelview_matrix );
-
-    vec4_multiply_mat4( vin, vout, *projection_matrix );
+    vin = vout * projection_matrix;
 
     if( !vin->w ) return false;
 
@@ -555,27 +582,44 @@ bool GFX_project( float objx, float objy, float objz, mat4 *modelview_matrix, ma
 
     vin->x = vin->x * viewport_matrix[2] + viewport_matrix[0];
     vin->y = vin->y * viewport_matrix[3] + viewport_matrix[1];
-    
+
     *winx = vin->x;
     *winy = vin->y;
     *winz = vin->z;
-    
+
     return true;
 }
 
+bool GFX_unproject(const float winx, const float winy, const float winz,
+                   const mat4 &modelview_matrix,
+                   const mat4 &projection_matrix,
+                   const int *viewport_matrix,
+                   float *objx, float *objy, float *objz)
+{
+    vec3    vout;
+    bool    status = GFX_unproject(winx, winy, winz,
+                                   modelview_matrix,
+                                   projection_matrix,
+                                   viewport_matrix,
+                                   vout);
+    *objx = vout->x;
+    *objy = vout->y;
+    *objz = vout->z;
 
-bool GFX_unproject( float winx, float winy, float winz, mat4 *modelview_matrix, mat4 *projection_matrix, int *viewport_matrix, float *objx, float *objy, float *objz )
+    return status;
+}
+
+bool GFX_unproject(const float winx, const float winy, const float winz,
+                   const mat4 &modelview_matrix,
+                   const mat4 &projection_matrix,
+                   const int *viewport_matrix, vec3 &obj)
 {
     mat4    final;
 
     vec4    vin,
             vout;
 
-    mat4_multiply_mat4(final,
-                       *projection_matrix,
-                       *modelview_matrix);
-
-    mat4_invert_full(final);
+    final = inverse(modelview_matrix * projection_matrix);
 
     vin->x = winx;
     vin->y = winy;
@@ -589,7 +633,7 @@ bool GFX_unproject( float winx, float winy, float winz, mat4 *modelview_matrix, 
     vin->y = vin->y * 2.0f - 1.0f;
     vin->z = vin->z * 2.0f - 1.0f;
 
-    vec4_multiply_mat4( vout, vin, final );
+    vout = vin * final;
 
     if(!vout->w) return false;
 
@@ -597,9 +641,9 @@ bool GFX_unproject( float winx, float winy, float winz, mat4 *modelview_matrix, 
     vout->y /= vout->w;
     vout->z /= vout->w;
     
-    *objx = vout->x;
-    *objy = vout->y;
-    *objz = vout->z;
+    obj->x = vout->x;
+    obj->y = vout->y;
+    obj->z = vout->z;
     
     return true;
 }

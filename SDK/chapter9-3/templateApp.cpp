@@ -319,7 +319,7 @@ void templateAppDraw(void) {
             c(0.0f,  2.0f, 0.0f),
             u(0.0f,  0.0f, 1.0f);
 
-    GFX_look_at(&e, &c, &u);
+    GFX_look_at(e, c, u);
     
     program->draw();
     
@@ -367,13 +367,11 @@ void templateAppDraw(void) {
              */
             OBJMESH *objmesh = &obj->objmesh[i];
             GFX_push_matrix();
-            GFX_translate(objmesh->location->x,
-                          objmesh->location->y,
-                          objmesh->location->z);
+            GFX_translate(objmesh->location);
             glUniformMatrix4fv(program->get_uniform_location((char *)"MODELVIEWPROJECTIONMATRIX"),
                                1,
                                GL_FALSE,
-                               (float *)GFX_get_modelview_projection_matrix());
+                               GFX_get_modelview_projection_matrix().m());
             /* Use the following helper function to generate a unique RGBA
              * value for the current loop index.
              */
@@ -381,7 +379,7 @@ void templateAppDraw(void) {
             /* Send the color to the fragment shader. */
             glUniform4fv(program->get_uniform_location((char *)"COLOR"),
                          1,
-                         (float *)&color);
+                         color.v());
             /* Draw the object using the unique color that you have generated
              * above.
              */
@@ -465,14 +463,12 @@ void templateAppDraw(void) {
 
         GFX_push_matrix();
 
-        GFX_translate(objmesh->location->x,
-                      objmesh->location->y,
-                      objmesh->location->z);
+        GFX_translate(objmesh->location);
 
         glUniformMatrix4fv(program->get_uniform_location((char *)"MODELVIEWPROJECTIONMATRIX"),
                            1,
                            GL_FALSE,
-                           (float *)GFX_get_modelview_projection_matrix());
+                           GFX_get_modelview_projection_matrix().m());
 
         /* Convert the current mesh name to an index that corresponds to
          * the sound source index of the piano key sound source array.
@@ -498,7 +494,7 @@ void templateAppDraw(void) {
 
         glUniform4fv(program->get_uniform_location((char *)"COLOR"),
                      1,
-                     (float *)&color);
+                     color.v());
         
         objmesh->draw();
         

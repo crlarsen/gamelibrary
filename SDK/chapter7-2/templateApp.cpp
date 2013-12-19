@@ -190,17 +190,15 @@ void templateAppDraw(void) {
     // calculating the frustum, and into the loop to be merged with the
     // other translation operation.
     /* First translate the model view matrix. */
-    GFX_translate(-eye_location->x,
-                  -eye_location->y,
-                  -eye_location->z);
+    GFX_translate(-eye_location);
 
     /* Build the frustum planes.  Always make sure that you call the
      * function after the model view and project matrix have been fully updated.
      * otherwise, the frustum calculation will be wrong.
      */
     build_frustum(frustum,
-                  *GFX_get_modelview_matrix(),
-                  *GFX_get_projection_matrix());
+                  GFX_get_modelview_matrix(),
+                  GFX_get_projection_matrix());
 
     unsigned int n = 0;
 
@@ -217,14 +215,12 @@ void templateAppDraw(void) {
         if (objmesh->distance) {
             GFX_push_matrix();
 
-            GFX_translate(objmesh->location->x,
-                          objmesh->location->y,
-                          objmesh->location->z);
+            GFX_translate(objmesh->location);
 
             glUniformMatrix4fv(program->uniform_map["MODELVIEWPROJECTIONMATRIX"].location,
                                1,
                                GL_FALSE,
-                               (float *)GFX_get_modelview_projection_matrix());
+                               GFX_get_modelview_projection_matrix().m());
 
             objmesh->draw();
 
