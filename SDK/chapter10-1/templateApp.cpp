@@ -74,12 +74,10 @@ struct LAMP {
         memset(name, 0, sizeof(name));
         strcpy(name, n);
     }
-    ~LAMP() {}
-    LAMP(const LAMP &src) {
+    virtual ~LAMP() {}
+    LAMP(const LAMP &src) : color(src.color), type(src.type) {
         memset(name, 0, sizeof(name));
         strcpy(name, src.name);
-        color = src.color;
-        type  = src.type;
     }
     LAMP &operator=(const LAMP &rhs) {
         if (this != &rhs) {
@@ -113,12 +111,12 @@ public:
                     const float roty,
                     const float rotz);
     ~DirectionalLamp() {}
-    DirectionalLamp(const DirectionalLamp &src) : LAMP(name, color, type) {
-        direction = src.direction;
+    DirectionalLamp(const DirectionalLamp &src) :
+        direction(src.direction), LAMP(src) {
     }
     DirectionalLamp &operator=(const DirectionalLamp &rhs) {
         if (this != &rhs) {
-            *dynamic_cast<LAMP *>(this) = dynamic_cast<const LAMP &>(rhs);
+            LAMP::operator=(rhs);
             direction = rhs.direction;
         }
         return *this;

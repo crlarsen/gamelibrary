@@ -47,11 +47,11 @@ as being the original software.
 
 enum
 {
-	LIGHT_DIRECTIONAL			 = 0,
-	LIGHT_POINT					 = 1,
-	LIGHT_POINT_WITH_ATTENUATION = 2,
-	LIGHT_POINT_SPHERE			 = 3,
-	LIGHT_SPOT					 = 4
+    LIGHT_DIRECTIONAL		 = 0,
+    LIGHT_POINT			 = 1,
+    LIGHT_POINT_WITH_ATTENUATION = 2,
+    LIGHT_POINT_SPHERE		 = 3,
+    LIGHT_SPOT			 = 4
 };
 
 struct LIGHT {
@@ -63,11 +63,9 @@ struct LIGHT {
         strcpy(name, n);
     }
     virtual ~LIGHT() {}
-    LIGHT(const LIGHT &src) {
+    LIGHT(const LIGHT &src) : color(src.color), type(src.type) {
         memset(name, 0, sizeof(name));
         strcpy(name, src.name);
-        color = src.color;
-        type  = src.type;
     }
     LIGHT &operator=(const LIGHT &rhs) {
         if (this != &rhs) {
@@ -94,17 +92,17 @@ struct DirectionalLight : LIGHT {
     vec3    direction;
 public:
     DirectionalLight(const char *name,
-                    const vec4 &color,
-                    const float rotx,
-                    const float roty,
-                    const float rotz);
+                     const vec4 &color,
+                     const float rotx,
+                     const float roty,
+                     const float rotz);
     ~DirectionalLight() {}
     DirectionalLight(const DirectionalLight &src) :
-        direction(src.direction), LIGHT(name, color, type) {
+        direction(src.direction), LIGHT(src) {
     }
     DirectionalLight &operator=(const DirectionalLight &rhs) {
         if (this != &rhs) {
-            *dynamic_cast<LIGHT *>(this) = dynamic_cast<const LIGHT &>(rhs);
+            LIGHT::operator=(rhs);
             direction = rhs.direction;
         }
         return *this;
@@ -122,11 +120,11 @@ public:
     PointLight(const char *name, const vec4 &color, const vec3 &position);
     ~PointLight() {}
     PointLight(const PointLight &src) :
-        position(src.position), LIGHT(name, color, type) {
+        position(src.position), LIGHT(src) {
     }
     PointLight &operator=(const PointLight &rhs) {
         if (this != &rhs) {
-            *dynamic_cast<LIGHT *>(this) = dynamic_cast<const LIGHT &>(rhs);
+            LIGHT::operator=(rhs);
             position = rhs.position;
         }
         return *this;
@@ -141,22 +139,21 @@ struct AttenuatedPointLight : PointLight {
     float   distance;
 public:
     AttenuatedPointLight(const char *name, const vec4 &color,
-                        const vec3 &position, const float distance,
-                        const float linear_attenuation,
-                        const float quadratic_attenuation);
+                         const vec3 &position, const float distance,
+                         const float linear_attenuation,
+                         const float quadratic_attenuation);
     ~AttenuatedPointLight() {}
-    AttenuatedPointLight(const AttenuatedPointLight &src) : PointLight(src) {
-        linear_attenuation = src.linear_attenuation;
-        quadratic_attenuation = src.quadratic_attenuation;
-        distance = src.distance;
-        type = src.type;
+    AttenuatedPointLight(const AttenuatedPointLight &src) :
+        linear_attenuation(src.linear_attenuation),
+        quadratic_attenuation(src.quadratic_attenuation),
+        distance(src.distance), PointLight(src) {
     }
     AttenuatedPointLight &operator=(const AttenuatedPointLight &rhs) {
         if (this != &rhs) {
-            *dynamic_cast<PointLight *>(this) = dynamic_cast<const PointLight &>(rhs);
-            linear_attenuation = rhs.linear_attenuation;
+            PointLight::operator=(rhs);
+            linear_attenuation    = rhs.linear_attenuation;
             quadratic_attenuation = rhs.quadratic_attenuation;
-            distance = rhs.distance;
+            distance              = rhs.distance;
         }
         return *this;
     }
@@ -171,12 +168,12 @@ public:
                 const vec3 &position,
                 const float distance);
     ~PointSphere() {}
-    PointSphere(const PointSphere &src) : PointLight(src) {
-        distance = src.distance;
+    PointSphere(const PointSphere &src) :
+        distance(src.distance), PointLight(src) {
     }
     PointSphere &operator=(const PointSphere &rhs) {
         if (this != &rhs) {
-            *dynamic_cast<PointLight *>(this) = dynamic_cast<const PointLight &>(rhs);
+            PointLight::operator=(rhs);
             distance = rhs.distance;
         }
         return *this;
@@ -191,21 +188,21 @@ struct SpotLight : PointLight {
     vec3    spot_direction;
 public:
     SpotLight(const char *name,
-             const vec4 &color,
-             const vec3 &position,
-             /* The XYZ rotation angle of the spot direction
-              * vector in degrees.
-              */
-             const float rotx,
-             const float roty,
-             const float rotz,
-             /* The field of view of the spot, also in degrees. */
-             const float fov,
-             /* The spot blend to smooth the edge of the spot.
-              * This value is between the range of 0 and 1, where
-              * 0 represents no smoothing.
-              */
-             const float spot_blend);
+              const vec4 &color,
+              const vec3 &position,
+              /* The XYZ rotation angle of the spot direction
+               * vector in degrees.
+               */
+              const float rotx,
+              const float roty,
+              const float rotz,
+              /* The field of view of the spot, also in degrees. */
+              const float fov,
+              /* The spot blend to smooth the edge of the spot.
+               * This value is between the range of 0 and 1, where
+               * 0 represents no smoothing.
+               */
+              const float spot_blend);
     ~SpotLight() {}
     SpotLight(const SpotLight &src) :
         spot_fov(src.spot_fov), spot_cos_cutoff(src.spot_cos_cutoff),
@@ -214,7 +211,7 @@ public:
     }
     SpotLight &operator=(const SpotLight &rhs) {
         if (this != &rhs) {
-            *dynamic_cast<PointLight *>(this) = dynamic_cast<const PointLight &>(rhs);
+            PointLight::operator=(rhs);
             spot_fov        = rhs.spot_fov;
             spot_cos_cutoff = rhs.spot_cos_cutoff;
             spot_blend      = rhs.spot_blend;

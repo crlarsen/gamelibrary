@@ -39,6 +39,8 @@ void recast_to_vec3( vec3 *v );
 
 void quat_build_r(quaternion &v);
 
+void quat_build_w(quaternion &v);
+
 void quat_multiply_vec3(quaternion &dst, const quaternion &v0, const vec3 &v1);
 
 void quat_multiply_quat(quaternion &dst, const quaternion &v0, const quaternion &v1);

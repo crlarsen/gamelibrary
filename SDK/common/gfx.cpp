@@ -619,7 +619,7 @@ bool GFX_unproject(const float winx, const float winy, const float winz,
     vec4    vin,
             vout;
 
-    final = inverse(modelview_matrix * projection_matrix);
+    final = mat4(modelview_matrix * projection_matrix).inverse();
 
     vin->x = winx;
     vin->y = winy;

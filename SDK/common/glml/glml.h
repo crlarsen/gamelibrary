@@ -158,15 +158,6 @@ public:
     const vec operator-(const vec &rhs) const {
         return vec(*this) -= rhs;
     }
-    vec &operator*=(const vec &rhs) {
-        for (int i=0; i!=nElems(); ++i) {
-            this->_v[i] *= rhs._v[i];
-        }
-        return *this;
-    }
-    const vec operator*(const vec &rhs) const {
-        return vec(*this) *= rhs;
-    }
     vec &operator*=(const Type rhs) {
         for (int i=0; i!=nElems(); ++i) {
             this->_v[i] *= rhs;
@@ -187,21 +178,6 @@ public:
 //        return *this;
 //    }
     vec &operator*=(const mat<Type,nelems,nelems> &rhs);
-    vec &operator/=(const vec &rhs) {
-#ifndef NDEBUG
-        for (int i=0; i!=nElems(); ++i) {
-            if (rhs._v[i] == 0.0)
-                throw std::runtime_error("Divide by zero");
-        }
-#endif
-        for (int i=0; i!=nElems(); ++i) {
-            this->_v[i] /= rhs._v[i];
-        }
-        return *this;
-    }
-    const vec operator/(const vec &rhs) const {
-        return vec(*this) /= rhs;
-    }
     vec &operator/=(const Type rhs) {
 #ifndef NDEBUG
         if (rhs == 0.0)
@@ -306,10 +282,7 @@ public:
         vec<Type,3>::_v[1] = argYZ[0];
         vec<Type,3>::_v[2] = argYZ[1];
     }
-    cpvec(const vec<Type,3> &argXYZ) {
-        for (int i=0; i!=this->nElems(); ++i)
-            this->_v[i] = argXYZ[i];
-    }
+    cpvec(const vec<Type,3> &src) : vec<Type,3>(src) {}
     // See comments above for the constructor making a vec2 from a vec4.
     explicit cpvec(const vec<Type,4> &argXYZW, const bool truncate=false) {
         for (int i=0; i!=vec<Type,3>::nElems(); ++i)
@@ -325,9 +298,7 @@ public:
     // Destructor
     ~cpvec(void) {}
     // Copy Constructor
-    cpvec(const cpvec &argXYZ) {	// Copy Constructor
-        *this = argXYZ;
-    }
+    cpvec(const cpvec &src) : vec<Type,3>(src) {}
     // Gee, I wish I could declare crossProduct as
     // "const Type operator×(const vec<Type,3> &rhs) const" so I could use
     // it like "u × v".
@@ -387,7 +358,7 @@ public:
             for (int j=0; j!=nCols(); ++j)
                 _m[i][j] = src._m[i][j];
     }
-    
+
 protected:
     vec<Type,ncols> _m[nrows];
     
@@ -556,14 +527,8 @@ class matNxN : public mat<Type, nrc, nrc> {
 public:
     matNxN(void) {}
     ~matNxN(void) {}
-    matNxN(const matNxN &src) {
-        for (int i=0; i!=mat<Type,nrc,nrc>::nRows(); ++i) {
-//            for (int j=0; j!=mat<Type,nrc,nrc>::nCols(); ++j) {
-//                mat<Type,nrc,nrc>::_m[i][j] = src[i][j];
-//            }
-            mat<Type,nrc,nrc>::_m[i] = src[i];
-        }
-    }
+    matNxN(const matNxN &src) : mat<Type,nrc,nrc>(src) {}
+    matNxN(const mat<Type,nrc,nrc> &src) : mat<Type,nrc,nrc>(src) {}
     matNxN &loadIdentity(void) {
         for (int i=0; i!=mat<Type,nrc,nrc>::nRows(); ++i) {
             int j;
@@ -809,10 +774,7 @@ public:
         _v[0] = x;
         _v[1] = y;
     }
-    vec2(const vec<eType,2> &argXY) {
-        for (int i=0; i!=nElems(); ++i)
-            _v[i] = argXY[i];
-    }
+    vec2(const vec<eType,2> &src) : vec<eType,2>(src) {}
     explicit vec2(const vec<eType,3> &argXYZ) {
         for (int i=0; i!=nElems(); ++i)
             _v[i] = argXYZ[i];
@@ -823,10 +785,7 @@ public:
     // this is also a valid use of 4-tuples.
     explicit vec2(const vec4 &argXYZW, const bool truncate=false);
     // Copy Constructor
-    vec2(const vec2 &argXY) {	// Copy Constructor
-        for (int i=0; i!=nElems(); ++i)
-            _v[i] = argXY[i];
-    }
+    vec2(const vec2 &src) : vec<eType,2>(src) {}
     // Destructor
     ~vec2(void) {}
     // Enable use of named components
@@ -847,10 +806,7 @@ public:
         _v[0] = x;
         _v[1] = y;
     }
-    dvec2(const vec<eType,2> &argXY) {
-        for (int i=0; i!=nElems(); ++i)
-            _v[i] = argXY[i];
-    }
+    dvec2(const vec<eType,2> &src) : vec<eType,2>(src) {}
     explicit dvec2(const vec<eType,3> &argXYZ) {
         for (int i=0; i!=nElems(); ++i)
             _v[i] = argXYZ[i];
@@ -861,10 +817,7 @@ public:
     // this is also a valid use of 4-tuples.
     explicit dvec2(const vec4 &argXYZW, const bool truncate=false);
     // Copy Constructor
-    dvec2(const dvec2 &argXY) {	// Copy Constructor
-        for (int i=0; i!=nElems(); ++i)
-            _v[i] = argXY[i];
-    }
+    dvec2(const dvec2 &src) : vec<eType,2>(src) {}
     // Destructor
     ~dvec2(void) {}
     // Enable use of named components
@@ -883,12 +836,12 @@ public:
     explicit vec3(const vec<eType,2> &argXY, const eType argZ=0.0f) : cpvec<eType>(argXY,argZ) {}
 //    vec3(vec2 &argXY);	// Use zero for Z value
     vec3(const eType argX, const vec<eType,2> &argYZ) : cpvec<eType>(argX,argYZ) {}
-    vec3(const vec<eType,3> &argXYZ) : cpvec<eType>(argXYZ) {}
+    vec3(const vec<eType,3> &src) : cpvec<eType>(src) {}
     // See comments above for the constructor making a vec2 from a vec4.
     explicit vec3(const vec<eType,4> &argXYZW, const bool truncate=true) : cpvec<eType>(argXYZW, truncate) {}
     explicit vec3(const qTemplate<eType> &q) : cpvec<eType>(q) {}
     // Copy Constructor
-    vec3(const vec3 &argXYZ) : cpvec<eType>(argXYZ) {}
+    vec3(const vec3 &src) : cpvec<eType>(src) {}
     // Destructor
     ~vec3(void) {}
     _CRL_vf3 *operator->() { return reinterpret_cast<_CRL_vf3 *>(this); }
@@ -908,12 +861,12 @@ public:
     explicit dvec3(const vec<eType,2> &argXY, const eType argZ=0.0f) : cpvec<eType>(argXY,argZ) {}
 //    dvec3(vec2 &argXY);	// Use zero for Z value
     dvec3(const eType argX, const vec<eType,2> &argYZ) : cpvec<eType>(argX,argYZ) {}
-    dvec3(const vec<eType,3> &argXYZ) : cpvec<eType>(argXYZ) {}
+    dvec3(const vec<eType,3> &src) : cpvec<eType>(src) {}
     // See comments above for the constructor making a vec2 from a vec4.
     explicit dvec3(const vec<eType,4> &argXYZW, const bool truncate=true) : cpvec<eType>(argXYZW, truncate) {}
     explicit dvec3(const qTemplate<eType> &q) : cpvec<eType>(q) {}
     // Copy Constructor
-    dvec3(const dvec3 &argXYZ) : cpvec<eType>(argXYZ) {}
+    dvec3(const dvec3 &src) : cpvec<eType>(src) {}
     // Destructor
     ~dvec3(void) {}
     _CRL_vd3 *operator->() { return reinterpret_cast<_CRL_vd3 *>(this); }
@@ -988,15 +941,9 @@ public:
         _v[3] = argW;
     }
 //    vec4(const vec<float,3> &argXYZ);
-    vec4(const vec<eType,4> &argXYZW) {
-        for (int i=0; i<nElems(); ++i)
-            _v[i] = argXYZW[i];
-    }
+    vec4(const vec<eType,4> &src) : vec<eType,4>(src) {}
     // Copy Constructor
-    vec4(const vec4 &argXYZW) {
-        for (int i=0; i<nElems(); ++i)
-            _v[i] = argXYZW[i];
-    }
+    vec4(const vec4 &src) : vec<eType,4>(src) {}
     // Destructor
     ~vec4(void) {}
     // Enable use of named components
@@ -1073,15 +1020,9 @@ public:
         _v[3] = argW;
     }
 //    dvec4(const vec<eType,3> &argXYZ);
-    dvec4(const vec<eType,4> &argXYZW) {
-        for (int i=0; i<nElems(); ++i)
-            _v[i] = argXYZW[i];
-    }
+    dvec4(const vec<eType,4> &src) : vec<eType,4>(src) {}
     // Copy Constructor
-    dvec4(const dvec4 &argXYZW) {
-        for (int i=0; i<nElems(); ++i)
-            _v[i] = argXYZW[i];
-    }
+    dvec4(const dvec4 &src) : vec<eType,4>(src) {}
     // Destructor
     ~dvec4(void) {}
     // Enable use of named components
@@ -1142,17 +1083,9 @@ public:
         _m[0] = r1;
         _m[1] = r2;
     }
-    mat2(const mat<eType,2,2> &src) {
-        for (int i=0; i!=nRows(); ++i)
-            for (int j=0; j!=nCols(); ++j)
-                _m[i][j] = src[i][j];
-    }
+    mat2(const mat<eType,2,2> &src) : matNxN<eType,2>(src) {}
     // Copy Constructor
-    mat2(const mat2 &src) {
-        for (int i=0; i!=nRows(); ++i)
-            for (int j=0; j!=nCols(); ++j)
-                _m[i][j] = src[i][j];
-    }
+    mat2(const mat2 &src) : matNxN<eType,2>(src) {}
     // Destructor
     ~mat2() {}
 };
@@ -1183,17 +1116,9 @@ public:
         _m[0] = r1;
         _m[1] = r2;
     }
-    dmat2(const mat<eType,2,2> &src) {
-        for (int i=0; i!=nRows(); ++i)
-            for (int j=0; j!=nCols(); ++j)
-                _m[i][j] = src[i][j];
-    }
+    dmat2(const mat<eType,2,2> &src) : matNxN<eType,2>(src) {}
     // Copy Constructor
-    dmat2(const dmat2 &src) {
-        for (int i=0; i!=nRows(); ++i)
-            for (int j=0; j!=nCols(); ++j)
-                _m[i][j] = src[i][j];
-    }
+    dmat2(const dmat2 &src) : matNxN<eType,2>(src) {}
     //Destructor
     ~dmat2() {}
 };
@@ -1417,15 +1342,9 @@ public:
     mat3(const vec<eType,3> &r1, const vec<eType,3> &r2, const vec<eType,3> &r3) {
         _m[0] = r1; _m[1] = r2; _m[2] = r3;
     }
-    mat3(const mat<eType,3,3> &src) {
-        for (int i=0; i!=nRows(); ++i)
-            _m[i] = src[i];
-    }
+    mat3(const mat<eType,3,3> &src) : matNxN<eType,3>(src) {}
     // Copy Constructor
-    mat3(const mat3 &src) {
-        for (int i=0; i!=nRows(); ++i)
-            _m[i] = src[i];
-    }
+    mat3(const mat3 &src) : matNxN<eType,3>(src) {}
     // Destructor
     ~mat3(void) {}
 };
@@ -1448,15 +1367,9 @@ public:
     dmat3(const vec<eType,3> &r1, const vec<eType,3> &r2, const vec<eType,3> &r3) {
         _m[0] = r1; _m[1] = r2; _m[2] = r3;
     }
-    dmat3(const mat<eType,3,3> &src) {
-        for (int i=0; i!=nRows(); ++i)
-            _m[i] = src[i];
-    }
+    dmat3(const mat<eType,3,3> &src) : matNxN<double,3>(src) {}
     // Copy Constructor
-    dmat3(const dmat3 &src) {
-        for (int i=0; i!=nRows(); ++i)
-            _m[i] = src[i];
-    }
+    dmat3(const dmat3 &src) : matNxN<double,3>(src) {}
     // Destructor
     ~dmat3() {}
 };
@@ -1721,15 +1634,9 @@ public:
     mat4(const vec<eType,4> &r1, const vec<eType,4> &r2, const vec<eType,4> &r3, const vec<eType,4> &r4) {
         _m[0] = r1; _m[1] = r2; _m[2] = r3; _m[3] = r4;
     }
-    mat4(const mat<eType,4,4> &src) {
-        for (int i=0; i!=nRows(); ++i)
-            _m[i] = src[i];
-    }
+    mat4(const mat<eType,4,4> &src) : matNxN<eType,4>(src) {}
     // Copy Constructor
-    mat4(const mat4 &src) {
-        for (int i=0; i!=nRows(); ++i)
-            _m[i] = src[i];
-    }
+    mat4(const mat4 &src) : matNxN<eType,4>(src) {}
     // Destructor
     ~mat4() {}
 };
@@ -1754,15 +1661,9 @@ public:
     dmat4(const vec<eType,4> &r1, const vec<eType,4> &r2, const vec<eType,4> &r3, const vec<eType,4> &r4) {
         _m[0] = r1; _m[1] = r2; _m[2] = r3; _m[3] = r4;
     }
-    dmat4(const mat<eType,4,4> &src) {
-        for (int i=0; i!=nRows(); ++i)
-            _m[i] = src[i];
-    }
+    dmat4(const mat<eType,4,4> &src) : matNxN<eType,4>(src) {}
     // Copy Constructor
-    dmat4(const dmat4 &src) {
-        for (int i=0; i!=nRows(); ++i)
-            _m[i] = src[i];
-    }
+    dmat4(const dmat4 &src) : matNxN<eType,4>(src) {}
     // Destructor
     ~dmat4() {}
 };
@@ -1787,28 +1688,6 @@ const mat<double,4,4> matNxN<double,4>::adjoint(void) const;
 template <>
 const mat<double,4,4> matNxN<double,4>::inverse(void) const;
     
-inline dmat4 operator*(const dmat4x3 &lhs, const dmat4 &rhs)
-{
-    dmat4    tmp;
-
-    for (int i=0; i!=tmp.nRows()-1; ++i) {
-        for (int j=0; j!=rhs.nCols(); ++j) {
-            tmp[i][j] = lhs[i][0] * rhs[0][j];
-            for (int k=1; k!=lhs.nCols(); ++k)
-                tmp[i][j] += lhs[i][k] * rhs[k][j];
-        }
-    }
-
-    const int	i=tmp.nRows()-1;
-    for (int j=0; j!=rhs.nCols(); ++j) {
-        tmp[i][j] = rhs[i][j];
-        for (int k=0; k!=lhs.nCols(); ++k)
-            tmp[i][j] += lhs[i][k] * rhs[k][j];
-    }
-
-    return tmp;
-}
-
 // I constructed a quaternion class to do 3D rotations.  For this reason
 // the default constructor sets the quaternion to the value of the
 // identity rotation (Yes, I know there are really two of these for
@@ -1987,7 +1866,7 @@ public:
     // vec4 to convert SFRotation to a quaternion.
     explicit quaternion(const vec4 &p) {
         w = cosf(0.5*p->w);
-        v = vec3(p[0],p[1],p[2]);
+        v = vec3(p, true);
         if (withinEpsilon(fabsf(w),1.0f)) {
             w = 1.0f;
             v[0] = v[1] = v[2] = 0.0f;
