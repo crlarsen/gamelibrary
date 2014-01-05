@@ -23,22 +23,6 @@ as being the original software.
 
 #include "gfx.h"
 
-void vec3_multiply_mat4(vec3 &dst, const vec3 &v, const mat4 &m)
-{
-	dst->x = ( v->x * m[0][0] ) +
-                 ( v->y * m[1][0] ) +
-                 ( v->z * m[2][0] );
-
-	dst->y = ( v->x * m[0][1] ) +
-                 ( v->y * m[1][1] ) +
-                 ( v->z * m[2][1] );
-
-	dst->z = ( v->x * m[0][2] ) +
-                 ( v->y * m[1][2] ) +
-                 ( v->z * m[2][2] );
-}
-
-
 void mat3_copy_mat4( mat3 &dst, mat4 &m )
 {
 	memcpy( &dst[0], &m[0], sizeof( vec3 ) );
@@ -71,13 +55,14 @@ void mat4_rotate( mat4 &dst, mat4 &m, const vec4 &v )
     zs,
     c1;
 
-    mat4 mat;
+    mat4 mat(1, 0, 0, 0,
+             0, 1, 0, 0,
+             0, 0, 1, 0,
+             0, 0, 0, 1);
 
     vec3 t(v, true);
 
-    mat.loadIdentity();
-
-    if( !v->w || !t.length() ) return;
+    if( !v->w || !t ) return;
     t = t.normalize();
 
     xx = t->x * t->x;
@@ -151,32 +136,4 @@ void mat4_ortho(mat4 &dst, float left, float right, float bottom, float top, flo
     mat[3][3] = 1.0f;
     
     dst = mat * dst;
-}
-
-
-void mat4_copy_mat3( mat4 &dst, mat3 &m )
-{
-    memcpy( &dst[0], &m[0], sizeof( vec3 ) );
-    memcpy( &dst[1], &m[1], sizeof( vec3 ) );
-    memcpy( &dst[2], &m[2], sizeof( vec3 ) );
-}
-
-
-void mat4_multiply_mat3( mat4 &dst, const mat4 &m0, const mat3 &m1 )
-{
-    mat3 mat;
-
-    mat[0][0] = m0[0][0] * m1[0][0] + m0[1][0] * m1[0][1] + m0[2][0] * m1[0][2];
-    mat[0][1] = m0[0][1] * m1[0][0] + m0[1][1] * m1[0][1] + m0[2][1] * m1[0][2];
-    mat[0][2] = m0[0][2] * m1[0][0] + m0[1][2] * m1[0][1] + m0[2][2] * m1[0][2];
-
-    mat[1][0] = m0[0][0] * m1[1][0] + m0[1][0] * m1[1][1] + m0[2][0] * m1[1][2];
-    mat[1][1] = m0[0][1] * m1[1][0] + m0[1][1] * m1[1][1] + m0[2][1] * m1[1][2];
-    mat[1][2] = m0[0][2] * m1[1][0] + m0[1][2] * m1[1][1] + m0[2][2] * m1[1][2];
-
-    mat[2][0] = m0[0][0] * m1[2][0] + m0[1][0] * m1[2][1] + m0[2][0] * m1[2][2];
-    mat[2][1] = m0[0][1] * m1[2][0] + m0[1][1] * m1[2][1] + m0[2][1] * m1[2][2];
-    mat[2][2] = m0[0][2] * m1[2][0] + m0[1][2] * m1[2][1] + m0[2][2] * m1[2][2];
-    
-    mat4_copy_mat3( dst, mat );
 }

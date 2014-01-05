@@ -24,8 +24,6 @@ as being the original software.
 #ifndef MATRIX_H
 #define MATRIX_H
 
-void vec3_multiply_mat4(vec3 &dst, const vec3 &v, const mat4 &m);
-
 void mat3_copy_mat4( mat3 &dst, mat4 &m );
 
 void mat4_translate( mat4 &dst, const mat4 &m, const vec3 &v );
@@ -35,9 +33,5 @@ void mat4_rotate( mat4 &dst, mat4 &m, const vec4 &v );
 void mat4_scale( mat4 &dst, const mat4 &m, const vec3 &v );
 
 void mat4_ortho(mat4 &dst, float left, float right, float bottom, float top, float clip_start, float clip_end);
-
-void mat4_copy_mat3( mat4 &dst, const mat3 &m );
-
-void mat4_multiply_mat3( mat4 &dst, const mat4 &m0, const mat3 &m1 );
 
 #endif

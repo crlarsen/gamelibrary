@@ -66,7 +66,7 @@ void DirectionalLight::push_to_shader(PROGRAM *program) {
     /* A temp string to dynamically create the LIGHT property names. */
     char tmp[MAX_CHAR] = {""};
     /* Temp variable to hold the direction in eye space. */
-    vec3 direction;
+    vec3 direction_es;
     /* Create the lamp direction property name. */
     sprintf(tmp, "LIGHT_VS.direction");
     /* Call the function that you created in the previous step to
@@ -79,12 +79,12 @@ void DirectionalLight::push_to_shader(PROGRAM *program) {
      * request the previous model view matrix, because you push it
      * once in the templateAppDraw function.
      */
-    this->get_direction_in_eye_space(&gfx.modelview_matrix[gfx.modelview_matrix_index - 1],
-                                     &direction);
+    direction_es =
+        get_direction_in_eye_space(gfx.modelview_matrix[gfx.modelview_matrix_index - 1]);
 
     glUniform3fv(program->get_uniform_location(tmp),
                  1,
-                 direction.v());
+                 direction_es.v());
 }
 
 PointLight::PointLight(const char *name, const vec4 &color, const vec3 &position) : LIGHT(name, color, LIGHT_POINT)
@@ -114,16 +114,16 @@ void PointLight::push_to_shader(PROGRAM *program) {
 
     char tmp[MAX_CHAR] = {""};
 
-    vec4 position;
+    vec4 position_es;
 
     sprintf(tmp, "LIGHT_VS.position");
 
-    this->get_position_in_eye_space(&gfx.modelview_matrix[gfx.modelview_matrix_index - 1],
-                                    &position);
+    position_es =
+        get_position_in_eye_space(gfx.modelview_matrix[gfx.modelview_matrix_index - 1]);
 
     glUniform3fv(program->get_uniform_location(tmp),
                  1,
-                 position.v());
+                 position_es.v());
 }
 
 AttenuatedPointLight::AttenuatedPointLight(const char *name, const vec4 &color,
@@ -137,20 +137,9 @@ AttenuatedPointLight::AttenuatedPointLight(const char *name, const vec4 &color,
 }
 
 void AttenuatedPointLight::push_to_shader(PROGRAM *program) {
-    this->LIGHT::push_to_shader(program);
+    this->PointLight::push_to_shader(program);
 
     char tmp[MAX_CHAR] = {""};
-
-    vec4 position;
-
-    sprintf(tmp, "LIGHT_VS.position");
-
-    this->get_position_in_eye_space(&gfx.modelview_matrix[gfx.modelview_matrix_index - 1],
-                                    &position);
-
-    glUniform3fv(program->get_uniform_location(tmp),
-                 1,
-                 position.v());
 
     sprintf(tmp, "LIGHT_FS.distance");
     glUniform1f(program->get_uniform_location(tmp),
@@ -226,15 +215,15 @@ void SpotLight::push_to_shader(PROGRAM *program) {
      * for directional lamp, because the cone has to be projected in
      * the same space as the object that might receive the light.
      */
-    vec3 direction;
+    vec3 direction_os;
 
     sprintf(tmp, "LIGHT_VS.spot_direction");
-    this->get_direction_in_object_space(&gfx.modelview_matrix[gfx.modelview_matrix_index - 1],
-                                        &direction);
+    direction_os =
+        get_direction_in_object_space(gfx.modelview_matrix[gfx.modelview_matrix_index - 1]);
 
     glUniform3fv(program->get_uniform_location(tmp),
                  1,
-                 direction.v());
+                 direction_os.v());
     /* Send the spot cos cutoff to let the shader determine if a
      * specific fragment is inside or outside the cone of light.
      */
@@ -246,35 +235,14 @@ void SpotLight::push_to_shader(PROGRAM *program) {
 }
 
 
-void DirectionalLight::get_direction_in_eye_space(mat4 *m, vec3 *direction)
+vec3 DirectionalLight::get_direction_in_eye_space(const mat4 &m)
 {
     /* Multiply the current lamp direction by the view matrix received in
      * parameter to be able to calculate the lamp direction in eye space.
+     * Invert the vector, because in eye space, the direction is simply
+     * the inverted vector.
      */
-    vec3_multiply_mat4(*direction,
-                       this->direction,
-                       *m);
-    /* Invert the vector, because in eye space, the direction is simply the
-     * inverted vector.
-     */
-    *direction = -*direction;
-}
-
-vec3 DirectionalLight::get_direction_in_eye_space(mat4 *m)
-{
-    vec3    direction;
-    /* Multiply the current lamp direction by the view matrix received in
-     * parameter to be able to calculate the lamp direction in eye space.
-     */
-    vec3_multiply_mat4(direction,
-                       this->direction,
-                       *m);
-    /* Invert the vector, because in eye space, the direction is simply the
-     * inverted vector.
-     */
-    direction = -direction;
-
-    return direction;
+    return -vec3(vec4(direction, 0.0f) * m);
 }
 
 
@@ -284,21 +252,15 @@ vec3 DirectionalLight::get_direction_in_eye_space(mat4 *m)
  * matrix of the camera to the shader, and offload a bit of work from
  * the CPU.
  */
-void PointLight::get_position_in_eye_space(mat4 *m, vec4 *position)
+vec4 PointLight::get_position_in_eye_space(const mat4 &m)
 {
     /* Multiply the position by the matrix received in parameters and
      * assign the result to the position vector.
      */
-    *position = this->position * *m;
+    return position * m;
 }
 
-void SpotLight::get_direction_in_object_space(mat4 *m, vec3 *direction)
+vec3 SpotLight::get_direction_in_object_space(const mat4 &m)
 {
-    vec3_multiply_mat4(*direction,
-                       this->spot_direction,
-                       *m);
-
-    direction->safeNormalize();
-
-    *direction = -*direction;
+    return -vec3(vec4(spot_direction, 0.0f) * m).normalize();
 }

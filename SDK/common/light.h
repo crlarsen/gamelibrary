@@ -107,8 +107,7 @@ public:
         }
         return *this;
     }
-    void get_direction_in_eye_space(mat4 *m, vec3 *direction);
-    vec3 get_direction_in_eye_space(mat4 *m);
+    vec3 get_direction_in_eye_space(const mat4 &m);
     void push_to_shader(PROGRAM *program);
 };
 
@@ -129,7 +128,7 @@ public:
         }
         return *this;
     }
-    void get_position_in_eye_space(mat4 *m, vec4 *position);
+    vec4 get_position_in_eye_space(const mat4 &m);
     void push_to_shader(PROGRAM *program);
 };
 
@@ -220,7 +219,7 @@ public:
         return *this;
     }
     void push_to_shader(PROGRAM *program);
-    void get_direction_in_object_space(mat4 *m, vec3 *direction);
+    vec3 get_direction_in_object_space(const mat4 &m);
 };
 
 #endif

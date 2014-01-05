@@ -484,14 +484,15 @@ void GFX_set_perspective(const float fovy, const float aspect_ratio,
                          const float clip_start, const float clip_end,
                          const float screen_orientation)
 {
-    mat4 mat;
+    mat4 mat(1, 0, 0, 0,
+             0, 1, 0, 0,
+             0, 0, 1, 0,
+             0, 0, 0, 1);
 
     float   d = clip_end - clip_start,
             r = ( fovy * 0.5f ) * DEG_TO_RAD,
             s = sinf( r ),
             c = cosf( r ) / s;
-
-    mat.loadIdentity();
 
     mat[0][0] = c / aspect_ratio;
     mat[1][1] = c;
@@ -512,9 +513,10 @@ void GFX_look_at(const vec3 &eye, const vec3 &center, const vec3 &up)
             s,
             u;
 
-    mat4 mat;
-
-    mat.loadIdentity();
+    mat4 mat(1, 0, 0, 0,
+             0, 1, 0, 0,
+             0, 0, 1, 0,
+             0, 0, 0, 1);
 
     f = center - eye;
 

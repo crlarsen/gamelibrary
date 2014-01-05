@@ -104,12 +104,12 @@ void material_draw_callback(void *ptr)
                                GFX_get_normal_matrix().m());
         } else if (name == "LIGHTPOSITION") {
             /* The light position in world space coordinates. */
-            vec3 position   (0.0f, -3.0f, 10.0f);
+            vec4 position   (0.0f, -3.0f, 10.0f, 1.0f);
             vec3 eyeposition(0.0f,  0.0f,  0.0f);
 
             /* Convert the light position to eye space. */
-            vec3_multiply_mat4(eyeposition, position,
-                               gfx.modelview_matrix[gfx.modelview_matrix_index-1]);
+	    eyeposition = vec3(position *
+			       gfx.modelview_matrix[gfx.modelview_matrix_index-1]);
             glUniform3fv(uniform.location, 1,
                          eyeposition.v());
         }

@@ -121,14 +121,14 @@ public:
         }
         return *this;
     }
-    void get_direction_in_eye_space(mat4 *m, vec3 *direction);
+    vec3 get_direction_in_eye_space(const mat4 &m);
     void push_to_shader(PROGRAM *program) {
         this->LAMP::push_to_shader(program);
 
         /* A temp string to dynamically create the LAMP property names. */
         char tmp[MAX_CHAR] = {""};
         /* Temp variable to hold the direction in eye space. */
-        vec3 direction;
+        vec3 direction_es;
         /* Create the lamp direction property name. */
         sprintf(tmp, "LAMP_VS.direction");
         /* Call the function that you created in the previous step to
@@ -141,12 +141,12 @@ public:
          * request the previous model view matrix, because you push it
          * once in the templateAppDraw function.
          */
-        this->get_direction_in_eye_space(&gfx.modelview_matrix[gfx.modelview_matrix_index - 1],
-                                         &direction);
+        direction_es =
+            get_direction_in_eye_space(gfx.modelview_matrix[gfx.modelview_matrix_index - 1]);
 
         glUniform3fv(program->get_uniform_location(tmp),
                      1,
-                     direction.v());
+                     direction_es.v());
     }
 };
 
@@ -166,18 +166,14 @@ DirectionalLamp::DirectionalLamp(const char *name,
     create_direction_vector(&this->direction, &up_axis, rotx, roty, rotz);
 }
 
-void DirectionalLamp::get_direction_in_eye_space(mat4 *m, vec3 *direction)
+vec3 DirectionalLamp::get_direction_in_eye_space(const mat4 &m)
 {
     /* Multiply the current lamp direction by the view matrix received in
      * parameter to be able to calculate the lamp direction in eye space.
+     * Negate the vector, because in eye space, the direction is simply
+     * the negated vector.
      */
-    vec3_multiply_mat4(*direction,
-                       this->direction,
-                       *m);
-    /* Invert the vector, because in eye space, the direction is simply the
-     * inverted vector.
-     */
-    *direction = -*direction;
+    return -vec3(vec4(direction, 0.0f) * m);
 }
 
 struct PointLamp : LAMP {
@@ -197,22 +193,22 @@ public:
         }
         return *this;
     }
-    void get_position_in_eye_space(mat4 *m, vec4 *position);
+    vec4 get_position_in_eye_space(const mat4 &m);
     void push_to_shader(PROGRAM *program) {
         this->LAMP::push_to_shader(program);
 
         char tmp[MAX_CHAR] = {""};
 
-        vec4 position;
+        vec4 position_es;
 
         sprintf(tmp, "LAMP_VS.position");
 
-        this->get_position_in_eye_space(&gfx.modelview_matrix[gfx.modelview_matrix_index - 1],
-                                        &position);
+        position_es =
+            get_position_in_eye_space(gfx.modelview_matrix[gfx.modelview_matrix_index - 1]);
 
         glUniform3fv(program->get_uniform_location(tmp),
                      1,
-                     position.v());
+                     position_es.v());
     }
 };
 
@@ -244,12 +240,12 @@ PointLamp::PointLamp(const char *name, const vec4 &color, const vec3 &position, 
  * matrix of the camera to the shader, and offload a bit of work from
  * the CPU.
  */
-void PointLamp::get_position_in_eye_space(mat4 *m, vec4 *position)
+vec4 PointLamp::get_position_in_eye_space(const mat4 &m)
 {
     /* Multiply the position by the matrix received in parameters and
      * assign the result to the position vector.
      */
-    *position = this->position * *m;
+    return position * m;
 }
 
 struct AttenuatedPointLamp : PointLamp {
@@ -277,20 +273,9 @@ public:
         return *this;
     }
     void push_to_shader(PROGRAM *program) {
-        this->LAMP::push_to_shader(program);
+        this->PointLamp::push_to_shader(program);
 
         char tmp[MAX_CHAR] = {""};
-
-        vec4 position;
-
-        sprintf(tmp, "LAMP_VS.position");
-
-        this->get_position_in_eye_space(&gfx.modelview_matrix[gfx.modelview_matrix_index - 1],
-                                        &position);
-
-        glUniform3fv(program->get_uniform_location(tmp),
-                     1,
-                     position.v());
 
         sprintf(tmp, "LAMP_FS.distance");
         glUniform1f(program->get_uniform_location(tmp),

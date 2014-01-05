@@ -256,11 +256,8 @@ int MD5::load_action(char *name, char *filename, const bool relative_path)
 
                     md5action->frame[int_val][i].location = location + md5joint->location;
                     
-                    quat_multiply_quat(rotation,
-                                       md5joint->rotation,
-                                       md5action->frame[int_val][i].rotation);
-                    
-                    md5action->frame[int_val][i].rotation = rotation.normalize();
+                    md5action->frame[int_val][i].rotation =
+                        (md5joint->rotation * md5action->frame[int_val][i].rotation).normalize();
                 }
             }
         }
@@ -741,29 +738,26 @@ void MD5::blend_pose(std::vector<MD5JOINT> &final_pose,
                      const float blend)
 {
     for (int i=0; i != this->bind_pose.size(); ++i) {
-        vec3_lerp(final_pose[i].location,
-                  pose0[i].location,
-                  pose1[i].location,
-                  blend);
+        final_pose[i].location = linterp(pose0[i].location,
+                                         pose1[i].location,
+                                         blend);
 
         switch(joint_interpolation_method) {
             case MD5_METHOD_FRAME:
             case MD5_METHOD_LERP:
             {
-                quat_lerp(final_pose[i].rotation,
-                          pose0[i].rotation,
-                          pose1[i].rotation,
-                          blend);
+                final_pose[i].rotation = rinterp(pose0[i].rotation,
+                                                 pose1[i].rotation,
+                                                 blend);
                 break;
             }
 
 
             case MD5_METHOD_SLERP:
             {
-                quat_slerp(final_pose[i].rotation,
-                           pose0[i].rotation,
-                           pose1[i].rotation,
-                           blend);
+                final_pose[i].rotation = slerp(pose0[i].rotation,
+                                               pose1[i].rotation,
+                                               blend);
 
                 break;
             }
@@ -782,30 +776,27 @@ void MD5::add_pose(std::vector<MD5JOINT> &final_pose,
         if ((action1.frame[action1.curr_frame][i].location != action1.frame[action1.next_frame][i].location) ||
             (action1.frame[action1.curr_frame][i].rotation != action1.frame[action1.next_frame][i].rotation))
         {
-            vec3_lerp(final_pose[i].location,
-                      action0.pose[i].location,
-                      action1.pose[i].location,
-                      action_weight);
+            final_pose[i].location = linterp(action0.pose[i].location,
+                                             action1.pose[i].location,
+                                             action_weight);
 
             switch(joint_interpolation_method)
             {
                 case MD5_METHOD_FRAME:
                 case MD5_METHOD_LERP:
                 {
-                    quat_lerp(final_pose[i].rotation,
-                              action0.pose[i].rotation,
-                              action1.pose[i].rotation,
-                              action_weight);
+                    final_pose[i].rotation = rinterp(action0.pose[i].rotation,
+                                                     action1.pose[i].rotation,
+                                                     action_weight);
                     break;
                 }
 
 
                 case MD5_METHOD_SLERP:
                 {
-                    quat_slerp(final_pose[i].rotation,
-                               action0.pose[i].rotation,
-                               action1.pose[i].rotation,
-                               action_weight);
+                    final_pose[i].rotation = slerp(action0.pose[i].rotation,
+                                                   action1.pose[i].rotation,
+                                                   action_weight);
                     break;
                 }
             }

@@ -349,7 +349,7 @@ void draw_navigation_points(NAVIGATIONPATHDATA *navigationpathdata, vec3 *color)
 
     glUniform3fv(path_point->get_uniform_location((char *)"COLOR"),
                  1,
-                 (float *)color);
+                 color->v());
 
     glEnableVertexAttribArray(0);
 

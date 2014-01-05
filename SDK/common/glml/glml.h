@@ -132,6 +132,11 @@ public:
     constexpr const int nElems(void) const { return nelems; }
     const Type *v(void) const { return _v; }
     Type *v(void) { return _v; }
+    operator bool() const {
+        for (int i=0; i!=nElems(); ++i)
+            if (_v[i]) return true;
+        return false;
+    }
     const Type operator[](const int i) const {
         assert(0<=i && i<nElems());
         return _v[i];
@@ -382,11 +387,11 @@ public:
     }
     const Type *m(void) const {
         assert(nrows*ncols*sizeof(Type) == sizeof(_m));
-        return (Type *)_m;
+        return _m[0].v();
     }
     Type *m(void) {
         assert(nrows*ncols*sizeof(Type) == sizeof(_m));
-        return (Type *)_m;
+        return _m[0].v();
     }
     mat &operator+=(const mat &rhs) {
         for (int i=0; i!=nRows(); ++i)
@@ -838,7 +843,7 @@ public:
     vec3(const eType argX, const vec<eType,2> &argYZ) : cpvec<eType>(argX,argYZ) {}
     vec3(const vec<eType,3> &src) : cpvec<eType>(src) {}
     // See comments above for the constructor making a vec2 from a vec4.
-    explicit vec3(const vec<eType,4> &argXYZW, const bool truncate=true) : cpvec<eType>(argXYZW, truncate) {}
+    explicit vec3(const vec<eType,4> &argXYZW, const bool truncate=false) : cpvec<eType>(argXYZW, truncate) {}
     explicit vec3(const qTemplate<eType> &q) : cpvec<eType>(q) {}
     // Copy Constructor
     vec3(const vec3 &src) : cpvec<eType>(src) {}
@@ -863,7 +868,7 @@ public:
     dvec3(const eType argX, const vec<eType,2> &argYZ) : cpvec<eType>(argX,argYZ) {}
     dvec3(const vec<eType,3> &src) : cpvec<eType>(src) {}
     // See comments above for the constructor making a vec2 from a vec4.
-    explicit dvec3(const vec<eType,4> &argXYZW, const bool truncate=true) : cpvec<eType>(argXYZW, truncate) {}
+    explicit dvec3(const vec<eType,4> &argXYZW, const bool truncate=false) : cpvec<eType>(argXYZW, truncate) {}
     explicit dvec3(const qTemplate<eType> &q) : cpvec<eType>(q) {}
     // Copy Constructor
     dvec3(const dvec3 &src) : cpvec<eType>(src) {}
@@ -1999,15 +2004,20 @@ inline vType linterp(const vType &x, const vType &y, const eType alpha)
 }
 
 // Rotation linear interpolation, sort of.
-// This is a hack to deal with fact that are times one wants to interpolate
-// quaternions which represent rotations.  This operations breaks if one
-// uses real linear interpolation on quaternions.  Rather than bastardize
-// the linear interpolation template above to deal with the special case of
-// rotations I've created a special function template to deal with the case.
+// This is a hack to deal with fact that there are times one wants to use
+// linear interpolation on  quaternions which represent rotations.  This
+// operations breaks if one uses real linear interpolation on quaternions.
+// Rather than bastardize the linear interpolation template above to deal
+// with the special case of rotations I've created a special function
+// template to deal with the case.
 template <typename Type>
 inline quaternion rinterp(const qTemplate<Type> &x, const qTemplate<Type> &y, const Type alpha)
 {
-    static const Type  one = 1.0;
+    // By short-circuiting the interpolation here we save ourselves a lot
+    // of unnecessary work.
+    if (alpha == 0.0) return x;
+
+    if (alpha == 1.0) return y;
 
     qTemplate<Type>  tmp;
     if (x.dotProduct(y) < 0.0) {
@@ -2016,7 +2026,7 @@ inline quaternion rinterp(const qTemplate<Type> &x, const qTemplate<Type> &y, co
         tmp = y;
     }
 
-    return (one - alpha)*x + alpha*tmp;
+    return linterp(x, tmp, alpha).normalize();
 }
 
 #endif /* defined(__glml__glml__) */

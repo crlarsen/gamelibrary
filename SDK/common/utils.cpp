@@ -517,9 +517,10 @@ void create_direction_vector( vec3 *dst, vec3 *up_axis, float rotx, float roty, 
 {
     vec4 rotation;
 
-    mat4 m;
-
-    m.loadIdentity();
+    mat4 m(1, 0, 0, 0,
+           0, 1, 0, 0,
+           0, 0, 1, 0,
+           0, 0, 0, 1);
 
     rotation->z = 1.0f;
     rotation->x =
@@ -544,5 +545,5 @@ void create_direction_vector( vec3 *dst, vec3 *up_axis, float rotx, float roty, 
     
     *up_axis = -*up_axis;
     
-    vec3_multiply_mat4( *dst, *up_axis, m );
+    *dst = vec3(vec4(*up_axis, 0.0f) * m, true);
 }
