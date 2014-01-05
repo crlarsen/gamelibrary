@@ -17,6 +17,8 @@ authors for the various included works.
 History
 =======
 
+Jan 4, 2014 - Use new math library for vectors, matrices, and quaternions.
+
 Dec 5, 2013 - Change the MD5 module into a C++ class.
 
 Dec 5, 2013 - Implement multiple lamp types using polymorphism.
