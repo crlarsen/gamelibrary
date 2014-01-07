@@ -109,7 +109,7 @@ void material_draw_callback(void *ptr)
 
             /* Convert the light position to eye space. */
 	    eyeposition = vec3(position *
-			       gfx.modelview_matrix[gfx.modelview_matrix_index-1]);
+			       GFX_get_modelview_matrix(-1));
             glUniform3fv(uniform.location, 1,
                          eyeposition.v());
         }

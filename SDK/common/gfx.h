@@ -147,10 +147,10 @@ as being the original software.
 #include <unistd.h>
 
 #include "glml.h"
+#include "tstack.h"
 
 #include "types.h"
 #include "thread.h"
-#include "matrix.h"
 #include "vector.h"
 #include "utils.h"
 #include "memory.h"
@@ -181,29 +181,24 @@ enum
 };
 
 
-typedef struct
-{
-	unsigned char	matrix_mode;
-	
-	unsigned char	modelview_matrix_index;
+struct GFX {
+    unsigned char	matrix_mode;
 
-	unsigned char	projection_matrix_index;
-	
-	unsigned char	texture_matrix_index;
+    TStack              modelview_matrix;
 
-	mat4			modelview_matrix[ MAX_MODELVIEW_MATRIX ];
+    TStack		projection_matrix;
 
-	mat4			projection_matrix[ MAX_PROJECTION_MATRIX ];
-	
-	mat4			texture_matrix[ MAX_TEXTURE_MATRIX ];
-	
-	mat4			modelview_projection_matrix;
-	
-	mat3			normal_matrix;
+    TStack		texture_matrix;
 
-} GFX;
+    mat4		modelview_projection_matrix;
+    
+    mat3		normal_matrix;
 
-extern GFX gfx;
+public:
+    GFX();
+};
+
+extern GFX *gfx;
 
 void GFX_start( void );
 
@@ -231,7 +226,7 @@ void GFX_scale(const float x, const float y, const float z);
 
 void GFX_scale(const vec3 &v);
 
-mat4 &GFX_get_modelview_matrix( void );
+mat4 &GFX_get_modelview_matrix(const int i=INT_MAX);
 
 mat4 &GFX_get_projection_matrix( void );
 

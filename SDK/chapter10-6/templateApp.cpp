@@ -147,7 +147,7 @@ public:
          * once in the templateAppDraw function.
          */
         direction_es =
-            get_direction_in_eye_space(gfx.modelview_matrix[gfx.modelview_matrix_index - 1]);
+            get_direction_in_eye_space(GFX_get_modelview_matrix(-1));
 
         glUniform3fv(program->get_uniform_location(tmp),
                      1,
@@ -209,7 +209,7 @@ public:
         sprintf(tmp, "LAMP_VS[%d].position", i);
 
         position_es =
-            get_position_in_eye_space(gfx.modelview_matrix[gfx.modelview_matrix_index - 1]);
+            get_position_in_eye_space(GFX_get_modelview_matrix(-1));
 
         glUniform3fv(program->get_uniform_location(tmp),
                      1,
@@ -394,7 +394,7 @@ public:
 
         sprintf(tmp, "LAMP_VS[%d].spot_direction", i);
         direction_os =
-            get_direction_in_object_space(gfx.modelview_matrix[gfx.modelview_matrix_index - 1]);
+            get_direction_in_object_space(GFX_get_modelview_matrix(-1));
 
         glUniform3fv(program->get_uniform_location(tmp),
                      1,

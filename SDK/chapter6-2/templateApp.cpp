@@ -127,30 +127,20 @@ void add_rigid_body(OBJMESH *objmesh, float mass)
      */
     btTransform bttransform;
 
-    mat4 mat;
-
-    /* Declare 3 vectors to be able to hold the rotation of the mesh on
-     * the XYZ axis.
-     */
-    vec4 rotx(1.0f, 0.0f, 0.0f, objmesh->rotation->x),
-         roty(0.0f, 1.0f, 0.0f, objmesh->rotation->y),
-         rotz(0.0f, 0.0f, 1.0f, objmesh->rotation->z);
-
-    /* Set up the identity matrix to makesure the matrix is clean. */
-    mat.loadIdentity();
-
-    mat4_translate(mat, mat, objmesh->location);
-
-    mat4_rotate(mat, mat, rotz);
-
-    mat4_rotate(mat, mat, roty);
-
-    mat4_rotate(mat, mat, rotx);
+    TStack  l;
+    l.loadTranslation(objmesh->location);
+    // Convert angles to radians & divide by 2.
+    float   alpha = objmesh->rotation->z*M_PI/360.0;
+    float   beta = objmesh->rotation->y*M_PI/360.0;
+    float   gamma = objmesh->rotation->x*M_PI/360.0;
+    l.rotate(quaternion(cosf(alpha),0,0,sinf(alpha)));
+    l.rotate(quaternion(cosf(beta), 0, sinf(beta), 0));
+    l.rotate(quaternion(cosf(gamma), sinf(gamma), 0, 0));
 
     /* Assign the current transformation matrix that you create using the
      * standard "OpenGL way" and send it over to the Bullet transform variable.
      */
-    bttransform.setFromOpenGLMatrix(mat.m());
+    bttransform.setFromOpenGLMatrix(l.back().m());
 
     /* Create a new motion state in order for Bullet to be able to
      * maintain and interpolate the object transformation.

@@ -341,9 +341,12 @@ void draw_scene(void)
 
         GFX_translate(objmesh->location);
 
-        projector_matrix = projector_matrix_copy;
+        TStack  l;
+        l.loadMatrix(projector_matrix_copy);
 
-        mat4_translate(projector_matrix, projector_matrix, objmesh->location);
+        l.translate(objmesh->location);
+
+        projector_matrix = l.back();
 
         objmesh->draw();
         

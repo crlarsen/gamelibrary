@@ -515,35 +515,16 @@ unsigned int get_nearest_pow2(unsigned int size)
 
 void create_direction_vector( vec3 *dst, vec3 *up_axis, float rotx, float roty, float rotz )
 {
-    vec4 rotation;
+    TStack  l;
+    // Convert all angles to radians & divide by 2.
+    float   alpha = rotz*M_PI/360.0;
+    float   beta  = roty*M_PI/360.0;
+    float   gamma = rotx*M_PI/360.0;
+    l.loadRotation(quaternion(cosf(alpha), 0, 0, sinf(alpha)));
+    l.rotate(quaternion(cosf(beta),  0, sinf(beta), 0));
+    l.rotate(quaternion(cosf(gamma), sinf(gamma), 0, 0));
 
-    mat4 m(1, 0, 0, 0,
-           0, 1, 0, 0,
-           0, 0, 1, 0,
-           0, 0, 0, 1);
-
-    rotation->z = 1.0f;
-    rotation->x =
-    rotation->y = 0.0f;
-    rotation->w = rotz;
-
-    mat4_rotate( m, m, rotation );
-
-    rotation->y = 1.0f;
-    rotation->x =
-    rotation->z = 0.0f;
-    rotation->w = roty;
-
-    mat4_rotate( m, m, rotation );
-
-    rotation->x = 1.0f;
-    rotation->y =
-    rotation->z = 0.0f;
-    rotation->w = rotx;
-
-    mat4_rotate( m, m, rotation );
-    
     *up_axis = -*up_axis;
     
-    *dst = vec3(vec4(*up_axis, 0.0f) * m, true);
+    *dst = vec3(vec4(*up_axis, 0.0f) * l.back(), true);
 }

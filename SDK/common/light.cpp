@@ -80,7 +80,7 @@ void DirectionalLight::push_to_shader(PROGRAM *program) {
      * once in the templateAppDraw function.
      */
     direction_es =
-        get_direction_in_eye_space(gfx.modelview_matrix[gfx.modelview_matrix_index - 1]);
+        get_direction_in_eye_space(GFX_get_modelview_matrix(-1));
 
     glUniform3fv(program->get_uniform_location(tmp),
                  1,
@@ -119,7 +119,7 @@ void PointLight::push_to_shader(PROGRAM *program) {
     sprintf(tmp, "LIGHT_VS.position");
 
     position_es =
-        get_position_in_eye_space(gfx.modelview_matrix[gfx.modelview_matrix_index - 1]);
+        get_position_in_eye_space(GFX_get_modelview_matrix(-1));
 
     glUniform3fv(program->get_uniform_location(tmp),
                  1,
@@ -219,7 +219,7 @@ void SpotLight::push_to_shader(PROGRAM *program) {
 
     sprintf(tmp, "LIGHT_VS.spot_direction");
     direction_os =
-        get_direction_in_object_space(gfx.modelview_matrix[gfx.modelview_matrix_index - 1]);
+        get_direction_in_object_space(GFX_get_modelview_matrix(-1));
 
     glUniform3fv(program->get_uniform_location(tmp),
                  1,

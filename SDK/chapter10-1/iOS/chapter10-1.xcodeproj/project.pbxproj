@@ -15,6 +15,7 @@
 		28FD15080DC6FC5B0079059D /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 28FD15070DC6FC5B0079059D /* QuartzCore.framework */; };
 		8309CC25185AB71B00A36933 /* glml.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8309CC23185AB71B00A36933 /* glml.cpp */; };
 		830DB5BE1815CCA200615408 /* Default-568h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 830DB5BD1815CCA200615408 /* Default-568h@2x.png */; };
+		83AA1736187B49180023AF69 /* tstack.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 83AA1734187B49180023AF69 /* tstack.cpp */; };
 		E002BCF5135BEC0A00FCFC0B /* EAGLView.mm in Sources */ = {isa = PBXBuildFile; fileRef = E002BCF0135BEC0A00FCFC0B /* EAGLView.mm */; };
 		E002BCF6135BEC0A00FCFC0B /* templateAppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = E002BCF2135BEC0A00FCFC0B /* templateAppDelegate.mm */; };
 		E002BCF7135BEC0A00FCFC0B /* templateViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = E002BCF4135BEC0A00FCFC0B /* templateViewController.mm */; };
@@ -165,7 +166,6 @@
 		E078826114146AF000ECC4D3 /* DetourNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E078814014146AF000ECC4D3 /* DetourNode.cpp */; };
 		E078826214146AF000ECC4D3 /* font.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E078814214146AF000ECC4D3 /* font.cpp */; };
 		E078826314146AF000ECC4D3 /* gfx.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E078814414146AF000ECC4D3 /* gfx.cpp */; };
-		E078826414146AF000ECC4D3 /* matrix.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E078814614146AF000ECC4D3 /* matrix.cpp */; };
 		E078826514146AF000ECC4D3 /* memory.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E078814814146AF000ECC4D3 /* memory.cpp */; };
 		E078826614146AF000ECC4D3 /* navigation.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E078814A14146AF000ECC4D3 /* navigation.cpp */; };
 		E078826714146AF000ECC4D3 /* NvTriStrip.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E078814D14146AF000ECC4D3 /* NvTriStrip.cpp */; };
@@ -260,6 +260,8 @@
 		8309CC23185AB71B00A36933 /* glml.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = glml.cpp; sourceTree = "<group>"; };
 		8309CC24185AB71B00A36933 /* glml.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = glml.h; sourceTree = "<group>"; };
 		830DB5BD1815CCA200615408 /* Default-568h@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-568h@2x.png"; sourceTree = "<group>"; };
+		83AA1734187B49180023AF69 /* tstack.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = tstack.cpp; sourceTree = "<group>"; };
+		83AA1735187B49180023AF69 /* tstack.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = tstack.h; sourceTree = "<group>"; };
 		E002BCEF135BEC0A00FCFC0B /* EAGLView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EAGLView.h; sourceTree = "<group>"; };
 		E002BCF0135BEC0A00FCFC0B /* EAGLView.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = EAGLView.mm; sourceTree = "<group>"; };
 		E002BCF1135BEC0A00FCFC0B /* templateAppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = templateAppDelegate.h; sourceTree = "<group>"; };
@@ -619,8 +621,6 @@
 		E078814314146AF000ECC4D3 /* font.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = font.h; sourceTree = "<group>"; };
 		E078814414146AF000ECC4D3 /* gfx.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = gfx.cpp; sourceTree = "<group>"; };
 		E078814514146AF000ECC4D3 /* gfx.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gfx.h; sourceTree = "<group>"; };
-		E078814614146AF000ECC4D3 /* matrix.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = matrix.cpp; sourceTree = "<group>"; };
-		E078814714146AF000ECC4D3 /* matrix.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = matrix.h; sourceTree = "<group>"; };
 		E078814814146AF000ECC4D3 /* memory.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = memory.cpp; sourceTree = "<group>"; };
 		E078814914146AF000ECC4D3 /* memory.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = memory.h; sourceTree = "<group>"; };
 		E078814A14146AF000ECC4D3 /* navigation.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = navigation.cpp; sourceTree = "<group>"; };
@@ -864,6 +864,8 @@
 			children = (
 				8309CC23185AB71B00A36933 /* glml.cpp */,
 				8309CC24185AB71B00A36933 /* glml.h */,
+				83AA1734187B49180023AF69 /* tstack.cpp */,
+				83AA1735187B49180023AF69 /* tstack.h */,
 			);
 			path = glml;
 			sourceTree = "<group>";
@@ -1398,8 +1400,6 @@
 				E078814414146AF000ECC4D3 /* gfx.cpp */,
 				E078814514146AF000ECC4D3 /* gfx.h */,
 				8309CC22185AB71B00A36933 /* glml */,
-				E078814614146AF000ECC4D3 /* matrix.cpp */,
-				E078814714146AF000ECC4D3 /* matrix.h */,
 				E078814814146AF000ECC4D3 /* memory.cpp */,
 				E078814914146AF000ECC4D3 /* memory.h */,
 				E078814A14146AF000ECC4D3 /* navigation.cpp */,
@@ -1612,6 +1612,7 @@
 				8309CC25185AB71B00A36933 /* glml.cpp in Sources */,
 				E078823A14146AF000ECC4D3 /* btSliderConstraint.cpp in Sources */,
 				E078823B14146AF000ECC4D3 /* btSoftBody.cpp in Sources */,
+				83AA1736187B49180023AF69 /* tstack.cpp in Sources */,
 				E078823C14146AF000ECC4D3 /* btSoftBodyConcaveCollisionAlgorithm.cpp in Sources */,
 				E078823D14146AF000ECC4D3 /* btSoftBodyHelpers.cpp in Sources */,
 				E078823E14146AF000ECC4D3 /* btSoftBodyRigidBodyCollisionConfiguration.cpp in Sources */,
@@ -1652,7 +1653,6 @@
 				E078826114146AF000ECC4D3 /* DetourNode.cpp in Sources */,
 				E078826214146AF000ECC4D3 /* font.cpp in Sources */,
 				E078826314146AF000ECC4D3 /* gfx.cpp in Sources */,
-				E078826414146AF000ECC4D3 /* matrix.cpp in Sources */,
 				E078826514146AF000ECC4D3 /* memory.cpp in Sources */,
 				E078826614146AF000ECC4D3 /* navigation.cpp in Sources */,
 				E078826714146AF000ECC4D3 /* NvTriStrip.cpp in Sources */,

@@ -16,6 +16,7 @@
 		8309CBFD185AB31D00A36933 /* glml.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8309CBFB185AB31D00A36933 /* glml.cpp */; };
 		83216E0918148062006EB9E7 /* untitled.blend in Resources */ = {isa = PBXBuildFile; fileRef = 83216E0818148062006EB9E7 /* untitled.blend */; };
 		83216E0B181481A5006EB9E7 /* ball.png in Resources */ = {isa = PBXBuildFile; fileRef = 83216E0A181481A5006EB9E7 /* ball.png */; };
+		83AA1718187B46390023AF69 /* tstack.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 83AA1716187B46390023AF69 /* tstack.cpp */; };
 		83FA5FD518147F7F00BA955B /* Default-568h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 83FA5FD418147F7E00BA955B /* Default-568h@2x.png */; };
 		E002BCF5135BEC0A00FCFC0B /* EAGLView.mm in Sources */ = {isa = PBXBuildFile; fileRef = E002BCF0135BEC0A00FCFC0B /* EAGLView.mm */; };
 		E002BCF6135BEC0A00FCFC0B /* templateAppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = E002BCF2135BEC0A00FCFC0B /* templateAppDelegate.mm */; };
@@ -169,7 +170,6 @@
 		E0F960BE14668A2F00D31A5B /* font.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E0F95F6D14668A2F00D31A5B /* font.cpp */; };
 		E0F960BF14668A2F00D31A5B /* gfx.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E0F95F6F14668A2F00D31A5B /* gfx.cpp */; };
 		E0F960C014668A2F00D31A5B /* light.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E0F95F7414668A2F00D31A5B /* light.cpp */; };
-		E0F960C114668A2F00D31A5B /* matrix.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E0F95F7614668A2F00D31A5B /* matrix.cpp */; };
 		E0F960C214668A2F00D31A5B /* md5.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E0F95F7814668A2F00D31A5B /* md5.cpp */; };
 		E0F960C314668A2F00D31A5B /* memory.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E0F95F7A14668A2F00D31A5B /* memory.cpp */; };
 		E0F960C414668A2F00D31A5B /* navigation.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E0F95F7C14668A2F00D31A5B /* navigation.cpp */; };
@@ -264,6 +264,8 @@
 		8309CBFC185AB31D00A36933 /* glml.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = glml.h; sourceTree = "<group>"; };
 		83216E0818148062006EB9E7 /* untitled.blend */ = {isa = PBXFileReference; lastKnownFileType = file; name = untitled.blend; path = ../untitled.blend; sourceTree = "<group>"; };
 		83216E0A181481A5006EB9E7 /* ball.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = ball.png; path = ../ball.png; sourceTree = "<group>"; };
+		83AA1716187B46390023AF69 /* tstack.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = tstack.cpp; sourceTree = "<group>"; };
+		83AA1717187B46390023AF69 /* tstack.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = tstack.h; sourceTree = "<group>"; };
 		83FA5FD418147F7E00BA955B /* Default-568h@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-568h@2x.png"; sourceTree = "<group>"; };
 		E002BCEF135BEC0A00FCFC0B /* EAGLView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EAGLView.h; sourceTree = "<group>"; };
 		E002BCF0135BEC0A00FCFC0B /* EAGLView.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = EAGLView.mm; sourceTree = "<group>"; };
@@ -629,8 +631,6 @@
 		E0F95F7014668A2F00D31A5B /* gfx.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gfx.h; sourceTree = "<group>"; };
 		E0F95F7414668A2F00D31A5B /* light.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = light.cpp; sourceTree = "<group>"; };
 		E0F95F7514668A2F00D31A5B /* light.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = light.h; sourceTree = "<group>"; };
-		E0F95F7614668A2F00D31A5B /* matrix.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = matrix.cpp; sourceTree = "<group>"; };
-		E0F95F7714668A2F00D31A5B /* matrix.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = matrix.h; sourceTree = "<group>"; };
 		E0F95F7814668A2F00D31A5B /* md5.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = md5.cpp; sourceTree = "<group>"; };
 		E0F95F7914668A2F00D31A5B /* md5.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = md5.h; sourceTree = "<group>"; };
 		E0F95F7A14668A2F00D31A5B /* memory.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = memory.cpp; sourceTree = "<group>"; };
@@ -873,6 +873,8 @@
 			children = (
 				8309CBFB185AB31D00A36933 /* glml.cpp */,
 				8309CBFC185AB31D00A36933 /* glml.h */,
+				83AA1716187B46390023AF69 /* tstack.cpp */,
+				83AA1717187B46390023AF69 /* tstack.h */,
 			);
 			path = glml;
 			sourceTree = "<group>";
@@ -900,8 +902,6 @@
 				8309CBFA185AB31D00A36933 /* glml */,
 				E0F95F7414668A2F00D31A5B /* light.cpp */,
 				E0F95F7514668A2F00D31A5B /* light.h */,
-				E0F95F7614668A2F00D31A5B /* matrix.cpp */,
-				E0F95F7714668A2F00D31A5B /* matrix.h */,
 				E0F95F7814668A2F00D31A5B /* md5.cpp */,
 				E0F95F7914668A2F00D31A5B /* md5.h */,
 				E0F95F7A14668A2F00D31A5B /* memory.cpp */,
@@ -1585,6 +1585,7 @@
 				E0F9606D14668A2F00D31A5B /* btGeneric6DofSpringConstraint.cpp in Sources */,
 				E0F9606E14668A2F00D31A5B /* btGenericPoolAllocator.cpp in Sources */,
 				E0F9606F14668A2F00D31A5B /* btGeometryUtil.cpp in Sources */,
+				83AA1718187B46390023AF69 /* tstack.cpp in Sources */,
 				E0F9607014668A2F00D31A5B /* btGhostObject.cpp in Sources */,
 				E0F9607114668A2F00D31A5B /* btGImpactBvh.cpp in Sources */,
 				8309CBFD185AB31D00A36933 /* glml.cpp in Sources */,
@@ -1667,7 +1668,6 @@
 				E0F960BE14668A2F00D31A5B /* font.cpp in Sources */,
 				E0F960BF14668A2F00D31A5B /* gfx.cpp in Sources */,
 				E0F960C014668A2F00D31A5B /* light.cpp in Sources */,
-				E0F960C114668A2F00D31A5B /* matrix.cpp in Sources */,
 				E0F960C214668A2F00D31A5B /* md5.cpp in Sources */,
 				E0F960C314668A2F00D31A5B /* memory.cpp in Sources */,
 				E0F960C414668A2F00D31A5B /* navigation.cpp in Sources */,

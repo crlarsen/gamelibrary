@@ -142,7 +142,7 @@ public:
          * once in the templateAppDraw function.
          */
         direction_es =
-            get_direction_in_eye_space(gfx.modelview_matrix[gfx.modelview_matrix_index - 1]);
+            get_direction_in_eye_space(GFX_get_modelview_matrix(-1));
 
         glUniform3fv(program->get_uniform_location(tmp),
                      1,

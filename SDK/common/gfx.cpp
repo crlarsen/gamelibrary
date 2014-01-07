@@ -23,175 +23,161 @@ as being the original software.
 
 #include "gfx.h"
 
-GFX gfx;
+GFX *gfx;
 
 
 #ifndef __IPHONE_4_0
 
-	PFNGLBINDVERTEXARRAYOESPROC		glBindVertexArrayOES;
-	PFNGLGENVERTEXARRAYSOESPROC		glGenVertexArraysOES;
-	PFNGLDELETEVERTEXARRAYSOESPROC	glDeleteVertexArraysOES;
+    PFNGLBINDVERTEXARRAYOESPROC		glBindVertexArrayOES;
+    PFNGLGENVERTEXARRAYSOESPROC		glGenVertexArraysOES;
+    PFNGLDELETEVERTEXARRAYSOESPROC	glDeleteVertexArraysOES;
 #endif
 
+GFX::GFX() :
+    matrix_mode(MODELVIEW_MATRIX)
+{
+#ifdef __IPHONE_4_0
+
+    printf("\nGL_VENDOR:      %s\n", ( char * )glGetString( GL_VENDOR     ) );
+    printf("GL_RENDERER:    %s\n"  , ( char * )glGetString( GL_RENDERER   ) );
+    printf("GL_VERSION:     %s\n"  , ( char * )glGetString( GL_VERSION    ) );
+    printf("GL_EXTENSIONS:  %s\n"  , ( char * )glGetString( GL_EXTENSIONS ) );
+#else
+
+    __android_log_print( ANDROID_LOG_INFO, "", "\nGL_VENDOR:      %s\n", ( char * )glGetString( GL_VENDOR     ) );
+    __android_log_print( ANDROID_LOG_INFO, "", "GL_RENDERER:    %s\n"  , ( char * )glGetString( GL_RENDERER   ) );
+    __android_log_print( ANDROID_LOG_INFO, "", "GL_VERSION:     %s\n"  , ( char * )glGetString( GL_VERSION    ) );
+    __android_log_print( ANDROID_LOG_INFO, "", "GL_EXTENSIONS:  %s\n"  , ( char * )glGetString( GL_EXTENSIONS ) );
+#endif
+
+    glHint( GL_GENERATE_MIPMAP_HINT, GL_NICEST );
+
+    glHint( GL_FRAGMENT_SHADER_DERIVATIVE_HINT_OES, GL_NICEST );
+
+    glEnable( GL_DEPTH_TEST );
+    glEnable( GL_CULL_FACE  );
+    glDisable( GL_DITHER );
+    glDepthMask( GL_TRUE );
+    glDepthFunc( GL_LESS );
+    glDepthRangef( 0.0f, 1.0f );
+    glCullFace ( GL_BACK );
+    glFrontFace( GL_CCW  );
+    glClearStencil( 0 );
+    glStencilMask( 0xFFFFFFFF );
+
+    glClearColor( 0.0f, 0.0f, 0.0f, 1.0f );
+
+    glClear( GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT | GL_COLOR_BUFFER_BIT );
+
+#ifndef __IPHONE_4_0
+
+    glBindVertexArrayOES 	= ( PFNGLBINDVERTEXARRAYOESPROC    ) eglGetProcAddress("glBindVertexArrayOES"  );
+    glGenVertexArraysOES 	= ( PFNGLGENVERTEXARRAYSOESPROC    ) eglGetProcAddress("glGenVertexArraysOES"  );
+    glDeleteVertexArraysOES 	= ( PFNGLDELETEVERTEXARRAYSOESPROC ) eglGetProcAddress("glDeleteVertexArraysOES");
+#endif
+
+}
 
 void GFX_start( void )
 {
-	memset( &gfx, 0, sizeof( GFX ) );
-	
-	#ifdef __IPHONE_4_0
-	
-		printf("\nGL_VENDOR:      %s\n", ( char * )glGetString( GL_VENDOR     ) );
-		printf("GL_RENDERER:    %s\n"  , ( char * )glGetString( GL_RENDERER   ) );
-		printf("GL_VERSION:     %s\n"  , ( char * )glGetString( GL_VERSION    ) );
-		printf("GL_EXTENSIONS:  %s\n"  , ( char * )glGetString( GL_EXTENSIONS ) );
-	#else
-	
-		__android_log_print( ANDROID_LOG_INFO, "", "\nGL_VENDOR:      %s\n", ( char * )glGetString( GL_VENDOR     ) );
-		__android_log_print( ANDROID_LOG_INFO, "", "GL_RENDERER:    %s\n"  , ( char * )glGetString( GL_RENDERER   ) );
-		__android_log_print( ANDROID_LOG_INFO, "", "GL_VERSION:     %s\n"  , ( char * )glGetString( GL_VERSION    ) );
-		__android_log_print( ANDROID_LOG_INFO, "", "GL_EXTENSIONS:  %s\n"  , ( char * )glGetString( GL_EXTENSIONS ) );
-	#endif
-
-	glHint( GL_GENERATE_MIPMAP_HINT, GL_NICEST );
-	
-	glHint( GL_FRAGMENT_SHADER_DERIVATIVE_HINT_OES, GL_NICEST );
-	
-	glEnable( GL_DEPTH_TEST );
-	glEnable( GL_CULL_FACE  );
-	glDisable( GL_DITHER );
-	glDepthMask( GL_TRUE );
-	glDepthFunc( GL_LESS );
-	glDepthRangef( 0.0f, 1.0f );
-	glCullFace ( GL_BACK );
-	glFrontFace( GL_CCW  );
-	glClearStencil( 0 );
-	glStencilMask( 0xFFFFFFFF );
-	
-	glClearColor( 0.0f, 0.0f, 0.0f, 1.0f );
-	
-	glClear( GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT | GL_COLOR_BUFFER_BIT );
-
-	#ifndef __IPHONE_4_0
-
-		glBindVertexArrayOES 	= ( PFNGLBINDVERTEXARRAYOESPROC    ) eglGetProcAddress("glBindVertexArrayOES"  );
-		glGenVertexArraysOES 	= ( PFNGLGENVERTEXARRAYSOESPROC    ) eglGetProcAddress("glGenVertexArraysOES"  );
-		glDeleteVertexArraysOES = ( PFNGLDELETEVERTEXARRAYSOESPROC ) eglGetProcAddress("glDeleteVertexArraysOES");
-	#endif
-	
-	GFX_set_matrix_mode( TEXTURE_MATRIX );
-	GFX_load_identity();
-
-	GFX_set_matrix_mode( PROJECTION_MATRIX );
-	GFX_load_identity();
-
-	GFX_set_matrix_mode( MODELVIEW_MATRIX );
-	GFX_load_identity();
+    gfx = new GFX;
 }
 
 
 void GFX_error( void )
 {
-	unsigned int error;
+    unsigned int error;
 
-	while( ( error = glGetError() ) != GL_NO_ERROR )
-	{
-		char str[ MAX_CHAR ] = {""};
+    while( ( error = glGetError() ) != GL_NO_ERROR )
+    {
+        char str[ MAX_CHAR ] = {""};
 
-		switch( error )
-		{
-			case GL_INVALID_ENUM:
-			{
-				strcpy( str, "GL_INVALID_ENUM" );
-				break;
-			}
+        switch( error )
+        {
+            case GL_INVALID_ENUM:
+            {
+                strcpy( str, "GL_INVALID_ENUM" );
+                break;
+            }
 
-			case GL_INVALID_VALUE:
-			{
-				strcpy( str, "GL_INVALID_VALUE" );
-				break;
-			}
+            case GL_INVALID_VALUE:
+            {
+                strcpy( str, "GL_INVALID_VALUE" );
+                break;
+            }
 
-			case GL_INVALID_OPERATION:
-			{
-				strcpy( str, "GL_INVALID_OPERATION" );
-				break;
-			}
-
-			case GL_OUT_OF_MEMORY:
-			{
-				strcpy( str, "GL_OUT_OF_MEMORY" );
-				break;
-			}
-		}
-		
-		console_print( "[ GL_ERROR ]\nERROR: %s\n", str );
-	}
+            case GL_INVALID_OPERATION:
+            {
+                strcpy( str, "GL_INVALID_OPERATION" );
+                break;
+            }
+                
+            case GL_OUT_OF_MEMORY:
+            {
+                strcpy( str, "GL_OUT_OF_MEMORY" );
+                break;
+            }
+        }
+        
+        console_print( "[ GL_ERROR ]\nERROR: %s\n", str );
+    }
 }
 
 
 void GFX_set_matrix_mode( unsigned int mode )
-{ gfx.matrix_mode = mode; }
+{ gfx->matrix_mode = mode; }
 
 
 void GFX_load_identity( void )
 {
-	switch( gfx.matrix_mode )
-	{
-		case MODELVIEW_MATRIX:
-		{
-			GFX_get_modelview_matrix().loadIdentity();
-			
-			break;
-		}
-		
-		case PROJECTION_MATRIX:
-		{
-			GFX_get_projection_matrix().loadIdentity();
-			
-			break;
-		}
-		
-		case TEXTURE_MATRIX:
-		{
-			GFX_get_texture_matrix().loadIdentity();
-			
-			break;
-		}		
-	}
-}
-
-
-void GFX_push_matrix( void )
-{
-    switch( gfx.matrix_mode )
+    switch( gfx->matrix_mode )
     {
         case MODELVIEW_MATRIX:
         {
-            gfx.modelview_matrix[gfx.modelview_matrix_index + 1] =
-                gfx.modelview_matrix[gfx.modelview_matrix_index];
-
-            ++gfx.modelview_matrix_index;
+            gfx->modelview_matrix.loadIdentity();
 
             break;
         }
 
         case PROJECTION_MATRIX:
         {
-            gfx.projection_matrix[gfx.projection_matrix_index + 1] =
-                gfx.projection_matrix[gfx.projection_matrix_index];
+            gfx->projection_matrix.loadIdentity();
 
-            ++gfx.projection_matrix_index;
+            break;
+        }
+            
+        case TEXTURE_MATRIX:
+        {
+            gfx->texture_matrix.loadIdentity();
+
+            break;
+        }		
+    }
+}
+
+
+void GFX_push_matrix( void )
+{
+    switch( gfx->matrix_mode )
+    {
+        case MODELVIEW_MATRIX:
+        {
+            gfx->modelview_matrix.push();
+
+            break;
+        }
+
+        case PROJECTION_MATRIX:
+        {
+            gfx->projection_matrix.push();
 
             break;
         }
 
         case TEXTURE_MATRIX:
         {
-            gfx.texture_matrix[gfx.texture_matrix_index + 1] =
-                gfx.texture_matrix[gfx.texture_matrix_index];
+            gfx->texture_matrix.push();
 
-            ++gfx.texture_matrix_index;
-            
             break;
         }		
     }
@@ -200,85 +186,87 @@ void GFX_push_matrix( void )
 
 void GFX_pop_matrix( void )
 {
-	switch( gfx.matrix_mode )
-	{
-		case MODELVIEW_MATRIX:
-		{
-			--gfx.modelview_matrix_index;
-			
-			break;
-		}
-			
-		case PROJECTION_MATRIX:
-		{
-			--gfx.projection_matrix_index;
-			
-			break;
-		}
-		
-		case TEXTURE_MATRIX:
-		{
-			--gfx.texture_matrix_index;
-			
-			break;
-		}		
-	}
+    switch( gfx->matrix_mode )
+    {
+        case MODELVIEW_MATRIX:
+        {
+            gfx->modelview_matrix.pop();
+
+
+            break;
+        }
+
+        case PROJECTION_MATRIX:
+        {
+            gfx->projection_matrix.pop();
+
+            break;
+        }
+            
+        case TEXTURE_MATRIX:
+        {
+            gfx->texture_matrix.pop();
+
+            break;
+        }		
+    }
 }
 
 
 void GFX_load_matrix(const mat4 &m)
 {
-	switch( gfx.matrix_mode )
-	{
-		case MODELVIEW_MATRIX:
-		{
-			GFX_get_modelview_matrix() = m;
-			
-			break;
-		}
-	
-		case PROJECTION_MATRIX:
-		{
-			GFX_get_projection_matrix() = m;
-			
-			break;
-		}
-		
-		case TEXTURE_MATRIX:
-		{
-			GFX_get_texture_matrix() = m;
-			
-			break;
-		}		
-	}
+    switch( gfx->matrix_mode )
+    {
+        case MODELVIEW_MATRIX:
+        {
+            gfx->modelview_matrix.back() = m;
+
+            break;
+        }
+
+        case PROJECTION_MATRIX:
+        {
+            gfx->projection_matrix.back() = m;
+
+            break;
+        }
+            
+        case TEXTURE_MATRIX:
+        {
+            gfx->texture_matrix.back() = m;
+
+            break;
+        }		
+    }
 }
 
 
 void GFX_multiply_matrix(const mat4 &m)
 {
-	switch( gfx.matrix_mode )
-	{
-		case MODELVIEW_MATRIX:
-		{
-                    GFX_get_modelview_matrix() = m * GFX_get_modelview_matrix();
+    switch( gfx->matrix_mode )
+    {
+        case MODELVIEW_MATRIX:
+        {
+            gfx->modelview_matrix.multiplyMatrix(m);
 
-			break;
-		}
-			
-		case PROJECTION_MATRIX:
-		{
-                    GFX_get_projection_matrix() = m * GFX_get_projection_matrix();
 
-			break;
-		}
-		
-		case TEXTURE_MATRIX:
-		{
-                    GFX_get_texture_matrix() = m * GFX_get_texture_matrix();
+            break;
+        }
 
-			break;
-		}		
-	}
+        case PROJECTION_MATRIX:
+        {
+            gfx->projection_matrix.multiplyMatrix(m);
+
+            break;
+        }
+
+        case TEXTURE_MATRIX:
+        {
+            gfx->texture_matrix.multiplyMatrix(m);
+
+            break;
+        }		
+    }
 }
 
 
@@ -292,25 +280,25 @@ void GFX_translate(const float x, const float y, const float z)
 
 void GFX_translate(const vec3 &t)
 {
-    switch( gfx.matrix_mode )
+    switch( gfx->matrix_mode )
     {
         case MODELVIEW_MATRIX:
         {
-            mat4_translate(GFX_get_modelview_matrix(), GFX_get_modelview_matrix(), t);
+            gfx->modelview_matrix.translate(t);
 
             break;
         }
 
         case PROJECTION_MATRIX:
         {
-            mat4_translate(GFX_get_projection_matrix(), GFX_get_projection_matrix(), t);
+            gfx->projection_matrix.translate(t);
 
             break;
         }
 
         case TEXTURE_MATRIX:
         {
-            mat4_translate(GFX_get_texture_matrix(), GFX_get_texture_matrix(), t);
+            gfx->texture_matrix.translate(t);
 
             break;
         }		
@@ -320,33 +308,33 @@ void GFX_translate(const vec3 &t)
 
 void GFX_rotate(const float angle, const float x, const float y, const float z)
 {
-	if( !angle ) return;
-	
-	vec4 v(x, y, z, angle);
-	
-	switch( gfx.matrix_mode )
-	{
-		case MODELVIEW_MATRIX:
-		{
-			mat4_rotate(GFX_get_modelview_matrix(), GFX_get_modelview_matrix(), v);
-			
-			break;
-		}
-	
-		case PROJECTION_MATRIX:
-		{
-			mat4_rotate(GFX_get_projection_matrix(), GFX_get_projection_matrix(), v);
-			
-			break;
-		}
+    if( !angle ) return;
 
-		case TEXTURE_MATRIX:
-		{
-			mat4_rotate(GFX_get_texture_matrix(), GFX_get_texture_matrix(), v);
-			
-			break;
-		}		
-	}
+    vec4 v(x, y, z, angle);
+
+    switch( gfx->matrix_mode )
+    {
+        case MODELVIEW_MATRIX:
+        {
+            gfx->modelview_matrix.rotate(angle, vec3(x,y,z));
+
+            break;
+        }
+
+        case PROJECTION_MATRIX:
+        {
+            gfx->projection_matrix.rotate(angle, vec3(x,y,z));
+
+            break;
+        }
+
+        case TEXTURE_MATRIX:
+        {
+            gfx->texture_matrix.rotate(angle, vec3(x,y,z));
+
+            break;
+        }		
+    }
 }
 
 
@@ -369,25 +357,25 @@ void GFX_scale(const vec3 &v)
     if (v == scale) return;
 
 
-    switch( gfx.matrix_mode )
+    switch( gfx->matrix_mode )
     {
         case MODELVIEW_MATRIX:
         {
-            mat4_scale(GFX_get_modelview_matrix(), GFX_get_modelview_matrix(), v);
+            gfx->modelview_matrix.scale(v);
 
             break;
         }
 
         case PROJECTION_MATRIX:
         {
-            mat4_scale(GFX_get_projection_matrix(), GFX_get_projection_matrix(), v );
+            gfx->projection_matrix.scale(v);
 
             break;
         }
 
         case TEXTURE_MATRIX:
         {
-            mat4_scale(GFX_get_texture_matrix(), GFX_get_texture_matrix(), v);
+            gfx->texture_matrix.scale(v);
 
             break;
         }		
@@ -395,36 +383,38 @@ void GFX_scale(const vec3 &v)
 }
 
 
-mat4 &GFX_get_modelview_matrix( void )
-{ return gfx.modelview_matrix[ gfx.modelview_matrix_index ]; }
+mat4 &GFX_get_modelview_matrix(const int i)
+{
+    return gfx->modelview_matrix[i];
+}
 
 
 mat4 &GFX_get_projection_matrix( void )
-{ return gfx.projection_matrix[ gfx.projection_matrix_index ]; }
+{
+    return gfx->projection_matrix.back();
+}
 
 
 mat4 &GFX_get_texture_matrix( void )
-{ return gfx.texture_matrix[ gfx.texture_matrix_index ]; }
+{
+    return gfx->texture_matrix.back();
+}
 
 
 mat4 &GFX_get_modelview_projection_matrix( void )
 {
-    gfx.modelview_projection_matrix =
-        GFX_get_modelview_matrix() * GFX_get_projection_matrix();
+    gfx->modelview_projection_matrix =
+        gfx->modelview_matrix.back() * gfx->projection_matrix.back();
 
-    return gfx.modelview_projection_matrix;
+    return gfx->modelview_projection_matrix;
 }
 
 
 mat3 &GFX_get_normal_matrix( void )
 {
-    mat4 mat;
+    gfx->normal_matrix = gfx->modelview_matrix.getNormalMatrix();
 
-    mat = GFX_get_modelview_matrix().inverse().transpose();
-
-    mat3_copy_mat4( gfx.normal_matrix, mat );
-    
-    return gfx.normal_matrix;
+    return gfx->normal_matrix;
 }
 
 
@@ -432,29 +422,29 @@ void GFX_ortho(const float left, const float right,
                const float bottom, const float top,
                const float clip_start, const float clip_end)
 {
-	switch( gfx.matrix_mode )
-	{
-		case MODELVIEW_MATRIX:
-		{
-			mat4_ortho(GFX_get_modelview_matrix(), left, right, bottom, top, clip_start, clip_end); 
-			
-			break;
-		}
-	
-		case PROJECTION_MATRIX:
-		{
-			mat4_ortho(GFX_get_projection_matrix(), left, right, bottom, top, clip_start, clip_end);
-			
-			break;
-		}
+    switch( gfx->matrix_mode )
+    {
+        case MODELVIEW_MATRIX:
+        {
+            gfx->modelview_matrix.ortho(left, right, bottom, top, clip_start, clip_end);
 
-		case TEXTURE_MATRIX:
-		{
-			mat4_ortho(GFX_get_texture_matrix(), left, right, bottom, top, clip_start, clip_end);
-			
-			break;
-		}		
-	}
+            break;
+        }
+
+        case PROJECTION_MATRIX:
+        {
+            gfx->projection_matrix.ortho(left, right, bottom, top, clip_start, clip_end);
+
+            break;
+        }
+
+        case TEXTURE_MATRIX:
+        {
+            gfx->texture_matrix.ortho(left, right, bottom, top, clip_start, clip_end);
+
+            break;
+        }		
+    }
 }
 
 

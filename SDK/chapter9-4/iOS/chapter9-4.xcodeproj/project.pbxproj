@@ -15,6 +15,7 @@
 		28FD15080DC6FC5B0079059D /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 28FD15070DC6FC5B0079059D /* QuartzCore.framework */; };
 		8309CC21185AB6E000A36933 /* glml.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8309CC1F185AB6E000A36933 /* glml.cpp */; };
 		836F420A1815A15900CE1587 /* Default-568h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 836F42091815A15900CE1587 /* Default-568h@2x.png */; };
+		83AA1733187B48DA0023AF69 /* tstack.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 83AA1731187B48DA0023AF69 /* tstack.cpp */; };
 		E002BCF5135BEC0A00FCFC0B /* EAGLView.mm in Sources */ = {isa = PBXBuildFile; fileRef = E002BCF0135BEC0A00FCFC0B /* EAGLView.mm */; };
 		E002BCF6135BEC0A00FCFC0B /* templateAppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = E002BCF2135BEC0A00FCFC0B /* templateAppDelegate.mm */; };
 		E002BCF7135BEC0A00FCFC0B /* templateViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = E002BCF4135BEC0A00FCFC0B /* templateViewController.mm */; };
@@ -54,7 +55,6 @@
 		E0CC618914008DA300001B18 /* audio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E0CC616E14008DA100001B18 /* audio.cpp */; };
 		E0CC618A14008DA300001B18 /* font.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E0CC617014008DA100001B18 /* font.cpp */; };
 		E0CC618B14008DA300001B18 /* gfx.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E0CC617214008DA100001B18 /* gfx.cpp */; };
-		E0CC618C14008DA300001B18 /* matrix.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E0CC617414008DA100001B18 /* matrix.cpp */; };
 		E0CC618D14008DA300001B18 /* memory.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E0CC617614008DA100001B18 /* memory.cpp */; };
 		E0CC618E14008DA300001B18 /* navigation.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E0CC617814008DA100001B18 /* navigation.cpp */; };
 		E0CC618F14008DA300001B18 /* obj.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E0CC617A14008DA100001B18 /* obj.cpp */; };
@@ -279,6 +279,8 @@
 		8309CC1F185AB6E000A36933 /* glml.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = glml.cpp; sourceTree = "<group>"; };
 		8309CC20185AB6E000A36933 /* glml.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = glml.h; sourceTree = "<group>"; };
 		836F42091815A15900CE1587 /* Default-568h@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-568h@2x.png"; sourceTree = "<group>"; };
+		83AA1731187B48DA0023AF69 /* tstack.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = tstack.cpp; sourceTree = "<group>"; };
+		83AA1732187B48DA0023AF69 /* tstack.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = tstack.h; sourceTree = "<group>"; };
 		E002BCEF135BEC0A00FCFC0B /* EAGLView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EAGLView.h; sourceTree = "<group>"; };
 		E002BCF0135BEC0A00FCFC0B /* EAGLView.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = EAGLView.mm; sourceTree = "<group>"; };
 		E002BCF1135BEC0A00FCFC0B /* templateAppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = templateAppDelegate.h; sourceTree = "<group>"; };
@@ -330,8 +332,6 @@
 		E0CC617114008DA100001B18 /* font.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = font.h; sourceTree = "<group>"; };
 		E0CC617214008DA100001B18 /* gfx.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = gfx.cpp; sourceTree = "<group>"; };
 		E0CC617314008DA100001B18 /* gfx.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gfx.h; sourceTree = "<group>"; };
-		E0CC617414008DA100001B18 /* matrix.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = matrix.cpp; sourceTree = "<group>"; };
-		E0CC617514008DA100001B18 /* matrix.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = matrix.h; sourceTree = "<group>"; };
 		E0CC617614008DA100001B18 /* memory.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = memory.cpp; sourceTree = "<group>"; };
 		E0CC617714008DA100001B18 /* memory.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = memory.h; sourceTree = "<group>"; };
 		E0CC617814008DA100001B18 /* navigation.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = navigation.cpp; sourceTree = "<group>"; };
@@ -921,6 +921,8 @@
 			children = (
 				8309CC1F185AB6E000A36933 /* glml.cpp */,
 				8309CC20185AB6E000A36933 /* glml.h */,
+				83AA1731187B48DA0023AF69 /* tstack.cpp */,
+				83AA1732187B48DA0023AF69 /* tstack.h */,
 			);
 			path = glml;
 			sourceTree = "<group>";
@@ -956,8 +958,6 @@
 				E0CC617214008DA100001B18 /* gfx.cpp */,
 				E0CC617314008DA100001B18 /* gfx.h */,
 				8309CC1E185AB6E000A36933 /* glml */,
-				E0CC617414008DA100001B18 /* matrix.cpp */,
-				E0CC617514008DA100001B18 /* matrix.h */,
 				E0CC617614008DA100001B18 /* memory.cpp */,
 				E0CC617714008DA100001B18 /* memory.h */,
 				E0CC617814008DA100001B18 /* navigation.cpp */,
@@ -1688,6 +1688,7 @@
 				8309CC21185AB6E000A36933 /* glml.cpp in Sources */,
 				E0DA358313BE745500AC30D0 /* btGjkConvexCast.cpp in Sources */,
 				E0DA358413BE745500AC30D0 /* btGjkEpa2.cpp in Sources */,
+				83AA1733187B48DA0023AF69 /* tstack.cpp in Sources */,
 				E0DA358513BE745500AC30D0 /* btGjkEpaPenetrationDepthSolver.cpp in Sources */,
 				E0DA358613BE745500AC30D0 /* btGjkPairDetector.cpp in Sources */,
 				E0DA358713BE745500AC30D0 /* btHeightfieldTerrainShape.cpp in Sources */,
@@ -1797,7 +1798,6 @@
 				E0CC618914008DA300001B18 /* audio.cpp in Sources */,
 				E0CC618A14008DA300001B18 /* font.cpp in Sources */,
 				E0CC618B14008DA300001B18 /* gfx.cpp in Sources */,
-				E0CC618C14008DA300001B18 /* matrix.cpp in Sources */,
 				E0CC618D14008DA300001B18 /* memory.cpp in Sources */,
 				E0CC618E14008DA300001B18 /* navigation.cpp in Sources */,
 				E0CC618F14008DA300001B18 /* obj.cpp in Sources */,

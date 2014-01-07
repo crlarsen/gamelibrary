@@ -15,6 +15,7 @@
 		28FD15080DC6FC5B0079059D /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 28FD15070DC6FC5B0079059D /* QuartzCore.framework */; };
 		835C3E1B180B4DA3001857CE /* Default-568h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 835C3E1A180B4DA3001857CE /* Default-568h@2x.png */; };
 		83DE327E185AAB4B0007D80E /* glml.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 83DE327C185AAB4B0007D80E /* glml.cpp */; };
+		83DE60C2187B11D000EFA118 /* tstack.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 83DE60C0187B11D000EFA118 /* tstack.cpp */; };
 		83FCDDE6181077AB0064D0E7 /* first.fs in Resources */ = {isa = PBXBuildFile; fileRef = 835C3E1C180B51F1001857CE /* first.fs */; };
 		83FCDDE7181077AF0064D0E7 /* first.vs in Resources */ = {isa = PBXBuildFile; fileRef = 835C3E1D180B51F1001857CE /* first.vs */; };
 		E002BCF5135BEC0A00FCFC0B /* EAGLView.mm in Sources */ = {isa = PBXBuildFile; fileRef = E002BCF0135BEC0A00FCFC0B /* EAGLView.mm */; };
@@ -163,7 +164,6 @@
 		E0D9BB5F146A63D600B19660 /* font.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E0D9BA0E146A63D600B19660 /* font.cpp */; };
 		E0D9BB60146A63D600B19660 /* gfx.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E0D9BA10146A63D600B19660 /* gfx.cpp */; };
 		E0D9BB61146A63D600B19660 /* light.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E0D9BA15146A63D600B19660 /* light.cpp */; };
-		E0D9BB62146A63D600B19660 /* matrix.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E0D9BA17146A63D600B19660 /* matrix.cpp */; };
 		E0D9BB63146A63D600B19660 /* md5.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E0D9BA19146A63D600B19660 /* md5.cpp */; };
 		E0D9BB64146A63D600B19660 /* memory.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E0D9BA1B146A63D600B19660 /* memory.cpp */; };
 		E0D9BB65146A63D600B19660 /* navigation.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E0D9BA1D146A63D600B19660 /* navigation.cpp */; };
@@ -259,6 +259,8 @@
 		835C3E1D180B51F1001857CE /* first.vs */ = {isa = PBXFileReference; explicitFileType = text; fileEncoding = 4; name = first.vs; path = ../first.vs; sourceTree = "<group>"; };
 		83DE327C185AAB4B0007D80E /* glml.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = glml.cpp; sourceTree = "<group>"; };
 		83DE327D185AAB4B0007D80E /* glml.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = glml.h; sourceTree = "<group>"; };
+		83DE60C0187B11D000EFA118 /* tstack.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = tstack.cpp; sourceTree = "<group>"; };
+		83DE60C1187B11D000EFA118 /* tstack.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = tstack.h; sourceTree = "<group>"; };
 		E002BCEF135BEC0A00FCFC0B /* EAGLView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EAGLView.h; sourceTree = "<group>"; };
 		E002BCF0135BEC0A00FCFC0B /* EAGLView.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = EAGLView.mm; sourceTree = "<group>"; };
 		E002BCF1135BEC0A00FCFC0B /* templateAppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = templateAppDelegate.h; sourceTree = "<group>"; };
@@ -617,8 +619,6 @@
 		E0D9BA11146A63D600B19660 /* gfx.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gfx.h; sourceTree = "<group>"; };
 		E0D9BA15146A63D600B19660 /* light.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = light.cpp; sourceTree = "<group>"; };
 		E0D9BA16146A63D600B19660 /* light.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = light.h; sourceTree = "<group>"; };
-		E0D9BA17146A63D600B19660 /* matrix.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = matrix.cpp; sourceTree = "<group>"; };
-		E0D9BA18146A63D600B19660 /* matrix.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = matrix.h; sourceTree = "<group>"; };
 		E0D9BA19146A63D600B19660 /* md5.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = md5.cpp; sourceTree = "<group>"; };
 		E0D9BA1A146A63D600B19660 /* md5.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = md5.h; sourceTree = "<group>"; };
 		E0D9BA1B146A63D600B19660 /* memory.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = memory.cpp; sourceTree = "<group>"; };
@@ -855,6 +855,8 @@
 			children = (
 				83DE327C185AAB4B0007D80E /* glml.cpp */,
 				83DE327D185AAB4B0007D80E /* glml.h */,
+				83DE60C0187B11D000EFA118 /* tstack.cpp */,
+				83DE60C1187B11D000EFA118 /* tstack.h */,
 			);
 			path = glml;
 			sourceTree = "<group>";
@@ -873,8 +875,6 @@
 				83DE327B185AAB4B0007D80E /* glml */,
 				E0D9BA15146A63D600B19660 /* light.cpp */,
 				E0D9BA16146A63D600B19660 /* light.h */,
-				E0D9BA17146A63D600B19660 /* matrix.cpp */,
-				E0D9BA18146A63D600B19660 /* matrix.h */,
 				E0D9BA19146A63D600B19660 /* md5.cpp */,
 				E0D9BA1A146A63D600B19660 /* md5.h */,
 				E0D9BA1B146A63D600B19660 /* memory.cpp */,
@@ -1561,6 +1561,7 @@
 				E0D9BB0E146A63D600B19660 /* btGeneric6DofSpringConstraint.cpp in Sources */,
 				E0D9BB0F146A63D600B19660 /* btGenericPoolAllocator.cpp in Sources */,
 				E0D9BB10146A63D600B19660 /* btGeometryUtil.cpp in Sources */,
+				83DE60C2187B11D000EFA118 /* tstack.cpp in Sources */,
 				E0D9BB11146A63D600B19660 /* btGhostObject.cpp in Sources */,
 				E0D9BB12146A63D600B19660 /* btGImpactBvh.cpp in Sources */,
 				83DE327E185AAB4B0007D80E /* glml.cpp in Sources */,
@@ -1643,7 +1644,6 @@
 				E0D9BB5F146A63D600B19660 /* font.cpp in Sources */,
 				E0D9BB60146A63D600B19660 /* gfx.cpp in Sources */,
 				E0D9BB61146A63D600B19660 /* light.cpp in Sources */,
-				E0D9BB62146A63D600B19660 /* matrix.cpp in Sources */,
 				E0D9BB63146A63D600B19660 /* md5.cpp in Sources */,
 				E0D9BB64146A63D600B19660 /* memory.cpp in Sources */,
 				E0D9BB65146A63D600B19660 /* navigation.cpp in Sources */,

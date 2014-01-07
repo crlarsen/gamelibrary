@@ -110,7 +110,7 @@ void material_draw_callback(void *ptr)
             vec4 position   (0.0f, -3.0f, 4.0f, 1.0f);
             vec3 eyeposition(0.0f,  0.0f, 0.0f);
             eyeposition = vec3(position *
-                               gfx.modelview_matrix[gfx.modelview_matrix_index - 1]);
+                               GFX_get_modelview_matrix(-1));
 
             glUniform3fv(uniform.location,
                          1,
