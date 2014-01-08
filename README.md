@@ -17,6 +17,10 @@ authors for the various included works.
 History
 =======
 
+Jan 7, 2014 - Remove vector.cpp, & vector.h from all projects.
+
+Jan 6, 2014 - Remove matrix.cpp, & matrix.h from all projects.
+
 Jan 4, 2014 - Use new math library for vectors, matrices, and quaternions.
 
 Dec 5, 2013 - Change the MD5 module into a C++ class.
