@@ -203,7 +203,6 @@
 		E04E49671466126E003B621D /* thread.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E04E48481466126E003B621D /* thread.cpp */; };
 		E04E49681466126E003B621D /* stb_truetype.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E04E484B1466126E003B621D /* stb_truetype.cpp */; };
 		E04E49691466126E003B621D /* utils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E04E484E1466126E003B621D /* utils.cpp */; };
-		E04E496A1466126E003B621D /* vector.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E04E48501466126E003B621D /* vector.cpp */; };
 		E04E496B1466126E003B621D /* analysis.c in Sources */ = {isa = PBXBuildFile; fileRef = E04E48531466126E003B621D /* analysis.c */; };
 		E04E496C1466126E003B621D /* bitrate.c in Sources */ = {isa = PBXBuildFile; fileRef = E04E48551466126E003B621D /* bitrate.c */; };
 		E04E496D1466126E003B621D /* bitwise.c in Sources */ = {isa = PBXBuildFile; fileRef = E04E48571466126E003B621D /* bitwise.c */; };
@@ -690,8 +689,6 @@
 		E04E484D1466126E003B621D /* types.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = types.h; sourceTree = "<group>"; };
 		E04E484E1466126E003B621D /* utils.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = utils.cpp; sourceTree = "<group>"; };
 		E04E484F1466126E003B621D /* utils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = utils.h; sourceTree = "<group>"; };
-		E04E48501466126E003B621D /* vector.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = vector.cpp; sourceTree = "<group>"; };
-		E04E48511466126E003B621D /* vector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = vector.h; sourceTree = "<group>"; };
 		E04E48531466126E003B621D /* analysis.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = analysis.c; sourceTree = "<group>"; };
 		E04E48541466126E003B621D /* backends.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = backends.h; sourceTree = "<group>"; };
 		E04E48551466126E003B621D /* bitrate.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = bitrate.c; sourceTree = "<group>"; };
@@ -930,8 +927,6 @@
 				E04E484D1466126E003B621D /* types.h */,
 				E04E484E1466126E003B621D /* utils.cpp */,
 				E04E484F1466126E003B621D /* utils.h */,
-				E04E48501466126E003B621D /* vector.cpp */,
-				E04E48511466126E003B621D /* vector.h */,
 				E04E48521466126E003B621D /* vorbis */,
 				E04E48821466126E003B621D /* zlib */,
 			);
@@ -1726,7 +1721,6 @@
 				E04E49671466126E003B621D /* thread.cpp in Sources */,
 				E04E49681466126E003B621D /* stb_truetype.cpp in Sources */,
 				E04E49691466126E003B621D /* utils.cpp in Sources */,
-				E04E496A1466126E003B621D /* vector.cpp in Sources */,
 				E04E496B1466126E003B621D /* analysis.c in Sources */,
 				E04E496C1466126E003B621D /* bitrate.c in Sources */,
 				E04E496D1466126E003B621D /* bitwise.c in Sources */,

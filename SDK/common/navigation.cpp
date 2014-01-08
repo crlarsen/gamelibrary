@@ -44,6 +44,22 @@ as being the original software.
 #include "gfx.h"
 
 
+static void vec3_to_recast(vec3 &v)
+{
+    vec3    tmp(v->x, v->z, -v->y);
+
+    v = tmp;
+}
+
+
+static void recast_to_vec3(vec3 &v)
+{
+    vec3    tmp(v->x, -v->z, v->y);
+
+    v = tmp;
+}
+
+
 NAVIGATION::NAVIGATION(char *name) :
     triangle_flags(NULL),
     dtnavmesh(NULL),
@@ -91,7 +107,7 @@ bool NAVIGATION::build(OBJMESH *objmesh)
         *vertex_array =
             objmesh->parent->indexed_vertex[objvertexdata->vertex_index];
 
-        vec3_to_recast(vertex_array);
+        vec3_to_recast(*vertex_array);
 
         ++vertex_array;
     }
@@ -322,9 +338,9 @@ bool NAVIGATION::get_path(NAVIGATIONPATH *navigationpath, NAVIGATIONPATHDATA *na
     vec3    &start_location = navigationpath->start_location,
             &end_location   = navigationpath->end_location;
 
-    vec3_to_recast(&start_location);
+    vec3_to_recast(start_location);
 
-    vec3_to_recast(&end_location);
+    vec3_to_recast(end_location);
 
     navigationpath->start_reference = this->dtnavmesh->findNearestPoly(start_location.v(),
                                                                        this->tolerance.v(),
@@ -372,7 +388,7 @@ bool NAVIGATION::get_path(NAVIGATIONPATH *navigationpath, NAVIGATIONPATHDATA *na
         
         if (navigationpathdata->path_point_count) {
             for (int i=0; i != navigationpathdata->path_point_count + 1; ++i)
-                recast_to_vec3(&navigationpathdata->path_point_array[i]);
+                recast_to_vec3(navigationpathdata->path_point_array[i]);
             
             return true;
         }
@@ -457,7 +473,7 @@ void NAVIGATION::draw()
                                    sizeof(vec3));
                         }
 
-                        recast_to_vec3(&v[m]);
+                        recast_to_vec3(v[m]);
                     }
 
 

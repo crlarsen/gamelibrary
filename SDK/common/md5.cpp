@@ -44,6 +44,25 @@ as being the original software.
 #include "gfx.h"
 
 
+void vec3_rotate_quat(vec3 &dst, const vec3 &v0, const quaternion &v1)
+{
+    float   w(-v1.v.dotProduct(v0));
+    vec3    v(v1.w*v0 + v1.v.crossProduct(v0));
+
+    dst = v*v1.w - w*v1.v + v1.v.crossProduct(v);
+}
+
+
+void quat_build_r(quaternion &q)
+{
+    float l = 1.0f - (q->i * q->i) -
+    (q->j * q->j) -
+    (q->k * q->k);
+
+    q->r = ( l < 0.0f ) ? 0.0f : -sqrtf( l );
+}
+
+
 MD5::MD5(char *filename, const bool relative_path) :
     visible(true), location(0,0,0), rotation(0,0,0), scale(1,1,1),
     min(FLT_MAX,FLT_MAX,FLT_MAX), max(-FLT_MAX,-FLT_MAX,-FLT_MAX),

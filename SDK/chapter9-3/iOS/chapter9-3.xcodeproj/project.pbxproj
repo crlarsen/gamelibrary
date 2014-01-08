@@ -27,7 +27,6 @@
 		E000A2B914046A350062DF0B /* sound.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E000A2A714046A350062DF0B /* sound.cpp */; };
 		E000A2BA14046A350062DF0B /* texture.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E000A2A914046A350062DF0B /* texture.cpp */; };
 		E000A2BB14046A350062DF0B /* utils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E000A2AC14046A350062DF0B /* utils.cpp */; };
-		E000A2BC14046A350062DF0B /* vector.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E000A2AE14046A350062DF0B /* vector.cpp */; };
 		E000A48D14046A420062DF0B /* bChunk.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E000A2BE14046A420062DF0B /* bChunk.cpp */; };
 		E000A48E14046A420062DF0B /* bDNA.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E000A2C214046A420062DF0B /* bDNA.cpp */; };
 		E000A48F14046A420062DF0B /* bFile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E000A2C414046A420062DF0B /* bFile.cpp */; };
@@ -300,8 +299,6 @@
 		E000A2AB14046A350062DF0B /* types.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = types.h; sourceTree = "<group>"; };
 		E000A2AC14046A350062DF0B /* utils.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = utils.cpp; sourceTree = "<group>"; };
 		E000A2AD14046A350062DF0B /* utils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = utils.h; sourceTree = "<group>"; };
-		E000A2AE14046A350062DF0B /* vector.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = vector.cpp; sourceTree = "<group>"; };
-		E000A2AF14046A350062DF0B /* vector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = vector.h; sourceTree = "<group>"; };
 		E000A2BE14046A420062DF0B /* bChunk.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = bChunk.cpp; sourceTree = "<group>"; };
 		E000A2BF14046A420062DF0B /* bChunk.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = bChunk.h; sourceTree = "<group>"; };
 		E000A2C014046A420062DF0B /* bCommon.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = bCommon.h; sourceTree = "<group>"; };
@@ -1462,8 +1459,6 @@
 				E000A2AB14046A350062DF0B /* types.h */,
 				E000A2AC14046A350062DF0B /* utils.cpp */,
 				E000A2AD14046A350062DF0B /* utils.h */,
-				E000A2AE14046A350062DF0B /* vector.cpp */,
-				E000A2AF14046A350062DF0B /* vector.h */,
 				E0B855091405A94B003E11F6 /* thread.cpp */,
 				E0B855081405A941003E11F6 /* thread.h */,
 			);
@@ -1584,7 +1579,6 @@
 				E000A2B914046A350062DF0B /* sound.cpp in Sources */,
 				E000A2BA14046A350062DF0B /* texture.cpp in Sources */,
 				E000A2BB14046A350062DF0B /* utils.cpp in Sources */,
-				E000A2BC14046A350062DF0B /* vector.cpp in Sources */,
 				E000A48D14046A420062DF0B /* bChunk.cpp in Sources */,
 				E000A48E14046A420062DF0B /* bDNA.cpp in Sources */,
 				E000A48F14046A420062DF0B /* bFile.cpp in Sources */,

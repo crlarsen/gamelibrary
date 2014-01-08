@@ -151,7 +151,6 @@ as being the original software.
 
 #include "types.h"
 #include "thread.h"
-#include "vector.h"
 #include "utils.h"
 #include "memory.h"
 #include "shader.h"
