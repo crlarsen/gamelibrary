@@ -250,8 +250,12 @@ void templateAppDraw(void)
     glBindVertexArrayOES(objmesh->vao);
 
     if (auto_rotate) rot_angle->z += 2.0f;
-    GFX_rotate(rot_angle->x, 1.0f, 0.0f, 0.0f);
-    GFX_rotate(rot_angle->z, 0.0f, 0.0f, 1.0f);
+    float   alpha(rot_angle->x*DEG_TO_RAD_DIV_2);
+    float   cosAlpha(cosf(alpha)), sinAlpha(sinf(alpha));
+    float   beta (rot_angle->z*DEG_TO_RAD_DIV_2);
+    float   cosBeta (cosf(beta)),  sinBeta (sinf(beta));
+    GFX_rotate(quaternion( cosAlpha*cosBeta, sinAlpha*cosBeta,
+                          -sinAlpha*sinBeta, cosAlpha*sinBeta));
 
     program->draw();
     /* Function to use when drawing using elements (aka indices). */

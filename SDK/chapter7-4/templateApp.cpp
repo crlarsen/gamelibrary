@@ -288,9 +288,12 @@ void templateAppDraw(void) {
         camera->btrigidbody->setActivationState(ISLAND_SLEEPING);
     }
 
-    GFX_rotate(-rotx, 1.0f, 0.0f, 0.0f);
-
-    GFX_rotate(-rotz, 0.0f, 0.0f, 1.0f);
+    float   alpha(-rotx*DEG_TO_RAD_DIV_2);
+    float   cosAlpha(cosf(alpha)), sinAlpha(sinf(alpha));
+    float   beta(-rotz*DEG_TO_RAD_DIV_2);
+    float   cosBeta(cosf(beta)), sinBeta(sinf(beta));
+    GFX_rotate(quaternion( cosAlpha*cosBeta, sinAlpha*cosBeta,
+                          -sinAlpha*sinBeta, cosAlpha*sinBeta));
 
     GFX_translate(-camera->location->x,
                   -camera->location->y,

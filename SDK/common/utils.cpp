@@ -517,12 +517,20 @@ void create_direction_vector( vec3 *dst, vec3 *up_axis, float rotx, float roty, 
 {
     TStack  l;
     // Convert all angles to radians & divide by 2.
-    float   alpha = rotz*M_PI/360.0;
-    float   beta  = roty*M_PI/360.0;
-    float   gamma = rotx*M_PI/360.0;
-    l.loadRotation(quaternion(cosf(alpha), 0, 0, sinf(alpha)));
-    l.rotate(quaternion(cosf(beta),  0, sinf(beta), 0));
-    l.rotate(quaternion(cosf(gamma), sinf(gamma), 0, 0));
+    float   alpha = rotz*DEG_TO_RAD_DIV_2;
+    float   cosAlpha(cosf(alpha)), sinAlpha(sinf(alpha));
+    float   beta  = roty*DEG_TO_RAD_DIV_2;
+    float   cosBeta(cosf(beta)), sinBeta(sinf(beta));
+    float   gamma = rotx*DEG_TO_RAD_DIV_2;
+    float   cosGamma(cosf(gamma)), sinGamma(sinf(gamma));
+    float   cAcB(cosAlpha*cosBeta);
+    float   sAsB(sinAlpha*sinBeta);
+    float   cAsB(cosAlpha*sinBeta);
+    float   sAcB(sinAlpha*cosBeta);
+    l.loadRotation(quaternion(cAcB*cosGamma+sAsB*sinGamma,
+                              cAcB*sinGamma-sAsB*cosGamma,
+                              cAsB*cosGamma+sAcB*sinGamma,
+                              sAcB*cosGamma-cAsB*sinGamma));
 
     *up_axis = -*up_axis;
     

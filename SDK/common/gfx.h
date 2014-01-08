@@ -221,6 +221,8 @@ void GFX_translate(const vec3 &t);
 
 void GFX_rotate(const float angle, const float x, const float y, const float z);
 
+void GFX_rotate(const quaternion &q);
+
 void GFX_scale(const float x, const float y, const float z);
 
 void GFX_scale(const vec3 &v);

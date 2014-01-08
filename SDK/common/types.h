@@ -30,6 +30,9 @@ as being the original software.
 
 #define DEG_TO_RAD	(M_PI / 180.0f)
 
+// The following constant is used to create rotation quaternions.
+#define DEG_TO_RAD_DIV_2	(M_PI / 360.0f)
+
 #define RAD_TO_DEG	(180.0f / M_PI)
 
 #define BUFFER_OFFSET( x ) ( ( char * )NULL + x )
@@ -52,15 +55,6 @@ typedef struct
 	unsigned char a;	
 
 } ucol4;
-
-
-typedef struct
-{
-	unsigned short vertex_index;
-	
-	unsigned short uv_index;
-
-} vecind;
 
 
 #endif

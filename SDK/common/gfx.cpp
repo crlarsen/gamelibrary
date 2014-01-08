@@ -338,6 +338,36 @@ void GFX_rotate(const float angle, const float x, const float y, const float z)
 }
 
 
+void GFX_rotate(const quaternion &q)
+{
+    if(q.w==1.0f || q.w==-1.0f) return;
+
+    switch( gfx->matrix_mode )
+    {
+        case MODELVIEW_MATRIX:
+        {
+            gfx->modelview_matrix.rotate(q);
+
+            break;
+        }
+
+        case PROJECTION_MATRIX:
+        {
+            gfx->projection_matrix.rotate(q);
+
+            break;
+        }
+
+        case TEXTURE_MATRIX:
+        {
+            gfx->texture_matrix.rotate(q);
+            
+            break;
+        }		
+    }
+}
+
+
 void GFX_scale(const float x, const float y, const float z)
 {
     static vec3 scale(1.0f, 1.0f, 1.0f);

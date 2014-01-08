@@ -626,9 +626,12 @@ void templateAppDraw(void)
     GFX_set_matrix_mode(MODELVIEW_MATRIX);
     GFX_load_identity();
 
-    GFX_rotate(-72.0, 1.0f, 0.0f, 0.0f);
-
-    GFX_rotate(-48.5f, 0.0f, 0.0f, 1.0f);
+    float   alpha(-72.0f*DEG_TO_RAD_DIV_2);
+    float   cosAlpha(cosf(alpha)), sinAlpha(sinf(alpha));
+    float   beta(-48.5f*DEG_TO_RAD_DIV_2);
+    float   cosBeta(cosf(beta)), sinBeta(sinf(beta));
+    GFX_rotate(quaternion( cosAlpha*cosBeta, sinAlpha*cosBeta,
+                          -sinAlpha*sinBeta, cosAlpha*sinBeta));
 
     GFX_translate(-14.0f, 12.0f, -7.0f);
 

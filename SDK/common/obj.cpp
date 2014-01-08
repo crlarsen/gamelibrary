@@ -925,13 +925,22 @@ void OBJMESH::draw3(OBJMESH *objmesh)
 
             GFX_translate(objmesh->location);
 
-            GFX_rotate(objmesh->rotation->z, 0.0f, 0.0f, 1.0f);
-            GFX_rotate(objmesh->rotation->y, 0.0f, 1.0f, 0.0f);
-            GFX_rotate(objmesh->rotation->x, 1.0f, 0.0f, 0.0f);
+            float   alpha(objmesh->rotation->z*DEG_TO_RAD_DIV_2);
+            float   cosAlpha(cosf(alpha)), sinAlpha(sinf(alpha));
+            float   beta (objmesh->rotation->y*DEG_TO_RAD_DIV_2);
+            float   cosBeta(cosf(beta)), sinBeta(sinf(beta));
+            float   gamma(objmesh->rotation->x*DEG_TO_RAD_DIV_2);
+            float   cosGamma(cosf(gamma)), sinGamma(sinf(gamma));
+            float   cAcB(cosAlpha*cosBeta);
+            float   sAsB(sinAlpha*sinBeta);
+            float   cAsB(cosAlpha*sinBeta);
+            float   sAcB(sinAlpha*cosBeta);
+            GFX_rotate(quaternion(cAcB*cosGamma+sAsB*sinGamma,
+                                  cAcB*sinGamma-sAsB*cosGamma,
+                                  cAsB*cosGamma+sAcB*sinGamma,
+                                  sAcB*cosGamma-cAsB*sinGamma));
 
-            GFX_scale(objmesh->scale->x,
-                      objmesh->scale->y,
-                      objmesh->scale->z);
+            GFX_scale(objmesh->scale);
 
             objmesh->draw();
 

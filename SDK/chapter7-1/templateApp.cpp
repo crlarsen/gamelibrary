@@ -176,14 +176,18 @@ void templateAppDraw(void) {
         eye_location->y += direction->y * -touche_delta->x;
     }
 
-    /* Rotate the matrix -90 degrees on the positive X axis to look
-     * forward on the Y axis.
-     */
-    GFX_rotate(-90.0f, 1.0f, 0.0f, 0.0f);
-    /* Then rotate it on the Z axis using the rotation controlled by the
-     * movement of the onscreen touch.
-     */
-    GFX_rotate(-rotz, 0.0f, 0.0f, 1.0f);
+//    /* Rotate the matrix -90 degrees on the positive X axis to look
+//     * forward on the Y axis.
+//     */
+//    GFX_rotate(-90.0f, 1.0f, 0.0f, 0.0f);
+//    /* Then rotate it on the Z axis using the rotation controlled by the
+//     * movement of the onscreen touch.
+//     */
+//    GFX_rotate(-rotz, 0.0f, 0.0f, 1.0f);
+    float   alpha(-rotz*DEG_TO_RAD_DIV_2);
+    float   cosAlpha(cosf(alpha)), sinAlpha(sinf(alpha));
+    GFX_rotate(quaternion(M_SQRT1_2*cosAlpha, -M_SQRT1_2*cosAlpha,
+                          M_SQRT1_2*sinAlpha,  M_SQRT1_2*sinAlpha));
 
     for (auto objmesh=obj->objmesh.begin();
          objmesh!=obj->objmesh.end(); ++objmesh) {

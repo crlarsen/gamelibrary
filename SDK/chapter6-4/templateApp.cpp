@@ -137,12 +137,20 @@ void add_rigid_body(OBJMESH *objmesh, float mass)
     TStack  l;
     l.loadTranslation(objmesh->location);
     // Convert angles to radians & divide by 2.
-    float   alpha = objmesh->rotation->z*M_PI/360.0;
-    float   beta = objmesh->rotation->y*M_PI/360.0;
-    float   gamma = objmesh->rotation->x*M_PI/360.0;
-    l.rotate(quaternion(cosf(alpha),0,0,sinf(alpha)));
-    l.rotate(quaternion(cosf(beta), 0, sinf(beta), 0));
-    l.rotate(quaternion(cosf(gamma), sinf(gamma), 0, 0));
+    float   alpha = objmesh->rotation->z*DEG_TO_RAD_DIV_2;
+    float   cosAlpha(cosf(alpha)), sinAlpha(sinf(alpha));
+    float   beta  = objmesh->rotation->y*DEG_TO_RAD_DIV_2;
+    float   cosBeta(cosf(beta)), sinBeta(sinf(beta));
+    float   gamma = objmesh->rotation->x*DEG_TO_RAD_DIV_2;
+    float   cosGamma(cosf(gamma)), sinGamma(sinf(gamma));
+    float   cAcB(cosAlpha*cosBeta);
+    float   sAsB(sinAlpha*sinBeta);
+    float   cAsB(cosAlpha*sinBeta);
+    float   sAcB(sinAlpha*cosBeta);
+    l.rotate(quaternion(cAcB*cosGamma+sAsB*sinGamma,
+                        cAcB*sinGamma-sAsB*cosGamma,
+                        cAsB*cosGamma+sAcB*sinGamma,
+                        sAcB*cosGamma-cAsB*sinGamma));
 
     /* Assign the current transformation matrix that you create using the
      * standard "OpenGL way" and send it over to the Bullet transform variable.
