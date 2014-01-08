@@ -17,6 +17,8 @@ authors for the various included works.
 History
 =======
 
+Jan 8, 2014 - Merge consecutive rotations into a single rotation.
+
 Jan 7, 2014 - Remove vector.cpp, & vector.h from all projects.
 
 Jan 6, 2014 - Remove matrix.cpp, & matrix.h from all projects.
