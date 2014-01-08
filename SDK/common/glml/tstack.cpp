@@ -61,36 +61,44 @@ TStack &TStack::loadRotation(const quaternion &q)
     return *this;
 }
 
-static void rotationMatrix(mat4 &m, const float thetaInDegrees, const vec3 &v)
+static void rotationMatrix(mat4 &m, const float theta, const vec3 &v)
 {
-    // Convert theta to radians and divide by 2.
-    float   alpha = thetaInDegrees * M_PI / 360.0;
-    float   c = cosf(alpha);
-    float   s = sinf(alpha);
-    vec3    n(v);
-    if (n) n *= s/n.length();
-    quaternion  q(c, n);
+    vec3    n = v.normalize();
+    float   sinTheta = sinf(theta);
+    float   cosTheta = cosf(theta);
+    float   a = 1.0 - cosTheta;
+    float   ax = a * n->x;
+    float   ay = a * n->y;
+    float   az = a * n->z;
+    float   axx = ax * n->x;
+    float   ayy = ay * n->y;
+    float   azz = az * n->z;
+    float   axy = ax * n->y;    // aka ayx
+    float   axz = ax * n->z;    // aka azx
+    float   ayz = ay * n->z;    // aka azy
+    float   xSinTheta = n->x * sinTheta;
+    float   ySinTheta = n->y * sinTheta;
+    float   zSinTheta = n->z * sinTheta;
 
-    rotationMatrix(m, q);
+    m[0][0] = axx + cosTheta;  m[0][1] = axy + zSinTheta; m[0][2] = axz - ySinTheta; m[0][3] = 0.0,
+    m[1][0] = axy - zSinTheta; m[1][1] = ayy + cosTheta;  m[1][2] = ayz + xSinTheta; m[1][3] = 0.0,
+    m[2][0] = axz + ySinTheta; m[2][1] = ayz - xSinTheta; m[2][2] = azz + cosTheta;  m[2][3] = 0.0,
+    m[3][0] = 0.0;             m[3][1] = 0.0;             m[3][2] = 0.0;             m[3][3] = 1.0;
 }
 
 TStack &TStack::loadRotation(const float degrees, const vec3 &v)
 {
-    rotationMatrix(mStack.back(), degrees, v);
+    rotationMatrix(mStack.back(), DegreesToRadians(degrees), v);
 
     return *this;
 }
 
-static void rotationMatrix(mat4 &m, const vec4 &v)
+static void rotationMatrix(mat4 &m, const vec4 &r)
 {
-    float   alpha = v->w * 0.5;
-    float   c = cosf(alpha);
-    float   s = sinf(alpha);
-    vec3    n(v->x, v->y, v->z);
-    if (n) n *= s/n.length();
-    quaternion  q(c, n);
+    vec3    v = vec3(r->x, r->y, r->z);
+    float   theta = r->w;
 
-    rotationMatrix(m, q);
+    rotationMatrix(m, theta, v);
 }
 
 TStack &TStack::loadRotation(const vec4 &v)
@@ -128,7 +136,7 @@ TStack &TStack::rotate(const float degrees, const vec3 &v)
 {
     mat4    r;
 
-    rotationMatrix(r, degrees, v);
+    rotationMatrix(r, DegreesToRadians(degrees), v);
 
     rotateMultiply(mStack.back(), r);
 
