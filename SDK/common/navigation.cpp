@@ -67,8 +67,7 @@ NAVIGATION::NAVIGATION(char *name) :
     tolerance(1,2,1)
 {
     assert(name==NULL || strlen(name)<sizeof(this->name));
-    if (name)
-        strcpy(this->name, name);
+    strcpy(this->name, name ? name : "");
 }
 
 

@@ -58,15 +58,11 @@ struct SOUNDBUFFER {
 
     MEMORY		*memory;
 
-    unsigned int	bid[MAX_BUFFER];
+    unsigned int	bid[MAX_BUFFER] = {};
 protected:
     SOUNDBUFFER() {}
     void init(const char *name, MEMORY *memory);
 public:
-    // When "stream" is false, the constructor replaces the old
-    // SOUNDBUFFER_load()
-    // When "stream" is true, the constructor replaces the old
-    // SOUNDBUFFER_load_stream()
     SOUNDBUFFER(const char *name, MEMORY *memory);
     ~SOUNDBUFFER();
     unsigned char decompress_chunk(unsigned int buffer_index);

@@ -48,15 +48,9 @@ as being the original software.
 void SOUNDBUFFER::init(const char *name, MEMORY *memory)
 {
     assert(name==NULL || strlen(name)<sizeof(this->name));
-    if (name) {
-        strcpy(this->name, name);
-    } else {
-        memset(this->name, 0, sizeof(this->name));
-    }
+    strcpy(this->name, name ? name : "");
 
     this->file = (OggVorbis_File *) calloc(1, sizeof(OggVorbis_File));
-
-    memset(bid, 0, sizeof(bid));
 
     ov_open_callbacks(memory,
                       this->file,
@@ -189,15 +183,13 @@ SOUNDBUFFER::~SOUNDBUFFER()
 }
 
 
-SOUND::SOUND(char *name, SOUNDBUFFER *soundbuffer)
+SOUND::SOUND(char *name, SOUNDBUFFER *soundbuffer) :
+    loop(false), soundbuffer(soundbuffer)
 {
     vec3 tmp(0.0f, 0.0f, 0.0f);
 
-    memset(this, 0, sizeof(SOUND));
-
-    strcpy(this->name, name);
-
-    this->soundbuffer = soundbuffer;
+    assert(name==NULL || strlen(name)<sizeof(this->name));
+    strcpy(this->name, name ? name : "");
 
     alGenSources(1, &this->sid);
 

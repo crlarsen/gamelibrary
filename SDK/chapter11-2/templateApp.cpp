@@ -317,10 +317,10 @@ void draw_scene(void)
     GFX_set_matrix_mode(MODELVIEW_MATRIX);
     GFX_load_identity();
 
-    float   alpha(-72.0f*DEG_TO_RAD_DIV_2);
-    float   cosAlpha(cosf(alpha)), sinAlpha(sinf(alpha));
-    float   beta(-48.5f*DEG_TO_RAD_DIV_2);
-    float   cosBeta(cosf(beta)), sinBeta(sinf(beta));
+    const float   alpha(-72.0f*DEG_TO_RAD_DIV_2);
+    const float   cosAlpha(cosf(alpha)), sinAlpha(sinf(alpha));
+    const float   beta(-48.5f*DEG_TO_RAD_DIV_2);
+    const float   cosBeta(cosf(beta)), sinBeta(sinf(beta));
     GFX_rotate(quaternion( cosAlpha*cosBeta, sinAlpha*cosBeta,
                           -sinAlpha*sinBeta, cosAlpha*sinBeta));
 

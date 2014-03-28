@@ -165,13 +165,6 @@ as being the original software.
 #include "md5.h"
 
 
-#define MAX_MODELVIEW_MATRIX	32
-
-#define MAX_PROJECTION_MATRIX	2
-
-#define MAX_TEXTURE_MATRIX		2
-
-
 enum
 {
 	MODELVIEW_MATRIX	= 0,

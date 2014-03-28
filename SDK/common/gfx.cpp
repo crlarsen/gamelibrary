@@ -219,21 +219,21 @@ void GFX_load_matrix(const mat4 &m)
     {
         case MODELVIEW_MATRIX:
         {
-            gfx->modelview_matrix.back() = m;
+            gfx->modelview_matrix.loadMatrix(m);
 
             break;
         }
 
         case PROJECTION_MATRIX:
         {
-            gfx->projection_matrix.back() = m;
+            gfx->projection_matrix.loadMatrix(m);
 
             break;
         }
             
         case TEXTURE_MATRIX:
         {
-            gfx->texture_matrix.back() = m;
+            gfx->texture_matrix.loadMatrix(m);
 
             break;
         }		
@@ -659,13 +659,7 @@ bool GFX_unproject(const float winx, const float winy, const float winz,
 
     if(!vout->w) return false;
 
-    vout->x /= vout->w;
-    vout->y /= vout->w;
-    vout->z /= vout->w;
-    
-    obj->x = vout->x;
-    obj->y = vout->y;
-    obj->z = vout->z;
-    
+    obj = vec3(vout);
+
     return true;
 }

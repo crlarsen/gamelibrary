@@ -46,8 +46,7 @@ as being the original software.
 SHADER::SHADER(char *name, GLenum type) : type(type), sid(0)
 {
     assert(strlen(name)<sizeof(this->name));
-
-    strcpy(this->name, name);
+    strcpy(this->name, name ? name : "");
 }
 
 

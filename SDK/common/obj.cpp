@@ -92,12 +92,10 @@ OBJMESH::OBJMESH(char *name, bool visible, char *group, float scale_x,
     use_smooth_normals(use_smooth_normals), parent(parent)
 {
     assert(name==NULL || strlen(name) < sizeof(this->name));
-    if (name)
-        strcpy(this->name, name);
+    strcpy(this->name, name ? name : "");
 
     assert(strlen(group) < sizeof(this->group));
-    if (group)
-        strcpy(this->group, group);
+    strcpy(this->group, group ? group : "");
 }
 
 OBJMESH::~OBJMESH()
@@ -753,8 +751,7 @@ OBJMATERIAL::OBJMATERIAL(char *name, OBJ *parent) :
     program(NULL), materialdrawcallback(NULL), parent(parent)
 {
     assert(name==NULL || (strlen(name)<sizeof(this->name)));
-    if (name)
-        strcpy(this->name, name);
+    strcpy(this->name, name ? name : "");
 }
 
 OBJMATERIAL::~OBJMATERIAL()

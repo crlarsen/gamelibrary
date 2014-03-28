@@ -1,9 +1,9 @@
 //
 //  tstack.cpp
-//  chapter4-5
+//  glml
 //
 //  Created by Chris Larsen on 8/1/11.
-//  Copyright (c) 2014 Chris Larsen. All rights reserved.
+//  Copyright (c) 2011-2014 Chris Larsen. All rights reserved.
 //
 
 #include "tstack.h"
@@ -13,9 +13,10 @@ void TStack::push()
     if (mStack.size()) {
         mat4    a(mStack.back());
 
-        // Can't use "mStack.push_back(mStack.back());" because push_back() might
-        // need to reallocate space and I don't know if the push_back()
-        // with try to use the old or new location of mStack.back().
+        // Can't use "mStack.push_back(mStack.back());" because
+        // push_back() might need to reallocate space and I don't know
+        // if the push_back() method will try to use the old or new
+        // location of mStack.back().
         mStack.push_back(a);
     } else {
         mStack.push_back(mat4(1));
@@ -95,7 +96,7 @@ TStack &TStack::loadRotation(const float degrees, const vec3 &v)
 
 static void rotationMatrix(mat4 &m, const vec4 &r)
 {
-    vec3    v = vec3(r->x, r->y, r->z);
+    vec3    v(r->x, r->y, r->z);
     float   theta = r->w;
 
     rotationMatrix(m, theta, v);

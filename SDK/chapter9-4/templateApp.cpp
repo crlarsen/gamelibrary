@@ -792,11 +792,13 @@ void templateAppDraw(void) {
             half_height = (float)viewport_matrix[3] * 0.5f;
 
     GFX_set_orthographic_2d(-half_width,
-                            half_width,
+                             half_width,
                             -half_height,
-                            half_height);
+                             half_height);
 
-    GFX_rotate(-90.0f, 0.0f, 0.0f, 1.0f);
+    // Rotate -90 degrees
+    static const quaternion q(M_SQRT1_2, 0, 0, -M_SQRT1_2);
+    GFX_rotate(q);
 
     GFX_translate(-half_height, -half_width, 0.0f);
 

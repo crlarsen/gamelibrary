@@ -44,7 +44,7 @@ as being the original software.
 #include "gfx.h"
 
 
-void vec3_rotate_quat(vec3 &dst, const vec3 &v0, const quaternion &v1)
+static void vec3_rotate_quat(vec3 &dst, const vec3 &v0, const quaternion &v1)
 {
     float   w(-v1.v.dotProduct(v0));
     vec3    v(v1.w*v0 + v1.v.crossProduct(v0));
@@ -53,7 +53,7 @@ void vec3_rotate_quat(vec3 &dst, const vec3 &v0, const quaternion &v1)
 }
 
 
-void quat_build_r(quaternion &q)
+static void quat_build_r(quaternion &q)
 {
     float l = 1.0f - (q->i * q->i) -
     (q->j * q->j) -
@@ -356,8 +356,7 @@ MD5ACTION::MD5ACTION(const char *name) : curr_frame(0), next_frame(1),
                                          loop(false), frame_time(0), fps(0)
 {
     assert(name==NULL || strlen(name)<sizeof(this->name));
-    if (name)
-        strcpy(this->name, name);
+    strcpy(this->name, name ? name : "");
 }
 
 void MD5ACTION::action_play(const MD5Method frame_interpolation_method,
@@ -400,8 +399,7 @@ MD5MESH::MD5MESH(const char *name) :
     vao(0), visible(true), objmaterial(NULL)
 {
     assert(name==NULL || strlen(name)<sizeof(shader));
-    if (name)
-        strcpy(shader, name);
+    strcpy(shader, name ? name : "");
 }
 
 MD5MESH::MD5MESH(const MD5MESH &src) :
@@ -649,18 +647,15 @@ void MD5::build_bind_pose_weighted_normals_tangents()
              md5vertex!=md5mesh->md5vertex.end(); ++md5vertex) {
 
             for (int k=0; k != md5vertex->count; ++k) {
-                MD5WEIGHT *md5weight = &md5mesh->md5weight[md5vertex->start + k];
+                MD5WEIGHT &md5weight = md5mesh->md5weight[md5vertex->start + k];
 
-                MD5JOINT *md5joint = &this->bind_pose[md5weight->joint];
+                MD5JOINT &md5joint = this->bind_pose[md5weight.joint];
 
                 vec3    normal(md5vertex->normal),
                         tangent(md5vertex->tangent);
                 
-                quaternion    rotation(md5joint->rotation);
+                quaternion    rotation(md5joint.rotation.conjugate());
                 
-                
-                rotation = rotation.conjugate();
-
                 
                 vec3_rotate_quat(normal,
                                  normal,
@@ -671,9 +666,9 @@ void MD5::build_bind_pose_weighted_normals_tangents()
                                  rotation);
                 
                 
-                md5weight->normal = md5weight->normal + normal;
+                md5weight.normal += normal;
 
-                md5weight->tangent = md5weight->tangent + tangent;
+                md5weight.tangent += tangent;
             }
         }
         

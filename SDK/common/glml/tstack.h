@@ -1,9 +1,9 @@
 //
 //  tstack.h
-//  chapter4-5
+//  glml
 //
 //  Created by Chris Larsen on 8/1/11.
-//  Copyright (c) 2014 Chris Larsen. All rights reserved.
+//  Copyright (c) 2011-2014 Chris Larsen. All rights reserved.
 //
 
 #ifndef __glml__tstack__

@@ -125,11 +125,8 @@ struct MD5WEIGHT {
 
     vec3	tangent;
 
-    MD5WEIGHT() : joint(0), bias(0) {
-        memset(&location, 0, sizeof(location));
-        memset(&normal,   0, sizeof(normal));
-        memset(&tangent,  0, sizeof(tangent));
-    }
+    MD5WEIGHT() : joint(0), bias(0), location(0,0,0),
+                  normal(0,0,0), tangent(0,0,0) {}
     ~MD5WEIGHT() {}
     MD5WEIGHT(const MD5WEIGHT &src) :
         joint(src.joint), bias(src.bias), location(src.location),

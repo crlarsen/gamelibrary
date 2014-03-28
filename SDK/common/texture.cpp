@@ -47,11 +47,7 @@ as being the original software.
 void TEXTURE::init(char *name)
 {
     assert(name==NULL || strlen(name)<sizeof(this->name));
-    if (name==NULL) {
-        memset(this->name, 0, sizeof(this->name));
-    } else {
-        strcpy(this->name, name);
-    }
+    strcpy(this->name, name ? name : "");
 }
 
 TEXTURE::TEXTURE(char *name) : tid(0), width(0), height(0), byte(0),

@@ -45,8 +45,7 @@
 
 void PROGRAM::init(char *name) {
     assert(name==NULL || strlen(name)<sizeof(this->name));
-    if (name)
-        strcpy(this->name, name);
+    strcpy(this->name, name ? name : "");
 }
 
 PROGRAM::PROGRAM(char *name) : vertex_shader(NULL),

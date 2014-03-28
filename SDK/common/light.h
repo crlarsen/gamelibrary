@@ -59,17 +59,15 @@ struct LIGHT {
     vec4    color;
     unsigned char type;
     LIGHT(const char *n, const vec4 &c, const unsigned char t=~0) : color(c), type(t) {
-        memset(name, 0, sizeof(name));
-        strcpy(name, n);
+        assert(n==NULL || strlen(n)<sizeof(this->name));
+        strcpy(this->name, n ? n : "");
     }
     virtual ~LIGHT() {}
     LIGHT(const LIGHT &src) : color(src.color), type(src.type) {
-        memset(name, 0, sizeof(name));
         strcpy(name, src.name);
     }
     LIGHT &operator=(const LIGHT &rhs) {
         if (this != &rhs) {
-            memset(name, 0, sizeof(name));
             strcpy(name, rhs.name);
             color = rhs.color;
             type  = rhs.type;

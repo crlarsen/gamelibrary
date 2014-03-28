@@ -335,7 +335,9 @@ void templateAppDraw(void)
     GFX_set_matrix_mode(MODELVIEW_MATRIX);
     GFX_load_identity();
 
-    GFX_rotate(-90.0, 1.0f, 0.0f, 0.0f);
+    // Rotate -90 degrees
+    static const quaternion q(M_SQRT1_2, -M_SQRT1_2, 0, 0);
+    GFX_rotate(q);
 
     GFX_translate(0.0f, 14.0f, -3.0f);
 

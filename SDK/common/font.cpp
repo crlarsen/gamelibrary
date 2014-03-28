@@ -49,8 +49,7 @@ FONT::FONT(char *name) : character_data(NULL), font_size(0), texture_width(0),
                          count_character(0), tid(0)
 {
     assert(name==NULL || strlen(name)<sizeof(this->name));
-    if (name != NULL)
-        strcpy(this->name, name);
+    strcpy(this->name, name ? name : "");
 
     this->program = new PROGRAM(name);
 
