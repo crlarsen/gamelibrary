@@ -17,7 +17,7 @@
 
 #include "glml.h"
 
-// This file has hand optimized versions of the matNxN<Type,nrc> methods
+// This file has hand optimized versions of the matNxN<nrc,Type> methods
 // determinant(), adjoint(), and inverse() for the 4x4 case.  The lower order
 // cases generate the code inline and depend on good optimizing compilers to
 // accelerate them.  The 4x4 case is important for 3D graphics and big enough to
@@ -34,7 +34,7 @@
 // code.
 
 template <>
-const float matNxN<float,4>::determinant(void) const {
+const float matNxN<4>::determinant(void) const {
     float   det=0.0f;
 
     if (_m[0][3]) {
@@ -213,7 +213,7 @@ const float matNxN<float,4>::determinant(void) const {
 }
 
 template <>
-const mat<float,4,4> matNxN<float,4>::adjoint(void) const {
+const mat<4,4> matNxN<4>::adjoint(void) const {
     float af = _m[0][0] * _m[1][1];
     float ag = _m[0][0] * _m[1][2];
     float ah = _m[0][0] * _m[1][3];
@@ -291,7 +291,7 @@ const mat<float,4,4> matNxN<float,4>::adjoint(void) const {
 }
 
 template <>
-const mat<float,4,4> matNxN<float,4>::inverse(void) const {
+const mat<4,4> matNxN<4>::inverse(void) const {
     float ej = _m[1][0] * _m[2][1];
     float ek = _m[1][0] * _m[2][2];
     float el = _m[1][0] * _m[2][3];
@@ -384,7 +384,7 @@ const mat<float,4,4> matNxN<float,4>::inverse(void) const {
 }
 
 template <>
-const double matNxN<double,4>::determinant(void) const {
+const double matNxN<4,double>::determinant(void) const {
     double   det=0.0f;
 
     if (_m[0][3]) {
@@ -563,7 +563,7 @@ const double matNxN<double,4>::determinant(void) const {
 }
 
 template <>
-const mat<double,4,4> matNxN<double,4>::adjoint(void) const {
+const mat<4,4,double> matNxN<4,double>::adjoint(void) const {
     double af = _m[0][0] * _m[1][1];
     double ag = _m[0][0] * _m[1][2];
     double ah = _m[0][0] * _m[1][3];
@@ -641,7 +641,7 @@ const mat<double,4,4> matNxN<double,4>::adjoint(void) const {
 }
 
 template <>
-const mat<double,4,4> matNxN<double,4>::inverse(void) const {
+const mat<4,4,double> matNxN<4,double>::inverse(void) const {
     double ej = _m[1][0] * _m[2][1];
     double ek = _m[1][0] * _m[2][2];
     double el = _m[1][0] * _m[2][3];
