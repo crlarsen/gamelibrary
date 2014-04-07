@@ -501,7 +501,7 @@ void templateAppDraw(void) {
                          * that you specified in your query.  The reason is
                          * that, most of the time, the ending point not exactly
                          * on the mavigation mesh, so the library will return
-                         * the closts pont.  Depending on what you want to
+                         * the closest pont.  Depending on what you want to
                          * achieve, you may or may not want to use this extra
                          * way point.  But for this tutorial, you are going to
                          * take it into consideration.

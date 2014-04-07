@@ -172,16 +172,6 @@ public:
     const vec operator*(const Type rhs) const {
         return vec(*this) *= rhs;
     }
-//    vec &operator*=(const mat<nelems,nelems,Type> &rhs)
-//    {
-//        vec<nelems,Type>    tmp(*this);
-//        for (int i=0; i!=nElems(); ++i) {
-//            _v[i] = tmp[0] * rhs[0][i];
-//            for (int j=1; j!=nElems(); ++j)
-//                _v[i] += tmp[j] * rhs[j][i];
-//        }
-//        return *this;
-//    }
     vec &operator*=(const mat<nelems,nelems,Type> &rhs);
     vec &operator/=(const Type rhs) {
 #ifndef NDEBUG
@@ -411,16 +401,10 @@ public:
     const mat operator-(const mat &rhs) const {
         return mat(*this) -= rhs;
     }
-    mat &operator*=(const mat<nrows,ncols,Type> &rhs) {
-        mat tmp(*this);
-        for (int i=0; i!=nRows(); ++i) {
-            for (int j=0; j!=nCols(); ++j) {
-                this->_m[i][j] = tmp[i][0] * rhs[0][j];
-                for (int k=1; k!=nCols(); ++k) {
-                    this->_m[i][j] += tmp[i][k] * rhs[k][j];
-                }
-            }
-        }
+    mat &operator*=(const mat<ncols,ncols,Type> &rhs) {
+        for (int i=0; i!=nRows(); ++i)
+            _m[i] *= rhs;
+
         return *this;
     }
     mat &operator*=(const Type rhs) {

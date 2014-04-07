@@ -504,65 +504,60 @@ void GFX_set_perspective(const float fovy, const float aspect_ratio,
                          const float clip_start, const float clip_end,
                          const float screen_orientation)
 {
-    mat4 mat(1, 0, 0, 0,
-             0, 1, 0, 0,
-             0, 0, 1, 0,
-             0, 0, 0, 1);
+    switch( gfx->matrix_mode )
+    {
+        case MODELVIEW_MATRIX:
+        {
+            gfx->modelview_matrix.perspective(fovy, aspect_ratio, clip_start, clip_end);
+            gfx->modelview_matrix.rotate(screen_orientation, vec3(0,0,1));
 
-    float   d = clip_end - clip_start,
-            r = ( fovy * 0.5f ) * DEG_TO_RAD,
-            s = sinf( r ),
-            c = cosf( r ) / s;
+            break;
+        }
 
-    mat[0][0] = c / aspect_ratio;
-    mat[1][1] = c;
-    mat[2][2] = -( clip_end + clip_start ) / d;
-    mat[2][3] = -1.0f;
-    mat[3][2] = -2.0f * clip_start * clip_end / d;
-    mat[3][3] =  0.0f;
+        case PROJECTION_MATRIX:
+        {
+            gfx->projection_matrix.perspective(fovy, aspect_ratio, clip_start, clip_end);
+            gfx->projection_matrix.rotate(screen_orientation, vec3(0,0,1));
 
-    GFX_multiply_matrix(mat);
+            break;
+        }
 
-    if( screen_orientation ) GFX_rotate( screen_orientation, 0.0f, 0.0f, 1.0f );
+        case TEXTURE_MATRIX:
+        {
+            gfx->texture_matrix.perspective(fovy, aspect_ratio, clip_start, clip_end);
+            gfx->texture_matrix.rotate(screen_orientation, vec3(0,0,1));
+
+            break;
+        }		
+    }
 }
 
 
 void GFX_look_at(const vec3 &eye, const vec3 &center, const vec3 &up)
 {
-    vec3    f,
-            s,
-            u;
+    switch( gfx->matrix_mode )
+    {
+        case MODELVIEW_MATRIX:
+        {
+            gfx->modelview_matrix.lookAt(eye, center, up);
 
-    mat4 mat(1, 0, 0, 0,
-             0, 1, 0, 0,
-             0, 0, 1, 0,
-             0, 0, 0, 1);
+            break;
+        }
 
-    f = center - eye;
+        case PROJECTION_MATRIX:
+        {
+            gfx->projection_matrix.lookAt(eye, center, up);
 
-    f.safeNormalize();
+            break;
+        }
 
-    s = f.crossProduct(up);
-
-    s.safeNormalize();
-
-    u = s.crossProduct(f);
-
-    mat[0][0] = s->x;
-    mat[1][0] = s->y;
-    mat[2][0] = s->z;
-
-    mat[0][1] = u->x;
-    mat[1][1] = u->y;
-    mat[2][1] = u->z;
-
-    mat[0][2] = -f->x;
-    mat[1][2] = -f->y;
-    mat[2][2] = -f->z;
-    
-    GFX_multiply_matrix(mat);
-    
-    GFX_translate(-eye);
+        case TEXTURE_MATRIX:
+        {
+            gfx->texture_matrix.lookAt(eye, center, up);
+            
+            break;
+        }		
+    }
 }
 
 
@@ -624,9 +619,11 @@ bool GFX_unproject(const float winx, const float winy, const float winz,
                                    projection_matrix,
                                    viewport_matrix,
                                    vout);
-    *objx = vout->x;
-    *objy = vout->y;
-    *objz = vout->z;
+    if (status) {
+        *objx = vout->x;
+        *objy = vout->y;
+        *objz = vout->z;
+    }
 
     return status;
 }
@@ -636,26 +633,27 @@ bool GFX_unproject(const float winx, const float winy, const float winz,
                    const mat4 &projection_matrix,
                    const int *viewport_matrix, vec3 &obj)
 {
-    vec4    vin,
-            vout;
+    vec4    vin(winx, winy, winz, 1.0f);
 
-    vin->x = winx;
-    vin->y = winy;
-    vin->z = winz;
-    vin->w = 1.0f;
+    for (int i=0; i<2; ++i)
+        vin[i] = (vin[i] - viewport_matrix[i]) / viewport_matrix[i+2];
 
-    vin->x = (vin->x - viewport_matrix[0]) / viewport_matrix[2];
-    vin->y = (vin->y - viewport_matrix[1]) / viewport_matrix[3];
+    for (int i=0; i<3; ++i)
+        vin[i] = vin[i] * 2.0f - 1.0f;
+    
+    // Equivalent to operations on vin above.  The operations above
+    // are much more efficient but the operations below give the
+    // reader better insight into what the code is actually doing
+    // mathematically.
+//    TStack  l;
+//
+//    l.translate(vec3(-1.0f, -1.0f, -1.0f));
+//    l.scale(vec3(2.0f, 2.0f, 2.0f));
+//    l.scale(vec3(1.0f/viewport_matrix[2], 1.0f/viewport_matrix[3], 1.0f));
+//    l.translate(vec3(-viewport_matrix[0], -viewport_matrix[1], 0.0f));
+//    vin *= l.back();
 
-    vin->x = vin->x * 2.0f - 1.0f;
-    vin->y = vin->y * 2.0f - 1.0f;
-    vin->z = vin->z * 2.0f - 1.0f;
+    vec4    vout = vin / (modelview_matrix * projection_matrix);
 
-    vout = vin / (modelview_matrix * projection_matrix);
-
-    if(!vout->w) return false;
-
-    obj = vec3(vout);
-
-    return true;
+    return vout->w ? obj=vec3(vout),true : false;
 }

@@ -227,6 +227,25 @@ TStack &TStack::multiplyMatrix(const mat4 &a)
     return *this;
 }
 
+// Apply a model transformation using gluLookAt()'s method
+TStack &TStack::lookAt(const vec3 &eye, const vec3 &center, const vec3 &up)
+{
+    mat4    &M = mStack.back();
+    vec3    f = (eye-center).normalize();       // This vector will get rotated to the Z-axis
+    vec3    s = up.crossProduct(f).normalize(); // This vector will get rotated to the X-axis
+    vec3    u = f.crossProduct(s);              // This vector will get rotated to the Y-axis
+    vec3    t(-eye.dotProduct(s),
+              -eye.dotProduct(u),
+              -eye.dotProduct(f));
+
+    M = mat4(s[0], u[0], f[0], 0.0f,
+             s[1], u[1], f[1], 0.0f,
+             s[2], u[2], f[2], 0.0f,
+             t[0], t[1], t[2], 1.0f) * M;
+
+    return *this;
+}
+
 // Apply a projection transformation using glFrustum()'s method
 TStack &TStack::frustum(const float l, const float r,
                         const float b, const float t,

@@ -756,7 +756,7 @@ OBJMATERIAL::OBJMATERIAL(char *name, OBJ *parent) :
 
 OBJMATERIAL::~OBJMATERIAL()
 {
-    delete program;
+//    delete program;   CRL Fix this when shared pointers are used.
 }
 
 OBJMATERIAL::OBJMATERIAL(const OBJMATERIAL &src) :

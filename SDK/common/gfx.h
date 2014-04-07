@@ -137,12 +137,12 @@ as being the original software.
 #include <string>
 
 #include <pthread.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <math.h>
-#include <ctype.h>
-#include <stdarg.h>
+#include <iostream>
+#include <cstdlib>
+#include <cstring>
+#include <cmath>
+#include <cctype>
+#include <cstdarg>
 #include <sys/time.h>
 #include <unistd.h>
 
