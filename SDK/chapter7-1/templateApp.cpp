@@ -47,6 +47,8 @@ as being the original software.
 
 #define FRAGMENT_SHADER (char *)"fragment.glsl"
 
+GFX *gfx = NULL;
+
 OBJ *obj = NULL;
 
 PROGRAM *program = NULL;
@@ -83,17 +85,17 @@ void program_bind_attrib_location(void *ptr) {
 void templateAppInit(int width, int height) {
     atexit(templateAppExit);
 
-    GFX_start();
+    gfx = new GFX;
 
     glViewport(0.0f, 0.0f, width, height);
 
-    GFX_set_matrix_mode(PROJECTION_MATRIX);
-    GFX_load_identity();
-    GFX_set_perspective(80.0f,
-                        (float)width / (float)height,
-                        0.1f,
-                        100.0f,
-                        -90.0f);
+    gfx->set_matrix_mode(PROJECTION_MATRIX);
+    gfx->load_identity();
+    gfx->set_perspective( 80.0f,
+                         (float)width / (float)height,
+                           0.1f,
+                         100.0f,
+                         -90.0f);
 
     obj = new OBJ(OBJ_FILE, true);
 
@@ -141,8 +143,8 @@ void templateAppDraw(void) {
     glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
     glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
-    GFX_set_matrix_mode(MODELVIEW_MATRIX);
-    GFX_load_identity();
+    gfx->set_matrix_mode(MODELVIEW_MATRIX);
+    gfx->load_identity();
 
     /* The touch delta Y only affects the rotation, so check if you got a
      * value different than 0 to process the forward/backward movements.
@@ -179,31 +181,31 @@ void templateAppDraw(void) {
 //    /* Rotate the matrix -90 degrees on the positive X axis to look
 //     * forward on the Y axis.
 //     */
-//    GFX_rotate(-90.0f, 1.0f, 0.0f, 0.0f);
+//    gfx->rotate(-90.0f, 1.0f, 0.0f, 0.0f);
 //    /* Then rotate it on the Z axis using the rotation controlled by the
 //     * movement of the onscreen touch.
 //     */
-//    GFX_rotate(-rotz, 0.0f, 0.0f, 1.0f);
+//    gfx->rotate(-rotz, 0.0f, 0.0f, 1.0f);
     float   alpha(-rotz*DEG_TO_RAD_DIV_2);
     float   cosAlpha(cosf(alpha)), sinAlpha(sinf(alpha));
-    GFX_rotate(quaternion(M_SQRT1_2*cosAlpha, -M_SQRT1_2*cosAlpha,
-                          M_SQRT1_2*sinAlpha,  M_SQRT1_2*sinAlpha));
+    gfx->rotate(quaternion(M_SQRT1_2*cosAlpha, -M_SQRT1_2*cosAlpha,
+                           M_SQRT1_2*sinAlpha,  M_SQRT1_2*sinAlpha));
 
     for (auto objmesh=obj->objmesh.begin();
          objmesh!=obj->objmesh.end(); ++objmesh) {
 
-        GFX_push_matrix();
+        gfx->push_matrix();
 
-        GFX_translate(objmesh->location-eye_location);
+        gfx->translate(objmesh->location-eye_location);
 
         glUniformMatrix4fv(program->uniform_map["MODELVIEWPROJECTIONMATRIX"].location,
                            1,
                            GL_FALSE,
-                           GFX_get_modelview_projection_matrix().m());
+                           gfx->get_modelview_projection_matrix().m());
         
         objmesh->draw();
         
-        GFX_pop_matrix();
+        gfx->pop_matrix();
     }
 }
 

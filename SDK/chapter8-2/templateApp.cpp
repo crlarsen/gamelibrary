@@ -51,6 +51,7 @@ as being the original software.
 
 #define FRAGMENT_SHADER (char *)"fragment.glsl"
 
+GFX *gfx = NULL;
 
 OBJ *obj = NULL;
 
@@ -204,7 +205,7 @@ void templateAppInit(int width, int height) {
 
     atexit(templateAppExit);
 
-    GFX_start();
+    gfx = new GFX;
 
     glViewport(0.0f, 0.0f, width, height);
     
@@ -213,15 +214,15 @@ void templateAppInit(int width, int height) {
      */
     glGetIntegerv(GL_VIEWPORT, viewport_matrix);
 
-    GFX_set_matrix_mode(PROJECTION_MATRIX);
-    GFX_load_identity();
+    gfx->set_matrix_mode(PROJECTION_MATRIX);
+    gfx->load_identity();
 
 
-    GFX_set_perspective(80.0f,
-                        (float)width / (float)height,
-                        1.0f,
-                        1000.0f,
-                        -90.0f);
+    gfx->set_perspective( 80.0f,
+                         (float)width / (float)height,
+                           1.0f,
+                         1000.0f,
+                         -90.0f);
 
 
     obj = new OBJ(OBJ_FILE, true);
@@ -311,8 +312,8 @@ void templateAppDraw(void) {
     glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
     glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
-    GFX_set_matrix_mode(MODELVIEW_MATRIX);
-    GFX_load_identity();
+    gfx->set_matrix_mode(MODELVIEW_MATRIX);
+    gfx->load_identity();
 
     if (view_delta->x || view_delta->y) {
         if (view_delta->y) next_rotz -= view_delta->y;
@@ -348,10 +349,10 @@ void templateAppDraw(void) {
     
     center = maze->location;
 
-    GFX_look_at(eye,
-                center,
-                up);
-    
+    gfx->look_at(eye,
+                 center,
+                 up);
+
     if (double_tap) {
         /* Variable to hold the 3D location on the far plane of the frustum. */
         vec3 location;
@@ -362,26 +363,26 @@ void templateAppDraw(void) {
          * (http://www.opengl.org/sdk/docs/man/xhtml/gluUnproject.xml)
          * function.
          */
-        if (GFX_unproject(view_location->x,
-                          /* The origin of the OpenGLES color buffer is down
-                           * left, but its location for iOS and Android is up
-                           * left.  To handle this situation, simply use the
-                           * viewport matrix height data (viewport_matrix[3])
-                           * to readjust the Y location of the picking point
-                           * onscreen.
-                           */
-                          viewport_matrix[3] - view_location->y,
-                          /* This parameter represents the depth that you want
-                           * to query, with 1 representing the far clipping
-                           * plane and 0 representing the near clipping plane.
-                           * In this case, you are only interested in the far
-                           * clipping plane value, which explains the value 1.
-                           */
-                          1.0f,
-                          GFX_get_modelview_matrix(),
-                          GFX_get_projection_matrix(),
-                          viewport_matrix,
-                          location)) {
+        if (gfx->unproject(view_location->x,
+                           /* The origin of the OpenGLES color buffer is down
+                            * left, but its location for iOS and Android is up
+                            * left.  To handle this situation, simply use the
+                            * viewport matrix height data (viewport_matrix[3])
+                            * to readjust the Y location of the picking point
+                            * onscreen.
+                            */
+                           viewport_matrix[3] - view_location->y,
+                           /* This parameter represents the depth that you want
+                            * to query, with 1 representing the far clipping
+                            * plane and 0 representing the near clipping plane.
+                            * In this case, you are only interested in the far
+                            * clipping plane value, which explains the value 1.
+                            */
+                           1.0f,
+                           gfx->get_modelview_matrix(),
+                           gfx->get_projection_matrix(),
+                           viewport_matrix,
+                           location)) {
 
             /* Now that you have the XYZ location on the far plane, you can
              * create the collision ray.  Begin by creating the starting point,
@@ -390,7 +391,7 @@ void templateAppDraw(void) {
             btVector3 ray_from(eye->x,
                                eye->y,
                                eye->z),
-            /* Translate the resulting location of GFX_unproject based on the
+            /* Translate the resulting location of GF::unproject based on the
              * current eye location to make sure that the coordinate system
              * will fit with what the player currently sees onscreen.
              */
@@ -470,7 +471,7 @@ void templateAppDraw(void) {
     for (auto objmesh=obj->objmesh.begin();
          objmesh!=obj->objmesh.end(); ++objmesh) {
 
-        GFX_push_matrix();
+        gfx->push_matrix();
 
         mat4 mat;
 
@@ -478,19 +479,19 @@ void templateAppDraw(void) {
 
         objmesh->location = vec3(mat[3], true);
 
-        GFX_multiply_matrix(mat);
+        gfx->multiply_matrix(mat);
 
         glUniformMatrix4fv(program->get_uniform_location((char *)"MODELVIEWPROJECTIONMATRIX"),
                            1,
                            GL_FALSE,
-                           GFX_get_modelview_projection_matrix().m());
+                           gfx->get_modelview_projection_matrix().m());
 
         objmesh->draw();
 
-        GFX_pop_matrix();
+        gfx->pop_matrix();
     }
     
-    navigation->draw();
+    navigation->draw(gfx);
     
     dynamicsworld->stepSimulation(1.0f / 60.0f);
 }

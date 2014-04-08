@@ -74,7 +74,7 @@ struct LIGHT {
         }
         return *this;
     }
-    virtual void push_to_shader(PROGRAM *program) {
+    virtual void push_to_shader(GFX *gfx, PROGRAM *program) {
         /* A temp string to dynamically create the LIGHT property names. */
         char tmp[MAX_CHAR] = {""};
         /* Create the uniform name for the color of the lamp. */
@@ -106,7 +106,7 @@ public:
         return *this;
     }
     vec3 get_direction_in_eye_space(const mat4 &m);
-    void push_to_shader(PROGRAM *program);
+    void push_to_shader(GFX *gfx, PROGRAM *program);
 };
 
 struct PointLight : LIGHT {
@@ -127,7 +127,7 @@ public:
         return *this;
     }
     vec4 get_position_in_eye_space(const mat4 &m);
-    void push_to_shader(PROGRAM *program);
+    void push_to_shader(GFX *gfx, PROGRAM *program);
 };
 
 struct AttenuatedPointLight : PointLight {
@@ -154,7 +154,7 @@ public:
         }
         return *this;
     }
-    void push_to_shader(PROGRAM *program);
+    void push_to_shader(GFX *gfx, PROGRAM *program);
 };
 
 struct PointSphere : PointLight {
@@ -175,7 +175,7 @@ public:
         }
         return *this;
     }
-    void push_to_shader(PROGRAM *program);
+    void push_to_shader(GFX *gfx, PROGRAM *program);
 };
 
 struct SpotLight : PointLight {
@@ -216,7 +216,7 @@ public:
         }
         return *this;
     }
-    void push_to_shader(PROGRAM *program);
+    void push_to_shader(GFX *gfx, PROGRAM *program);
     vec3 get_direction_in_object_space(const mat4 &m);
 };
 

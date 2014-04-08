@@ -105,6 +105,8 @@ void program_bind_attrib_location(void *ptr) {
 }
 
 
+GFX *gfx = NULL;
+
 void material_draw(void *ptr)
 {
     OBJMATERIAL *objmaterial = (OBJMATERIAL *)ptr;
@@ -130,19 +132,19 @@ void material_draw(void *ptr)
             glUniformMatrix4fv(uniform.location,
                                1,
                                GL_FALSE,
-                               GFX_get_modelview_matrix().m());
+                               gfx->get_modelview_matrix().m());
         } else if (name == "PROJECTIONMATRIX") {
             glUniformMatrix4fv(uniform.location,
                                1,
                                GL_FALSE,
-                               GFX_get_projection_matrix().m());
+                               gfx->get_projection_matrix().m());
 
             uniform.constant = true;
         } else if (name == "NORMALMATRIX") {
             glUniformMatrix3fv(uniform.location,
                                1,
                                GL_FALSE,
-                               GFX_get_normal_matrix().m());
+                               gfx->get_normal_matrix().m());
         } else if (name == "MATERIAL.ambient") {
             // Material Data
             glUniform4fv(uniform.location,
@@ -172,7 +174,7 @@ void material_draw(void *ptr)
     }
 
     // Lamp Data
-    light->push_to_shader(program);
+    light->push_to_shader(gfx, program);
 }
 
 
@@ -180,7 +182,7 @@ void templateAppInit(int width, int height)
 {
     atexit(templateAppExit);
 
-    GFX_start();
+    gfx = new GFX;
 
     glViewport(0.0f, 0.0f, width, height);
 
@@ -322,26 +324,26 @@ void templateAppDraw(void)
     glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
 
-    GFX_set_matrix_mode(PROJECTION_MATRIX);
-    GFX_load_identity();
+    gfx->set_matrix_mode(PROJECTION_MATRIX);
+    gfx->load_identity();
 
-    GFX_set_perspective( 45.0f,
-                        (float)viewport_matrix[2] / (float)viewport_matrix[3],
-                        0.1f,
-                        100.0f,
-                        0.0f);
+    gfx->set_perspective( 45.0f,
+                         (float)viewport_matrix[2] / (float)viewport_matrix[3],
+                           0.1f,
+                         100.0f,
+                           0.0f);
 
 
-    GFX_set_matrix_mode(MODELVIEW_MATRIX);
-    GFX_load_identity();
+    gfx->set_matrix_mode(MODELVIEW_MATRIX);
+    gfx->load_identity();
 
     // Rotate -90 degrees
     static const quaternion q(M_SQRT1_2, -M_SQRT1_2, 0, 0);
-    GFX_rotate(q);
+    gfx->rotate(q);
 
-    GFX_translate(0.0f, 14.0f, -3.0f);
+    gfx->translate(0.0f, 14.0f, -3.0f);
 
-    GFX_push_matrix();
+    gfx->push_matrix();
 
     /* If auto-rotate is ON, simply turn the geometry on the Z axis,
      * demo reel style.
@@ -355,8 +357,8 @@ void templateAppDraw(void)
     float   cosAlpha(cosf(alpha)), sinAlpha(sinf(alpha));
     float   beta (rot_angle->z*DEG_TO_RAD_DIV_2);
     float   cosBeta (cosf(beta)),  sinBeta (sinf(beta));
-    GFX_rotate(quaternion( cosAlpha*cosBeta, sinAlpha*cosBeta,
-                          -sinAlpha*sinBeta, cosAlpha*sinBeta));
+    gfx->rotate(quaternion( cosAlpha*cosBeta, sinAlpha*cosBeta,
+                           -sinAlpha*sinBeta, cosAlpha*sinBeta));
 
     /* Control the direction of the blending, from idle to walk and from
      * walk to idle (for demonstration purposes only, of course).
@@ -428,7 +430,7 @@ void templateAppDraw(void)
     /* Draw the model onscreen. */
     md5->draw();
 
-    GFX_pop_matrix();
+    gfx->pop_matrix();
 }
 
 

@@ -72,6 +72,8 @@ void program_bind_attrib_location(void *ptr) {
 }
 
 
+GFX *gfx = NULL;
+
 void program_draw(void *ptr)
 {
     PROGRAM *program = (PROGRAM *)ptr;
@@ -86,7 +88,7 @@ void program_draw(void *ptr)
             glUniformMatrix4fv(uniform.location,
                                1,
                                GL_FALSE,
-                               GFX_get_modelview_projection_matrix().m());
+                               gfx->get_modelview_projection_matrix().m());
         } else if (name == TM_Diffuse_String) {
             glUniform1i(uniform.location, TM_Diffuse);
 
@@ -100,19 +102,19 @@ void program_draw(void *ptr)
             glUniformMatrix4fv(uniform.location,
                                1,
                                GL_FALSE,
-                               GFX_get_modelview_matrix().m());
+                               gfx->get_modelview_matrix().m());
         } else if (name == "PROJECTIONMATRIX") {
             glUniformMatrix4fv(uniform.location,
                                1,
                                GL_FALSE,
-                               GFX_get_projection_matrix().m());
+                               gfx->get_projection_matrix().m());
 
             uniform.constant = true;
         } else if (name == "NORMALMATRIX") {
             glUniformMatrix3fv(uniform.location,
                                1,
                                GL_FALSE,
-                               GFX_get_normal_matrix().m());
+                               gfx->get_normal_matrix().m());
         } else if (name == "MATERIAL.ambient") {
             // Material Data
             glUniform4fv(uniform.location,
@@ -142,7 +144,7 @@ void program_draw(void *ptr)
     }
 
     // Light Data
-    light->push_to_shader(program);
+    light->push_to_shader(gfx, program);
 }
 
 
@@ -150,7 +152,7 @@ void templateAppInit(int width, int height)
 {
     atexit(templateAppExit);
 
-    GFX_start();
+    gfx = new GFX;
 
     glViewport(0.0f, 0.0f, width, height);
 
@@ -203,35 +205,35 @@ void templateAppDraw(void)
 {
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
-    GFX_set_matrix_mode(PROJECTION_MATRIX);
-    GFX_load_identity();
+    gfx->set_matrix_mode(PROJECTION_MATRIX);
+    gfx->load_identity();
 
-    GFX_set_perspective( 45.0f,
-                        (float)viewport_matrix[2] / (float)viewport_matrix[3],
-                          0.1f,
-                        100.0f,
-                        -90.0f);
+    gfx->set_perspective( 45.0f,
+                         (float)viewport_matrix[2] / (float)viewport_matrix[3],
+                           0.1f,
+                         100.0f,
+                         -90.0f);
 
     glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
-    GFX_set_matrix_mode(MODELVIEW_MATRIX);
-    GFX_load_identity();
+    gfx->set_matrix_mode(MODELVIEW_MATRIX);
+    gfx->load_identity();
 
     const float   alpha(-72.0f*DEG_TO_RAD_DIV_2);
     const float   cosAlpha(cosf(alpha)), sinAlpha(sinf(alpha));
     const float   beta(-48.5f*DEG_TO_RAD_DIV_2);
     const float   cosBeta(cosf(beta)), sinBeta(sinf(beta));
-    GFX_rotate(quaternion( cosAlpha*cosBeta, sinAlpha*cosBeta,
-                          -sinAlpha*sinBeta, cosAlpha*sinBeta));
+    gfx->rotate(quaternion( cosAlpha*cosBeta, sinAlpha*cosBeta,
+                           -sinAlpha*sinBeta, cosAlpha*sinBeta));
 
-    GFX_translate(-14.0f, 12.0f, -7.0f);
+    gfx->translate(-14.0f, 12.0f, -7.0f);
 
     for (objmesh=obj->objmesh.begin();
          objmesh != obj->objmesh.end(); ++objmesh) {
 
-        GFX_push_matrix();
+        gfx->push_matrix();
 
-        GFX_translate(objmesh->location);
+        gfx->translate(objmesh->location);
 
         /* If the current object name is the sphere. */
         if (strstr(objmesh->name, "sphere")) {
@@ -265,10 +267,10 @@ void templateAppDraw(void)
             float   sAsB(sinAlpha*sinBeta);
             float   cAsB(cosAlpha*sinBeta);
             float   sAcB(sinAlpha*cosBeta);
-            GFX_rotate(quaternion(cAcB*cosGamma+sAsB*sinGamma,
-                                  cAcB*sinGamma-sAsB*cosGamma,
-                                  cAsB*cosGamma+sAcB*sinGamma,
-                                  sAcB*cosGamma-cAsB*sinGamma));
+            gfx->rotate(quaternion(cAcB*cosGamma+sAsB*sinGamma,
+                                   cAcB*sinGamma-sAsB*cosGamma,
+                                   cAsB*cosGamma+sAcB*sinGamma,
+                                   sAcB*cosGamma-cAsB*sinGamma));
 
             /* Draw the mesh.  From here, the particles.gfx shader will be
              * called and it will handle the point sizes, attenuations,
@@ -284,7 +286,7 @@ void templateAppDraw(void)
             objmesh->draw();
         }
         
-        GFX_pop_matrix();
+        gfx->pop_matrix();
     }
 }
 

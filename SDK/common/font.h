@@ -70,7 +70,7 @@ public:
     bool load(char *filename, const bool relative_path, float font_size,
               unsigned int texture_width, unsigned int texture_height,
               int first_character, int count_character);
-    void print(float x, float y, char *text, vec4 *color);
+    void print(GFX *gfx, float x, float y, char *text, vec4 *color);
     float length(char *text);
 };
 

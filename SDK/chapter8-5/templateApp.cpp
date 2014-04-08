@@ -51,6 +51,7 @@ as being the original software.
 
 #define FRAGMENT_SHADER (char *)"fragment.glsl"
 
+GFX *gfx = NULL;
 
 OBJ *obj = NULL;
 
@@ -338,7 +339,7 @@ void load_game(void)
 void templateAppInit(int width, int height) {
     atexit(templateAppExit);
 
-    GFX_start();
+    gfx = new GFX;
 
     glViewport(0.0f, 0.0f, width, height);
 
@@ -387,7 +388,7 @@ void draw_navigation_points(NAVIGATIONPATHDATA *navigationpathdata, vec3 *color)
     glUniformMatrix4fv(path_point->get_uniform_location((char *)"MODELVIEWPROJECTIONMATRIX"),
                        1,
                        GL_FALSE,
-                       GFX_get_modelview_projection_matrix().m());
+                       gfx->get_modelview_projection_matrix().m());
 
     glUniform3fv(path_point->get_uniform_location((char *)"COLOR"),
                  1,
@@ -473,14 +474,14 @@ void templateAppDraw(void) {
     glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
     glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
-    GFX_set_matrix_mode(PROJECTION_MATRIX);
-    GFX_load_identity();
-    GFX_set_perspective(80.0f,
-                        (float)viewport_matrix[2] / (float)viewport_matrix[3],
-                        1.0f,
-                        1000.0f,
-                        -90.0f);
-    
+    gfx->set_matrix_mode(PROJECTION_MATRIX);
+    gfx->load_identity();
+    gfx->set_perspective(  80.0f,
+                         (float)viewport_matrix[2] / (float)viewport_matrix[3],
+                            1.0f,
+                         1000.0f,
+                          -90.0f);
+
     if (gameState == GameRestart) {
         /* Clean up the memory. */
         templateAppExit();
@@ -490,8 +491,8 @@ void templateAppDraw(void) {
         gameState = GameRunning;
     }
 
-    GFX_set_matrix_mode(MODELVIEW_MATRIX);
-    GFX_load_identity();
+    gfx->set_matrix_mode(MODELVIEW_MATRIX);
+    gfx->load_identity();
 
     if (view_delta->x || view_delta->y) {
         if (view_delta->y) next_rotz -= view_delta->y;
@@ -527,10 +528,10 @@ void templateAppDraw(void) {
     
     center = maze->location;
 
-    GFX_look_at(eye,
-                center,
-                up);
-    
+    gfx->look_at(eye,
+                 center,
+                 up);
+
     if (double_tap) {
         /* Variable to hold the 3D location on the far plane of the frustum. */
         vec3 location;
@@ -541,26 +542,26 @@ void templateAppDraw(void) {
          * (http://www.opengl.org/sdk/docs/man/xhtml/gluUnproject.xml)
          * function.
          */
-        if (GFX_unproject(view_location->x,
-                          /* The origin of the OpenGLES color buffer is down
-                           * left, but its location for iOS and Android is up
-                           * left.  To handle this situation, simply use the
-                           * viewport matrix height data (viewport_matrix[3])
-                           * to readjust the Y location of the picking point
-                           * onscreen.
-                           */
-                          viewport_matrix[3] - view_location->y,
-                          /* This parameter represents the depth that you want
-                           * to query, with 1 representing the far clipping
-                           * plane and 0 representing the near clipping plane.
-                           * In this case, you are only interested in the far
-                           * clipping plane value, which explains the value 1.
-                           */
-                          1.0f,
-                          GFX_get_modelview_matrix(),
-                          GFX_get_projection_matrix(),
-                          viewport_matrix,
-                          location)) {
+        if (gfx->unproject(view_location->x,
+                           /* The origin of the OpenGLES color buffer is down
+                            * left, but its location for iOS and Android is up
+                            * left.  To handle this situation, simply use the
+                            * viewport matrix height data (viewport_matrix[3])
+                            * to readjust the Y location of the picking point
+                            * onscreen.
+                            */
+                           viewport_matrix[3] - view_location->y,
+                           /* This parameter represents the depth that you want
+                            * to query, with 1 representing the far clipping
+                            * plane and 0 representing the near clipping plane.
+                            * In this case, you are only interested in the far
+                            * clipping plane value, which explains the value 1.
+                            */
+                           1.0f,
+                           gfx->get_modelview_matrix(),
+                           gfx->get_projection_matrix(),
+                           viewport_matrix,
+                           location)) {
 
             /* Now that you have the XYZ location on the far plane, you can
              * create the collision ray.  Begin by creating the starting point,
@@ -569,7 +570,7 @@ void templateAppDraw(void) {
             btVector3 ray_from(eye->x,
                                eye->y,
                                eye->z),
-            /* Translate the resulting location of GFX_unproject based on the
+            /* Translate the resulting location of GFX::unproject based on the
              * current eye location to make sure that the coordinate system
              * will fit with what the player currently sees onscreen.
              */
@@ -708,7 +709,7 @@ void templateAppDraw(void) {
     for (auto objmesh=obj->objmesh.begin();
          objmesh!=obj->objmesh.end(); ++objmesh) {
 
-        GFX_push_matrix();
+        gfx->push_matrix();
 
         mat4 mat;
 
@@ -716,19 +717,19 @@ void templateAppDraw(void) {
 
         objmesh->location = vec3(mat[3], true);
 
-        GFX_multiply_matrix(mat);
+        gfx->multiply_matrix(mat);
 
         glUniformMatrix4fv(program->get_uniform_location((char *)"MODELVIEWPROJECTIONMATRIX"),
                            1,
                            GL_FALSE,
-                           GFX_get_modelview_projection_matrix().m());
+                           gfx->get_modelview_projection_matrix().m());
         
         objmesh->draw();
         
-        GFX_pop_matrix();
+        gfx->pop_matrix();
     }
 
-    navigation->draw();
+    navigation->draw(gfx);
 
     if (!gameState) {
         dynamicsworld->stepSimulation(1.0f / 60.0f);
@@ -737,20 +738,20 @@ void templateAppDraw(void) {
          * screen pixel ratio (as you did in Chapter 2).  You are about
          * to draw text onscreen, which requires you to draw in pixels.
          */
-        GFX_set_matrix_mode(PROJECTION_MATRIX);
-        GFX_load_identity();
+        gfx->set_matrix_mode(PROJECTION_MATRIX);
+        gfx->load_identity();
         float   half_width = (float)viewport_matrix[2] * 0.5f,
                 half_height = (float)viewport_matrix[3] * 0.5f;
-        GFX_set_orthographic_2d(-half_width, half_width,
-                                -half_height, half_height);
+        gfx->set_orthographic_2d(-half_width, half_width,
+                                 -half_height, half_height);
         /* Adjust the projection to fit the current device orientation. */
 	// Rotate -90 degrees
 	static const quaternion q(M_SQRT1_2, 0, 0, -M_SQRT1_2);
-	GFX_rotate(q);
-        GFX_translate(-half_height, -half_width, 0.0f);
+	gfx->rotate(q);
+        gfx->translate(-half_height, -half_width, 0.0f);
 
-        GFX_set_matrix_mode(MODELVIEW_MATRIX);
-        GFX_load_identity();
+        gfx->set_matrix_mode(MODELVIEW_MATRIX);
+        gfx->load_identity();
         /* Start with a black color for the font. */
         vec4 color(0.0f, 0.0f, 0.0f, 1.0f);
         /* The message that you want to display on screen. */
@@ -784,14 +785,14 @@ void templateAppDraw(void) {
          * First draw the "Game Over" text in black, giving it a little
          * offset of 4 pixels on the X and Y axis.
          */
-        font->print(posx+4.0f, posy-4.0f, msg, &color);
+        font->print(gfx, posx+4.0f, posy-4.0f, msg, &color);
         /* Change the color to green, and draw the "Game Over" text again,
          * right on top of the black text, but this time without an offset.
          * This will make the text onscreen look like it has a shadow under
          * it.
          */
         color->y = 1.0f;
-        font->print(posx, posy, msg, &color);
+        font->print(gfx, posx, posy, msg, &color);
     }
 }
 

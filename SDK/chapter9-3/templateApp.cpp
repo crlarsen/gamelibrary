@@ -71,6 +71,8 @@ SOUND *ambient;
 
 THREAD *thread = NULL;
 
+GFX *gfx = NULL;
+
 OBJ *obj = NULL;
 
 PROGRAM *program = NULL;
@@ -155,7 +157,7 @@ void templateAppInit(int width, int height) {
 
     atexit(templateAppExit);
 
-    GFX_start();
+    gfx = new GFX;
     
     /* Helper function to initialize the device and context as you did at the
      * beginning of this chapter.
@@ -302,24 +304,24 @@ void templateAppDraw(void) {
     glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
     glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
-    GFX_set_matrix_mode(PROJECTION_MATRIX);
-    GFX_load_identity();
+    gfx->set_matrix_mode(PROJECTION_MATRIX);
+    gfx->load_identity();
 
-    GFX_set_perspective(50.0f,
-                        (float)viewport_matrix[2] / (float)viewport_matrix[3],
-                        1.0f,
-                        100.0f,
-                        -90.0f);
+    gfx->set_perspective( 50.0f,
+                         (float)viewport_matrix[2] / (float)viewport_matrix[3],
+                           1.0f,
+                         100.0f,
+                         -90.0f);
 
-    GFX_set_matrix_mode(MODELVIEW_MATRIX);
-    GFX_load_identity();
+    gfx->set_matrix_mode(MODELVIEW_MATRIX);
+    gfx->load_identity();
 
 
     vec3    e(0.0f, -8.0f, 7.5f),
             c(0.0f,  2.0f, 0.0f),
             u(0.0f,  0.0f, 1.0f);
 
-    GFX_look_at(e, c, u);
+    gfx->look_at(e, c, u);
     
     program->draw();
     
@@ -366,12 +368,12 @@ void templateAppDraw(void) {
              * current modelview matrix to render the object onscreen.
              */
             OBJMESH *objmesh = &obj->objmesh[i];
-            GFX_push_matrix();
-            GFX_translate(objmesh->location);
+            gfx->push_matrix();
+            gfx->translate(objmesh->location);
             glUniformMatrix4fv(program->get_uniform_location((char *)"MODELVIEWPROJECTIONMATRIX"),
                                1,
                                GL_FALSE,
-                               GFX_get_modelview_projection_matrix().m());
+                               gfx->get_modelview_projection_matrix().m());
             /* Use the following helper function to generate a unique RGBA
              * value for the current loop index.
              */
@@ -384,7 +386,7 @@ void templateAppDraw(void) {
              * above.
              */
             objmesh->draw();
-            GFX_pop_matrix();
+            gfx->pop_matrix();
         }
 
         /* Now that you've fully rendered the current scene so that each object
@@ -461,14 +463,14 @@ void templateAppDraw(void) {
     for (auto objmesh=obj->objmesh.begin();
          objmesh!=obj->objmesh.end(); ++objmesh) {
 
-        GFX_push_matrix();
+        gfx->push_matrix();
 
-        GFX_translate(objmesh->location);
+        gfx->translate(objmesh->location);
 
         glUniformMatrix4fv(program->get_uniform_location((char *)"MODELVIEWPROJECTIONMATRIX"),
                            1,
                            GL_FALSE,
-                           GFX_get_modelview_projection_matrix().m());
+                           gfx->get_modelview_projection_matrix().m());
 
         /* Convert the current mesh name to an index that corresponds to
          * the sound source index of the piano key sound source array.
@@ -498,7 +500,7 @@ void templateAppDraw(void) {
         
         objmesh->draw();
         
-        GFX_pop_matrix();
+        gfx->pop_matrix();
     }
     
     /* If the current player sound index is equal to the current level
@@ -508,27 +510,27 @@ void templateAppDraw(void) {
      */
     if (cur_player_sound == cur_level && !source_playing) next_level();
 
-    GFX_set_matrix_mode(PROJECTION_MATRIX);
+    gfx->set_matrix_mode(PROJECTION_MATRIX);
 
-    GFX_load_identity();
+    gfx->load_identity();
 
     float   half_width  = (float)viewport_matrix[2] * 0.5f,
     half_height = (float)viewport_matrix[3] * 0.5f;
 
-    GFX_set_orthographic_2d(-half_width,
-                             half_width,
-                            -half_height,
-                             half_height);
+    gfx->set_orthographic_2d(-half_width,
+                              half_width,
+                             -half_height,
+                              half_height);
 
     // Rotate -90 degrees
     static const quaternion q(M_SQRT1_2, 0, 0, -M_SQRT1_2);
-    GFX_rotate(q);
+    gfx->rotate(q);
 
-    GFX_translate(-half_height, -half_width, 0.0f);
+    gfx->translate(-half_height, -half_width, 0.0f);
 
-    GFX_set_matrix_mode(MODELVIEW_MATRIX);
+    gfx->set_matrix_mode(MODELVIEW_MATRIX);
 
-    GFX_load_identity();
+    gfx->load_identity();
     
     char str[MAX_CHAR] = {""};
 
@@ -539,7 +541,8 @@ void templateAppDraw(void) {
         /* Yellow. */
         color = vec4(1,1,0,1);
 
-        font_big->print(viewport_matrix[3] * 0.5f -
+        font_big->print(gfx,
+                        viewport_matrix[3] * 0.5f -
                         font_big->length(str) * 0.5f,
                         viewport_matrix[2] -
                         font_big->font_size * 1.5f,
@@ -553,7 +556,8 @@ void templateAppDraw(void) {
     /* Green. */
     color = vec4(0,1,0,1);
 
-    font_small->print(5.0f,
+    font_small->print(gfx,
+                      5.0f,
                       viewport_matrix[2] - font_small->font_size,
                       str,
                       &color);

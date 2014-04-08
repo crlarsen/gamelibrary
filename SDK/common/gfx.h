@@ -149,22 +149,6 @@ as being the original software.
 #include "glml.h"
 #include "tstack.h"
 
-#include "types.h"
-#include "thread.h"
-#include "utils.h"
-#include "memory.h"
-#include "shader.h"
-#include "program.h"
-#include "texture.h"
-#include "obj.h"
-#include "navigation.h"
-#include "font.h"
-#include "audio.h"
-#include "sound.h"
-#include "light.h"
-#include "md5.h"
-
-
 enum
 {
 	MODELVIEW_MATRIX	= 0,
@@ -188,90 +172,86 @@ struct GFX {
 
 public:
     GFX();
-};
-
-extern GFX *gfx;
-
-void GFX_start( void );
-
-void GFX_error( void );
-
-void GFX_set_matrix_mode( unsigned int mode );
-
-void GFX_load_identity( void );
-
-void GFX_push_matrix( void );
-
-void GFX_pop_matrix( void );
-
-void GFX_load_matrix(const mat4 &m);
-
-void GFX_multiply_matrix(const mat4 &m);
-
-void GFX_translate(const float x, const float y, const float z);
-
-void GFX_translate(const vec3 &t);
-
-void GFX_rotate(const float angle, const float x, const float y, const float z);
-
-void GFX_rotate(const quaternion &q);
-
-void GFX_scale(const float x, const float y, const float z);
-
-void GFX_scale(const vec3 &v);
-
-mat4 &GFX_get_modelview_matrix(const int i=INT_MAX);
-
-mat4 &GFX_get_projection_matrix( void );
-
-mat4 &GFX_get_texture_matrix( void );
-
-mat4 &GFX_get_modelview_projection_matrix( void );
-
-mat3 &GFX_get_normal_matrix( void );
-
-void GFX_ortho(const float left, const float right,
+    ~GFX() {}
+    void error( void );
+    void set_matrix_mode( unsigned int mode );
+    void load_identity( void );
+    void push_matrix( void );
+    void pop_matrix( void );
+    void load_matrix(const mat4 &m);
+    void multiply_matrix(const mat4 &m);
+    void translate(const float x, const float y, const float z);
+    void translate(const vec3 &t);
+    void rotate(const float angle, const float x, const float y, const float z);
+    void rotate(const quaternion &q);
+    void scale(const float x, const float y, const float z);
+    void scale(const vec3 &v);
+    mat4 &get_modelview_matrix(const int i=INT_MAX);
+    mat4 &get_projection_matrix( void );
+    mat4 &get_texture_matrix( void );
+    mat4 &get_modelview_projection_matrix( void );
+    mat3 &get_normal_matrix( void );
+    void ortho(const float left, const float right,
                const float bottom, const float top,
                const float clip_start, const float clip_end);
-
-void GFX_set_orthographic_2d(const float left, const float right,
+    void set_orthographic_2d(const float left, const float right,
                              const float bottom, const float top);
-
-void GFX_set_orthographic(const float screen_ratio, float scale,
+    void set_orthographic(const float screen_ratio, float scale,
                           const float aspect_ratio,
                           const float clip_start, const float clip_end,
                           const float screen_orientation);
-
-void GFX_set_perspective(const float fovy, const float aspect_ratio,
+    void set_perspective(const float fovy, const float aspect_ratio,
                          const float clip_start, const float clip_end,
                          const float screen_orientation);
-
-void GFX_look_at(const vec3 &eye, const vec3 &center, const vec3 &up);
-
-void GFX_clear_color( float r, float g, float b, float a );
-
-bool GFX_project(float objx, float objy, float objz,
-                 mat4 *modelview_matrix,
-                 mat4 *projection_matrix,
-                 int *viewport_matrix,
-                 float *winx, float *winy, float *winz );
-
-bool GFX_project(const vec3 &obj,
+    void look_at(const vec3 &eye, const vec3 &center, const vec3 &up);
+    void clear_color( float r, float g, float b, float a );
+    bool project(const float objx, const float objy, const float objz,
                  const mat4 &modelview_matrix,
                  const mat4 &projection_matrix,
                  const int *viewport_matrix,
                  float *winx, float *winy, float *winz);
-
-bool GFX_unproject(const float winx, const float winy, const float winz,
+    bool project(const vec3 &obj,
+                 const mat4 &modelview_matrix,
+                 const mat4 &projection_matrix,
+                 const int *viewport_matrix,
+                 float *winx, float *winy, float *winz);
+    bool unproject(const float winx, const float winy, const float winz,
                    const mat4 &modelview_matrix,
                    const mat4 &projection_matrix,
                    const int *viewport_matrix,
                    float *objx, float *objy, float *objz);
-
-bool GFX_unproject(const float winx, const float winy, const float winz,
+    bool unproject(const float winx, const float winy, const float winz,
                    const mat4 &modelview_matrix,
                    const mat4 &projection_matrix,
                    const int *viewport_matrix,
                    vec3 &obj);
+    static GFX *current_gfx(void);
+private:
+    // Don't allow GFX objects to be copied.
+    GFX(const GFX &);
+    GFX &operator=(const GFX &);
+};
+
+extern GFX *currentGfx;
+
+inline GFX *GFX::current_gfx(void)
+{
+    return currentGfx;
+}
+
+#include "types.h"
+#include "thread.h"
+#include "utils.h"
+#include "memory.h"
+#include "shader.h"
+#include "program.h"
+#include "texture.h"
+#include "obj.h"
+#include "navigation.h"
+#include "font.h"
+#include "audio.h"
+#include "sound.h"
+#include "light.h"
+#include "md5.h"
 
 #endif

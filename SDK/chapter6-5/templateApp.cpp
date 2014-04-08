@@ -47,6 +47,8 @@ as being the original software.
 
 #define FRAGMENT_SHADER (char *)"fragment.glsl"
 
+GFX *gfx = NULL;
+
 OBJ *obj = NULL;
 
 PROGRAM *program = NULL;
@@ -439,19 +441,19 @@ void templateAppInit(int width, int height) {
 
     atexit(templateAppExit);
 
-    GFX_start();
+    gfx = new GFX;
 
     glViewport(0.0f, 0.0f, width, height);
 
-    GFX_set_matrix_mode(PROJECTION_MATRIX);
-    GFX_load_identity();
+    gfx->set_matrix_mode(PROJECTION_MATRIX);
+    gfx->load_identity();
 
-    GFX_set_orthographic((float)height / (float)width,
-                         15.0f,
-                         (float)width / (float)height,
-                         1.0f,
-                         100.0f,
-                         -90.0f);
+    gfx->set_orthographic((float)height / (float)width,
+                           15.0f,
+                          (float)width / (float)height,
+                            1.0f,
+                          100.0f,
+                          -90.0f);
     load_game();
 }
 
@@ -473,8 +475,8 @@ void templateAppDraw(void) {
         restart_game = false;
     }
 
-    GFX_set_matrix_mode(MODELVIEW_MATRIX);
-    GFX_load_identity();
+    gfx->set_matrix_mode(MODELVIEW_MATRIX);
+    gfx->load_identity();
 
     if (momo) {
         /* Linearly interpolate the camera eye position with the current
@@ -488,12 +490,12 @@ void templateAppDraw(void) {
         eye->x    = CLAMP(eye->x, -2.0f, 3.5f);
     }
 
-    GFX_look_at(eye, center, up);
+    gfx->look_at(eye, center, up);
 
     for (auto objmesh=obj->objmesh.begin();
          objmesh!=obj->objmesh.end(); ++objmesh) {
 
-        GFX_push_matrix();
+        gfx->push_matrix();
 
         /* Check if the current mesh has a rigid body pointer. */
         if (objmesh->btrigidbody) {
@@ -507,19 +509,19 @@ void templateAppDraw(void) {
              * to the "stack" of transformations contained in the modelview
              * matrix.
              */
-            GFX_multiply_matrix(mat);
+            gfx->multiply_matrix(mat);
         } else {
-            GFX_translate(objmesh->location);
+            gfx->translate(objmesh->location);
         }
 
         glUniformMatrix4fv(program->uniform_map["MODELVIEWPROJECTIONMATRIX"].location,
                            1,
                            GL_FALSE,
-                           GFX_get_modelview_projection_matrix().m());
+                           gfx->get_modelview_projection_matrix().m());
 
         objmesh->draw();
 
-        GFX_pop_matrix();
+        gfx->pop_matrix();
     }
 
     dynamicsworld->stepSimulation(1.0f / 60.0f);

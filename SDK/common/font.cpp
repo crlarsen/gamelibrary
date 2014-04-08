@@ -158,7 +158,7 @@ bool FONT::load(char            *filename,
 }
 
 
-void FONT::print(float x, float y, char *text, vec4 *color)
+void FONT::print(GFX *gfx, float x, float y, char *text, vec4 *color)
 {
     char    vertex_attribute   = this->program->get_vertex_attrib_location(VA_Position_String),
             texcoord_attribute = this->program->get_vertex_attrib_location(VA_TexCoord0_String);
@@ -184,7 +184,7 @@ void FONT::print(float x, float y, char *text, vec4 *color)
     glUniformMatrix4fv(this->program->get_uniform_location((char *)"MODELVIEWPROJECTIONMATRIX"),
                        1,
                        GL_FALSE,
-                       GFX_get_modelview_projection_matrix().m());
+                       gfx->get_modelview_projection_matrix().m());
 
     // In this situation it's not an error to use TM_Diffuse_String, and
     // TM_Ambient together.  This is exactly what the original code does.

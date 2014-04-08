@@ -60,8 +60,8 @@ DirectionalLight::DirectionalLight(const char *name,
     create_direction_vector(&this->direction, &up_axis, rotx, roty, rotz);
 }
 
-void DirectionalLight::push_to_shader(PROGRAM *program) {
-    this->LIGHT::push_to_shader(program);
+void DirectionalLight::push_to_shader(GFX *gfx, PROGRAM *program) {
+    this->LIGHT::push_to_shader(gfx, program);
 
     /* A temp string to dynamically create the LIGHT property names. */
     char tmp[MAX_CHAR] = {""};
@@ -80,7 +80,7 @@ void DirectionalLight::push_to_shader(PROGRAM *program) {
      * once in the templateAppDraw function.
      */
     direction_es =
-        get_direction_in_eye_space(GFX_get_modelview_matrix(-1));
+        get_direction_in_eye_space(gfx->get_modelview_matrix(-1));
 
     glUniform3fv(program->get_uniform_location(tmp),
                  1,
@@ -109,8 +109,8 @@ PointLight::PointLight(const char *name, const vec4 &color, const vec3 &position
     this->position = vec4(position, 1.0f);
 }
 
-void PointLight::push_to_shader(PROGRAM *program) {
-    this->LIGHT::push_to_shader(program);
+void PointLight::push_to_shader(GFX *gfx, PROGRAM *program) {
+    this->LIGHT::push_to_shader(gfx, program);
 
     char tmp[MAX_CHAR] = {""};
 
@@ -119,7 +119,7 @@ void PointLight::push_to_shader(PROGRAM *program) {
     sprintf(tmp, "LIGHT_VS.position");
 
     position_es =
-        get_position_in_eye_space(GFX_get_modelview_matrix(-1));
+        get_position_in_eye_space(gfx->get_modelview_matrix(-1));
 
     glUniform3fv(program->get_uniform_location(tmp),
                  1,
@@ -136,8 +136,8 @@ AttenuatedPointLight::AttenuatedPointLight(const char *name, const vec4 &color,
 {
 }
 
-void AttenuatedPointLight::push_to_shader(PROGRAM *program) {
-    this->PointLight::push_to_shader(program);
+void AttenuatedPointLight::push_to_shader(GFX *gfx, PROGRAM *program) {
+    this->PointLight::push_to_shader(gfx, program);
 
     char tmp[MAX_CHAR] = {""};
 
@@ -163,8 +163,8 @@ PointSphere::PointSphere(const char *name,
 {
 }
 
-void PointSphere::push_to_shader(PROGRAM *program) {
-    this->PointLight::push_to_shader(program);
+void PointSphere::push_to_shader(GFX *gfx, PROGRAM *program) {
+    this->PointLight::push_to_shader(gfx, program);
 
     char tmp[MAX_CHAR] = {""};
 
@@ -206,8 +206,8 @@ SpotLight::SpotLight(const char *name,
                             rotz);
 }
 
-void SpotLight::push_to_shader(PROGRAM *program) {
-    this->PointLight::push_to_shader(program);
+void SpotLight::push_to_shader(GFX *gfx, PROGRAM *program) {
+    this->PointLight::push_to_shader(gfx, program);
 
     char tmp[MAX_CHAR] = {""};
 
@@ -219,7 +219,7 @@ void SpotLight::push_to_shader(PROGRAM *program) {
 
     sprintf(tmp, "LIGHT_VS.spot_direction");
     direction_os =
-        get_direction_in_object_space(GFX_get_modelview_matrix(-1));
+        get_direction_in_object_space(gfx->get_modelview_matrix(-1));
 
     glUniform3fv(program->get_uniform_location(tmp),
                  1,

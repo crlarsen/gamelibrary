@@ -86,7 +86,7 @@ struct LAMP {
         }
         return *this;
     }
-    virtual void push_to_shader(PROGRAM *program) {
+    virtual void push_to_shader(GFX *gfx, PROGRAM *program) {
         /* A temp string to dynamically create the LAMP property names. */
         char tmp[MAX_CHAR] = {""};
         /* Create the uniform name for the color of the lamp. */
@@ -120,8 +120,8 @@ public:
         return *this;
     }
     vec3 get_direction_in_eye_space(const mat4 &m);
-    void push_to_shader(PROGRAM *program) {
-        this->LAMP::push_to_shader(program);
+    void push_to_shader(GFX *gfx, PROGRAM *program) {
+        this->LAMP::push_to_shader(gfx, program);
 
         /* A temp string to dynamically create the LAMP property names. */
         char tmp[MAX_CHAR] = {""};
@@ -140,7 +140,7 @@ public:
          * once in the templateAppDraw function.
          */
         direction_es =
-            get_direction_in_eye_space(GFX_get_modelview_matrix(-1));
+            get_direction_in_eye_space(gfx->get_modelview_matrix(-1));
 
         glUniform3fv(program->get_uniform_location(tmp),
                      1,
@@ -184,6 +184,8 @@ void program_bind_attrib_location(void *ptr) {
 }
 
 
+GFX *gfx = NULL;
+
 void program_draw(void *ptr)
 {
     PROGRAM *program = (PROGRAM *)ptr;
@@ -198,7 +200,7 @@ void program_draw(void *ptr)
             glUniformMatrix4fv(uniform.location,
                                1,
                                GL_FALSE,
-                               GFX_get_modelview_projection_matrix().m());
+                               gfx->get_modelview_projection_matrix().m());
         } else if (name == TM_Diffuse_String) {
             glUniform1i(uniform.location, TM_Diffuse);
 
@@ -212,19 +214,19 @@ void program_draw(void *ptr)
             glUniformMatrix4fv(uniform.location,
                                1,
                                GL_FALSE,
-                               GFX_get_modelview_matrix().m());
+                               gfx->get_modelview_matrix().m());
         } else if (name == "PROJECTIONMATRIX") {
             glUniformMatrix4fv(uniform.location,
                                1,
                                GL_FALSE,
-                               GFX_get_projection_matrix().m());
+                               gfx->get_projection_matrix().m());
 
             uniform.constant = true;
         } else if (name == "NORMALMATRIX") {
             glUniformMatrix3fv(uniform.location,
                                1,
                                GL_FALSE,
-                               GFX_get_normal_matrix().m());
+                               gfx->get_normal_matrix().m());
         } else if (name == "MATERIAL.ambient") {
             // Material Data
             glUniform4fv(uniform.location,
@@ -257,7 +259,7 @@ void program_draw(void *ptr)
         }
     }
 
-    lamp->push_to_shader(program);
+    lamp->push_to_shader(gfx, program);
 }
 
 
@@ -265,7 +267,7 @@ void templateAppInit(int width, int height)
 {
     atexit(templateAppExit);
 
-    GFX_start();
+    gfx = new GFX;
 
     glViewport(0.0f, 0.0f, width, height);
 
@@ -319,39 +321,39 @@ void templateAppDraw(void)
     glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
 
-    GFX_set_matrix_mode(PROJECTION_MATRIX);
-    GFX_load_identity();
+    gfx->set_matrix_mode(PROJECTION_MATRIX);
+    gfx->load_identity();
 
-    GFX_set_perspective(45.0f,
-                        (float)viewport_matrix[2] / (float)viewport_matrix[3],
-                        0.1f,
-                        100.0f,
-                        -90.0f);
+    gfx->set_perspective( 45.0f,
+                         (float)viewport_matrix[2] / (float)viewport_matrix[3],
+                           0.1f,
+                         100.0f,
+                         -90.0f);
 
-    GFX_set_matrix_mode(MODELVIEW_MATRIX);
-    GFX_load_identity();
+    gfx->set_matrix_mode(MODELVIEW_MATRIX);
+    gfx->load_identity();
 
     const float   alpha(-72.0f*DEG_TO_RAD_DIV_2);
     const float   cosAlpha(cosf(alpha)), sinAlpha(sinf(alpha));
     const float   beta(-48.5f*DEG_TO_RAD_DIV_2);
     const float   cosBeta(cosf(beta)), sinBeta(sinf(beta));
-    GFX_rotate(quaternion( cosAlpha*cosBeta, sinAlpha*cosBeta,
-                          -sinAlpha*sinBeta, cosAlpha*sinBeta));
+    gfx->rotate(quaternion( cosAlpha*cosBeta, sinAlpha*cosBeta,
+                           -sinAlpha*sinBeta, cosAlpha*sinBeta));
 
 
-    GFX_translate(-14.0f, 12.0f, -7.0f);
+    gfx->translate(-14.0f, 12.0f, -7.0f);
 
 
     for (objmesh=obj->objmesh.begin();
          objmesh!=obj->objmesh.end(); ++objmesh) {
 
-        GFX_push_matrix();
+        gfx->push_matrix();
 
-        GFX_translate(objmesh->location);
+        gfx->translate(objmesh->location);
 
         objmesh->draw();
         
-        GFX_pop_matrix();
+        gfx->pop_matrix();
     }
 }
 

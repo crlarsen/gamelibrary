@@ -53,27 +53,29 @@ TEMPLATEAPP templateApp = {
 
 PROGRAM *program = NULL;
 
+GFX *gfx;
+
 void templateAppInit(int width, int height)
 {
     // Setup the exit callback function.
     atexit(templateAppExit);
 
     // Initialize GLES.
-    GFX_start();
+    gfx = new GFX;
 
     // Setup a GLES viewport using the current width and height of the screen.
     glViewport(0, 0, width, height);
 
     /* Insert your initialization code here */
-    GFX_set_matrix_mode(PROJECTION_MATRIX);
+    gfx->set_matrix_mode(PROJECTION_MATRIX);
 
     float   half_width  = static_cast<float>(width)  * 0.5f,
             half_height = static_cast<float>(height) * 0.5f;
 
-    GFX_load_identity();
+    gfx->load_identity();
 
-    GFX_set_orthographic_2d(-half_width, half_width, -half_height, half_height);
-    GFX_translate(-half_width, -half_height, 0.0f);
+    gfx->set_orthographic_2d(-half_width, half_width, -half_height, half_height);
+    gfx->translate(-half_width, -half_height, 0.0f);
 
     glDisable(GL_DEPTH_TEST);
     glDepthMask(GL_FALSE);
@@ -114,13 +116,13 @@ void templateAppDraw(void)
 
     /* Insert your drawing code here */
     /* Select the model view matrix. */
-    GFX_set_matrix_mode(MODELVIEW_MATRIX);
+    gfx->set_matrix_mode(MODELVIEW_MATRIX);
 
     /* Reset it to make sure you are going to deal with a clean identity matrix. */
-    GFX_load_identity();
+    gfx->load_identity();
 
     /* Scale the quad to be 100px by 100px. */
-    GFX_scale(100.0f, 100.0f, 0.0f);
+    gfx->scale(100.0f, 100.0f, 0.0f);
 
     if (program->pid) {
         GLint   attribute, uniform;
@@ -131,7 +133,7 @@ void templateAppDraw(void)
         glUniformMatrix4fv(uniform,     // The location value of the uniform.
                            1,           // How many 4x4 matrices
                            GL_FALSE,    // Specify to do not transpose the matrix.
-                           GFX_get_modelview_projection_matrix().m());  // Use the GFX helper function
+                           gfx->get_modelview_projection_matrix().m()); // Use the GFX helper function
                                                                         // to calculate the result of the
                                                                         // current model view matrix
                                                                         // multiplied by the current
@@ -161,7 +163,7 @@ void templateAppDraw(void)
                      4);                // Stop at which index.
     }
 
-    GFX_error();
+    gfx->error();
 }
 
 

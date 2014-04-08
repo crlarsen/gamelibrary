@@ -23,7 +23,7 @@ as being the original software.
 
 #include "gfx.h"
 
-GFX *gfx;
+GFX *currentGfx;
 
 
 #ifndef __IPHONE_4_0
@@ -69,6 +69,8 @@ GFX::GFX() :
 
     glClear( GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT | GL_COLOR_BUFFER_BIT );
 
+    currentGfx = this;
+
 #ifndef __IPHONE_4_0
 
     glBindVertexArrayOES 	= ( PFNGLBINDVERTEXARRAYOESPROC    ) eglGetProcAddress("glBindVertexArrayOES"  );
@@ -78,13 +80,7 @@ GFX::GFX() :
 
 }
 
-void GFX_start( void )
-{
-    gfx = new GFX;
-}
-
-
-void GFX_error( void )
+void GFX::error( void )
 {
     unsigned int error;
 
@@ -124,31 +120,31 @@ void GFX_error( void )
 }
 
 
-void GFX_set_matrix_mode( unsigned int mode )
-{ gfx->matrix_mode = mode; }
+void GFX::set_matrix_mode( unsigned int mode )
+{ matrix_mode = mode; }
 
 
-void GFX_load_identity( void )
+void GFX::load_identity( void )
 {
-    switch( gfx->matrix_mode )
+    switch( matrix_mode )
     {
         case MODELVIEW_MATRIX:
         {
-            gfx->modelview_matrix.loadIdentity();
+            modelview_matrix.loadIdentity();
 
             break;
         }
 
         case PROJECTION_MATRIX:
         {
-            gfx->projection_matrix.loadIdentity();
+            projection_matrix.loadIdentity();
 
             break;
         }
             
         case TEXTURE_MATRIX:
         {
-            gfx->texture_matrix.loadIdentity();
+            texture_matrix.loadIdentity();
 
             break;
         }		
@@ -156,27 +152,27 @@ void GFX_load_identity( void )
 }
 
 
-void GFX_push_matrix( void )
+void GFX::push_matrix( void )
 {
-    switch( gfx->matrix_mode )
+    switch( matrix_mode )
     {
         case MODELVIEW_MATRIX:
         {
-            gfx->modelview_matrix.push();
+            modelview_matrix.push();
 
             break;
         }
 
         case PROJECTION_MATRIX:
         {
-            gfx->projection_matrix.push();
+            projection_matrix.push();
 
             break;
         }
 
         case TEXTURE_MATRIX:
         {
-            gfx->texture_matrix.push();
+            texture_matrix.push();
 
             break;
         }		
@@ -184,13 +180,13 @@ void GFX_push_matrix( void )
 }
 
 
-void GFX_pop_matrix( void )
+void GFX::pop_matrix( void )
 {
-    switch( gfx->matrix_mode )
+    switch( matrix_mode )
     {
         case MODELVIEW_MATRIX:
         {
-            gfx->modelview_matrix.pop();
+            modelview_matrix.pop();
 
 
             break;
@@ -198,14 +194,14 @@ void GFX_pop_matrix( void )
 
         case PROJECTION_MATRIX:
         {
-            gfx->projection_matrix.pop();
+            projection_matrix.pop();
 
             break;
         }
             
         case TEXTURE_MATRIX:
         {
-            gfx->texture_matrix.pop();
+            texture_matrix.pop();
 
             break;
         }		
@@ -213,27 +209,27 @@ void GFX_pop_matrix( void )
 }
 
 
-void GFX_load_matrix(const mat4 &m)
+void GFX::load_matrix(const mat4 &m)
 {
-    switch( gfx->matrix_mode )
+    switch( matrix_mode )
     {
         case MODELVIEW_MATRIX:
         {
-            gfx->modelview_matrix.loadMatrix(m);
+            modelview_matrix.loadMatrix(m);
 
             break;
         }
 
         case PROJECTION_MATRIX:
         {
-            gfx->projection_matrix.loadMatrix(m);
+            projection_matrix.loadMatrix(m);
 
             break;
         }
             
         case TEXTURE_MATRIX:
         {
-            gfx->texture_matrix.loadMatrix(m);
+            texture_matrix.loadMatrix(m);
 
             break;
         }		
@@ -241,13 +237,13 @@ void GFX_load_matrix(const mat4 &m)
 }
 
 
-void GFX_multiply_matrix(const mat4 &m)
+void GFX::multiply_matrix(const mat4 &m)
 {
-    switch( gfx->matrix_mode )
+    switch( matrix_mode )
     {
         case MODELVIEW_MATRIX:
         {
-            gfx->modelview_matrix.multiplyMatrix(m);
+            modelview_matrix.multiplyMatrix(m);
 
 
             break;
@@ -255,14 +251,14 @@ void GFX_multiply_matrix(const mat4 &m)
 
         case PROJECTION_MATRIX:
         {
-            gfx->projection_matrix.multiplyMatrix(m);
+            projection_matrix.multiplyMatrix(m);
 
             break;
         }
 
         case TEXTURE_MATRIX:
         {
-            gfx->texture_matrix.multiplyMatrix(m);
+            texture_matrix.multiplyMatrix(m);
 
             break;
         }		
@@ -270,35 +266,35 @@ void GFX_multiply_matrix(const mat4 &m)
 }
 
 
-void GFX_translate(const float x, const float y, const float z)
+void GFX::translate(const float x, const float y, const float z)
 {
     vec3 v(x, y, z);
 
-    GFX_translate(v);
+    translate(v);
 }
 
 
-void GFX_translate(const vec3 &t)
+void GFX::translate(const vec3 &t)
 {
-    switch( gfx->matrix_mode )
+    switch( matrix_mode )
     {
         case MODELVIEW_MATRIX:
         {
-            gfx->modelview_matrix.translate(t);
+            modelview_matrix.translate(t);
 
             break;
         }
 
         case PROJECTION_MATRIX:
         {
-            gfx->projection_matrix.translate(t);
+            projection_matrix.translate(t);
 
             break;
         }
 
         case TEXTURE_MATRIX:
         {
-            gfx->texture_matrix.translate(t);
+            texture_matrix.translate(t);
 
             break;
         }		
@@ -306,31 +302,31 @@ void GFX_translate(const vec3 &t)
 }
 
 
-void GFX_rotate(const float angle, const float x, const float y, const float z)
+void GFX::rotate(const float angle, const float x, const float y, const float z)
 {
     if( !angle ) return;
 
     vec4 v(x, y, z, angle);
 
-    switch( gfx->matrix_mode )
+    switch( matrix_mode )
     {
         case MODELVIEW_MATRIX:
         {
-            gfx->modelview_matrix.rotate(angle, vec3(x,y,z));
+            modelview_matrix.rotate(angle, vec3(x,y,z));
 
             break;
         }
 
         case PROJECTION_MATRIX:
         {
-            gfx->projection_matrix.rotate(angle, vec3(x,y,z));
+            projection_matrix.rotate(angle, vec3(x,y,z));
 
             break;
         }
 
         case TEXTURE_MATRIX:
         {
-            gfx->texture_matrix.rotate(angle, vec3(x,y,z));
+            texture_matrix.rotate(angle, vec3(x,y,z));
 
             break;
         }		
@@ -338,29 +334,29 @@ void GFX_rotate(const float angle, const float x, const float y, const float z)
 }
 
 
-void GFX_rotate(const quaternion &q)
+void GFX::rotate(const quaternion &q)
 {
     if(q.w==1.0f || q.w==-1.0f) return;
 
-    switch( gfx->matrix_mode )
+    switch( matrix_mode )
     {
         case MODELVIEW_MATRIX:
         {
-            gfx->modelview_matrix.rotate(q);
+            modelview_matrix.rotate(q);
 
             break;
         }
 
         case PROJECTION_MATRIX:
         {
-            gfx->projection_matrix.rotate(q);
+            projection_matrix.rotate(q);
 
             break;
         }
 
         case TEXTURE_MATRIX:
         {
-            gfx->texture_matrix.rotate(q);
+            texture_matrix.rotate(q);
             
             break;
         }		
@@ -368,44 +364,44 @@ void GFX_rotate(const quaternion &q)
 }
 
 
-void GFX_scale(const float x, const float y, const float z)
+void GFX::scale(const float x, const float y, const float z)
 {
-    static vec3 scale(1.0f, 1.0f, 1.0f);
+    static vec3 s(1.0f, 1.0f, 1.0f);
 
     vec3 v(x, y, z);
 
-    if (v == scale) return;
+    if (v == s) return;
 
-    GFX_scale(v);
+    scale(v);
 }
 
 
-void GFX_scale(const vec3 &v)
+void GFX::scale(const vec3 &v)
 {
     static vec3 scale(1.0f, 1.0f, 1.0f);
 
     if (v == scale) return;
 
 
-    switch( gfx->matrix_mode )
+    switch( matrix_mode )
     {
         case MODELVIEW_MATRIX:
         {
-            gfx->modelview_matrix.scale(v);
+            modelview_matrix.scale(v);
 
             break;
         }
 
         case PROJECTION_MATRIX:
         {
-            gfx->projection_matrix.scale(v);
+            projection_matrix.scale(v);
 
             break;
         }
 
         case TEXTURE_MATRIX:
         {
-            gfx->texture_matrix.scale(v);
+            texture_matrix.scale(v);
 
             break;
         }		
@@ -413,64 +409,64 @@ void GFX_scale(const vec3 &v)
 }
 
 
-mat4 &GFX_get_modelview_matrix(const int i)
+mat4 &GFX::get_modelview_matrix(const int i)
 {
-    return gfx->modelview_matrix[i];
+    return modelview_matrix[i];
 }
 
 
-mat4 &GFX_get_projection_matrix( void )
+mat4 &GFX::get_projection_matrix( void )
 {
-    return gfx->projection_matrix.back();
+    return projection_matrix.back();
 }
 
 
-mat4 &GFX_get_texture_matrix( void )
+mat4 &GFX::get_texture_matrix( void )
 {
-    return gfx->texture_matrix.back();
+    return texture_matrix.back();
 }
 
 
-mat4 &GFX_get_modelview_projection_matrix( void )
+mat4 &GFX::get_modelview_projection_matrix( void )
 {
-    gfx->modelview_projection_matrix =
-        gfx->modelview_matrix.back() * gfx->projection_matrix.back();
+    modelview_projection_matrix =
+        modelview_matrix.back() * projection_matrix.back();
 
-    return gfx->modelview_projection_matrix;
+    return modelview_projection_matrix;
 }
 
 
-mat3 &GFX_get_normal_matrix( void )
+mat3 &GFX::get_normal_matrix( void )
 {
-    gfx->normal_matrix = gfx->modelview_matrix.getNormalMatrix();
+    normal_matrix = modelview_matrix.getNormalMatrix();
 
-    return gfx->normal_matrix;
+    return normal_matrix;
 }
 
 
-void GFX_ortho(const float left, const float right,
+void GFX::ortho(const float left, const float right,
                const float bottom, const float top,
                const float clip_start, const float clip_end)
 {
-    switch( gfx->matrix_mode )
+    switch( matrix_mode )
     {
         case MODELVIEW_MATRIX:
         {
-            gfx->modelview_matrix.ortho(left, right, bottom, top, clip_start, clip_end);
+            modelview_matrix.ortho(left, right, bottom, top, clip_start, clip_end);
 
             break;
         }
 
         case PROJECTION_MATRIX:
         {
-            gfx->projection_matrix.ortho(left, right, bottom, top, clip_start, clip_end);
+            projection_matrix.ortho(left, right, bottom, top, clip_start, clip_end);
 
             break;
         }
 
         case TEXTURE_MATRIX:
         {
-            gfx->texture_matrix.ortho(left, right, bottom, top, clip_start, clip_end);
+            texture_matrix.ortho(left, right, bottom, top, clip_start, clip_end);
 
             break;
         }		
@@ -478,54 +474,54 @@ void GFX_ortho(const float left, const float right,
 }
 
 
-void GFX_set_orthographic_2d(const float left, const float right,
-                             const float bottom, const float top)
-{ GFX_ortho( left, right, bottom, top, -1.0f, 1.0f ); }
+void GFX::set_orthographic_2d(const float left, const float right,
+                              const float bottom, const float top)
+{ ortho( left, right, bottom, top, -1.0f, 1.0f ); }
 
 
-void GFX_set_orthographic(const float screen_ratio, float scale, const float aspect_ratio, const float clip_start, const float clip_end, const float screen_orientation)
+void GFX::set_orthographic(const float screen_ratio, float s, const float aspect_ratio, const float clip_start, const float clip_end, const float screen_orientation)
 {
-    scale = ( scale * 0.5f ) * aspect_ratio;
+    s = ( s * 0.5f ) * aspect_ratio;
 
-    GFX_ortho(-1.0f,
+    ortho(-1.0f,
               1.0f,
               -screen_ratio,
               screen_ratio,
               clip_start,
               clip_end );
 
-    GFX_scale( 1.0f / scale, 1.0f / scale, 1.0f );
+    scale( 1.0f / s, 1.0f / s, 1.0f );
 
-    if( screen_orientation ) GFX_rotate( screen_orientation, 0.0f, 0.0f, 1.0f );
+    if( screen_orientation ) rotate( screen_orientation, 0.0f, 0.0f, 1.0f );
 }
 
 
-void GFX_set_perspective(const float fovy, const float aspect_ratio,
-                         const float clip_start, const float clip_end,
-                         const float screen_orientation)
+void GFX::set_perspective(const float fovy, const float aspect_ratio,
+                          const float clip_start, const float clip_end,
+                          const float screen_orientation)
 {
-    switch( gfx->matrix_mode )
+    switch( matrix_mode )
     {
         case MODELVIEW_MATRIX:
         {
-            gfx->modelview_matrix.perspective(fovy, aspect_ratio, clip_start, clip_end);
-            gfx->modelview_matrix.rotate(screen_orientation, vec3(0,0,1));
+            modelview_matrix.perspective(fovy, aspect_ratio, clip_start, clip_end);
+            modelview_matrix.rotate(screen_orientation, vec3(0,0,1));
 
             break;
         }
 
         case PROJECTION_MATRIX:
         {
-            gfx->projection_matrix.perspective(fovy, aspect_ratio, clip_start, clip_end);
-            gfx->projection_matrix.rotate(screen_orientation, vec3(0,0,1));
+            projection_matrix.perspective(fovy, aspect_ratio, clip_start, clip_end);
+            projection_matrix.rotate(screen_orientation, vec3(0,0,1));
 
             break;
         }
 
         case TEXTURE_MATRIX:
         {
-            gfx->texture_matrix.perspective(fovy, aspect_ratio, clip_start, clip_end);
-            gfx->texture_matrix.rotate(screen_orientation, vec3(0,0,1));
+            texture_matrix.perspective(fovy, aspect_ratio, clip_start, clip_end);
+            texture_matrix.rotate(screen_orientation, vec3(0,0,1));
 
             break;
         }		
@@ -533,27 +529,27 @@ void GFX_set_perspective(const float fovy, const float aspect_ratio,
 }
 
 
-void GFX_look_at(const vec3 &eye, const vec3 &center, const vec3 &up)
+void GFX::look_at(const vec3 &eye, const vec3 &center, const vec3 &up)
 {
-    switch( gfx->matrix_mode )
+    switch( matrix_mode )
     {
         case MODELVIEW_MATRIX:
         {
-            gfx->modelview_matrix.lookAt(eye, center, up);
+            modelview_matrix.lookAt(eye, center, up);
 
             break;
         }
 
         case PROJECTION_MATRIX:
         {
-            gfx->projection_matrix.lookAt(eye, center, up);
+            projection_matrix.lookAt(eye, center, up);
 
             break;
         }
 
         case TEXTURE_MATRIX:
         {
-            gfx->texture_matrix.lookAt(eye, center, up);
+            texture_matrix.lookAt(eye, center, up);
             
             break;
         }		
@@ -561,24 +557,24 @@ void GFX_look_at(const vec3 &eye, const vec3 &center, const vec3 &up)
 }
 
 
-bool GFX_project(const float objx, const float objy, const float objz,
-                 const mat4 &modelview_matrix,
-                 const mat4 &projection_matrix,
-                 const int *viewport_matrix,
-                 float *winx, float *winy, float *winz)
+bool GFX::project(const float objx, const float objy, const float objz,
+                  const mat4 &modelview_matrix,
+                  const mat4 &projection_matrix,
+                  const int *viewport_matrix,
+                  float *winx, float *winy, float *winz)
 {
-    return GFX_project(vec3(objx, objy, objz),
+    return project(vec3(objx, objy, objz),
                        modelview_matrix,
                        projection_matrix,
                        viewport_matrix,
                        winx, winy, winz);
 }
 
-bool GFX_project(const vec3 &obj,
-                 const mat4 &modelview_matrix,
-                 const mat4 &projection_matrix,
-                 const int *viewport_matrix,
-                 float *winx, float *winy, float *winz)
+bool GFX::project(const vec3 &obj,
+                  const mat4 &modelview_matrix,
+                  const mat4 &projection_matrix,
+                  const int *viewport_matrix,
+                  float *winx, float *winy, float *winz)
 {
     vec4    vin(obj, 1.0f),
             vout;
@@ -607,18 +603,18 @@ bool GFX_project(const vec3 &obj,
     return true;
 }
 
-bool GFX_unproject(const float winx, const float winy, const float winz,
-                   const mat4 &modelview_matrix,
-                   const mat4 &projection_matrix,
-                   const int *viewport_matrix,
-                   float *objx, float *objy, float *objz)
+bool GFX::unproject(const float winx, const float winy, const float winz,
+                    const mat4 &modelview_matrix,
+                    const mat4 &projection_matrix,
+                    const int *viewport_matrix,
+                    float *objx, float *objy, float *objz)
 {
     vec3    vout;
-    bool    status = GFX_unproject(winx, winy, winz,
-                                   modelview_matrix,
-                                   projection_matrix,
-                                   viewport_matrix,
-                                   vout);
+    bool    status = unproject(winx, winy, winz,
+                               modelview_matrix,
+                               projection_matrix,
+                               viewport_matrix,
+                               vout);
     if (status) {
         *objx = vout->x;
         *objy = vout->y;
@@ -628,10 +624,10 @@ bool GFX_unproject(const float winx, const float winy, const float winz,
     return status;
 }
 
-bool GFX_unproject(const float winx, const float winy, const float winz,
-                   const mat4 &modelview_matrix,
-                   const mat4 &projection_matrix,
-                   const int *viewport_matrix, vec3 &obj)
+bool GFX::unproject(const float winx, const float winy, const float winz,
+                    const mat4 &modelview_matrix,
+                    const mat4 &projection_matrix,
+                    const int *viewport_matrix, vec3 &obj)
 {
     vec4    vin(winx, winy, winz, 1.0f);
 

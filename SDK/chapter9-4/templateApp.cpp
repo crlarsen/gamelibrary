@@ -49,6 +49,7 @@ as being the original software.
 
 #define PHYSIC_FILE (char *)"Scene.bullet"
 
+GFX *gfx = NULL;
 
 OBJ *obj = NULL;
 
@@ -224,27 +225,27 @@ void program_draw(void *ptr)
             glUniformMatrix4fv(uniform.location,
                                1,
                                GL_FALSE,
-                               GFX_get_modelview_projection_matrix().m());
+                               gfx->get_modelview_projection_matrix().m());
         } else if(name == "TEXTUREMATRIX") {
             static vec2 scroll(0.0f, 0.0f);
 
-            GFX_set_matrix_mode(TEXTURE_MATRIX);
+            gfx->set_matrix_mode(TEXTURE_MATRIX);
 
-            GFX_push_matrix();
+            gfx->push_matrix();
 
             scroll->x += 0.0025f;
             scroll->y += 0.0025f;
 
-            GFX_translate(scroll->x, scroll->y, 0.0f);
+            gfx->translate(scroll->x, scroll->y, 0.0f);
 
             glUniformMatrix4fv(uniform.location,
                                1,
                                GL_FALSE,
-                               GFX_get_texture_matrix().m());
+                               gfx->get_texture_matrix().m());
             
-            GFX_pop_matrix();
+            gfx->pop_matrix();
             
-            GFX_set_matrix_mode(MODELVIEW_MATRIX); 
+            gfx->set_matrix_mode(MODELVIEW_MATRIX); 
         }		
     }
 }
@@ -621,7 +622,7 @@ void templateAppInit(int width, int height) {
 
     atexit(templateAppExit);
 
-    GFX_start();
+    gfx = new GFX;
 
     AUDIO_start();
 
@@ -647,17 +648,17 @@ void templateAppDraw(void) {
     glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
     glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
-    GFX_set_matrix_mode(PROJECTION_MATRIX);
-    GFX_load_identity();
+    gfx->set_matrix_mode(PROJECTION_MATRIX);
+    gfx->load_identity();
 
-    GFX_set_perspective(80.0f,
-                        (float)viewport_matrix[2] / (float)viewport_matrix[3],
-                        0.1f,
-                        50.0f,
-                        -90.0f);
+    gfx->set_perspective( 80.0f,
+                         (float)viewport_matrix[2] / (float)viewport_matrix[3],
+                           0.1f,
+                          50.0f,
+                         -90.0f);
 
-    GFX_set_matrix_mode(MODELVIEW_MATRIX);
-    GFX_load_identity();
+    gfx->set_matrix_mode(MODELVIEW_MATRIX);
+    gfx->load_identity();
 
 
     next_accelerometer = accelerometer * 0.1f + next_accelerometer * 0.9f;
@@ -739,13 +740,13 @@ void templateAppDraw(void) {
 
     AUDIO_set_listener(eye, direction, up);
 
-    GFX_look_at(eye,
-                player->location,
-                up);
+    gfx->look_at(eye,
+                 player->location,
+                 up);
 
     build_frustum(frustum,
-                  GFX_get_modelview_matrix(),
-                  GFX_get_projection_matrix());
+                  gfx->get_modelview_matrix(),
+                  gfx->get_projection_matrix());
     
     
     for (auto objmesh=obj->objmesh.begin();
@@ -756,14 +757,14 @@ void templateAppDraw(void) {
                                                        objmesh->radius);
 
         if (objmesh->distance && objmesh->visible) {
-            GFX_push_matrix();
+            gfx->push_matrix();
 
             if (strstr(objmesh->name, "gem")) {
-                GFX_translate(objmesh->location);
+                gfx->translate(objmesh->location);
 
                 objmesh->rotation->z += 1.0f;
 
-                GFX_rotate(objmesh->rotation->z, 0.0f, 0.0f, 1.0f);
+                gfx->rotate(objmesh->rotation->z, 0.0f, 0.0f, 1.0f);
             } else if (objmesh->btrigidbody) {
                 mat4 mat;
 
@@ -771,40 +772,40 @@ void templateAppDraw(void) {
 
                 objmesh->location = vec3(mat[3], true);
 
-                GFX_multiply_matrix(mat);
+                gfx->multiply_matrix(mat);
             } else {
-                GFX_translate(objmesh->location);
+                gfx->translate(objmesh->location);
             }
             
             objmesh->draw();
             
-            GFX_pop_matrix();
+            gfx->pop_matrix();
         }
     }
     
     dynamicsworld->stepSimulation(1.0f / 60.0f);
     
     
-    GFX_set_matrix_mode(PROJECTION_MATRIX);
-    GFX_load_identity();
+    gfx->set_matrix_mode(PROJECTION_MATRIX);
+    gfx->load_identity();
     
     float   half_width  = (float)viewport_matrix[2] * 0.5f,
             half_height = (float)viewport_matrix[3] * 0.5f;
 
-    GFX_set_orthographic_2d(-half_width,
-                             half_width,
-                            -half_height,
-                             half_height);
+    gfx->set_orthographic_2d(-half_width,
+                              half_width,
+                             -half_height,
+                              half_height);
 
     // Rotate -90 degrees
     static const quaternion q(M_SQRT1_2, 0, 0, -M_SQRT1_2);
-    GFX_rotate(q);
+    gfx->rotate(q);
 
-    GFX_translate(-half_height, -half_width, 0.0f);
+    gfx->translate(-half_height, -half_width, 0.0f);
 
-    GFX_set_matrix_mode(MODELVIEW_MATRIX);
+    gfx->set_matrix_mode(MODELVIEW_MATRIX);
 
-    GFX_load_identity();
+    gfx->load_identity();
 
     vec4 font_color(0.0f, 0.0f, 0.0f, 1.0f);
     
@@ -815,7 +816,8 @@ void templateAppDraw(void) {
     if (game_state) {
         sprintf(level_str, "Level Clear!");
 
-        font_big->print(viewport_matrix[3] * 0.5f - font_big->length(level_str) * 0.5f + 4.0f,
+        font_big->print(gfx,
+                        viewport_matrix[3] * 0.5f - font_big->length(level_str) * 0.5f + 4.0f,
                         viewport_matrix[2] - font_big->font_size * 1.5f - 4.0f,
                         level_str,
                         &font_color);
@@ -825,7 +827,8 @@ void templateAppDraw(void) {
         font_color->y = 1.0f;
         font_color->z = 0.0f;
 
-        font_big->print(viewport_matrix[3] * 0.5f - font_big->length(level_str) * 0.5f,
+        font_big->print(gfx,
+                        viewport_matrix[3] * 0.5f - font_big->length(level_str) * 0.5f,
                         viewport_matrix[2] - font_big->font_size * 1.5f,
                         level_str,
                         &font_color);
@@ -838,12 +841,14 @@ void templateAppDraw(void) {
     sprintf(gem_str, "Gem Points:%02d", gem_points);
     sprintf(time_str, "Game Time:%02.2f", game_time * 0.1f);
 
-    font_small->print(viewport_matrix[3] - font_small->length(gem_str) - 6.0f,
+    font_small->print(gfx,
+                      viewport_matrix[3] - font_small->length(gem_str) - 6.0f,
                       (font_small->font_size * 0.5f),
                       gem_str,
                       &font_color);
 
-    font_small->print(8.0f,
+    font_small->print(gfx,
+                      8.0f,
                       (font_small->font_size * 0.5f),
                       time_str,
                       &font_color);
@@ -852,12 +857,14 @@ void templateAppDraw(void) {
     font_color->y = 1.0f;
     font_color->z = 0.0f;
 
-    font_small->print(viewport_matrix[3] - font_small->length(gem_str) - 8.0f,
+    font_small->print(gfx,
+                      viewport_matrix[3] - font_small->length(gem_str) - 8.0f,
                       (font_small->font_size * 0.5f),
                       gem_str,
                       &font_color);
 
-    font_small->print(6.0f,
+    font_small->print(gfx,
+                      6.0f,
                       (font_small->font_size * 0.5f),
                       time_str,
                       &font_color);

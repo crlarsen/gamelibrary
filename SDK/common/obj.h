@@ -288,8 +288,8 @@ public:
     void build2();
     void optimize(unsigned int vertex_cache_size);
     void draw();
-    void draw2(OBJMESH *objmesh);
-    void draw3(OBJMESH *objmesh);
+    void draw2();
+    void draw3(GFX *gfx);
     void free_vertex_data();
 };
 

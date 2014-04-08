@@ -86,7 +86,7 @@ struct LAMP {
         }
         return *this;
     }
-    virtual void push_to_shader(PROGRAM *program, const int i) {
+    virtual void push_to_shader(GFX *gfx, PROGRAM *program, const int i) {
         /* A temp string to dynamically create the LAMP property names. */
         char tmp[MAX_CHAR] = {""};
         /* Create the uniform name for the color of the lamp. */
@@ -125,8 +125,8 @@ public:
         return *this;
     }
     vec3 get_direction_in_eye_space(const mat4 &m);
-    void push_to_shader(PROGRAM *program, const int i) {
-        this->LAMP::push_to_shader(program, i);
+    void push_to_shader(GFX *gfx, PROGRAM *program, const int i) {
+        this->LAMP::push_to_shader(gfx, program, i);
 
         /* A temp string to dynamically create the LAMP property names. */
         char tmp[MAX_CHAR] = {""};
@@ -145,7 +145,7 @@ public:
          * once in the templateAppDraw function.
          */
         direction_es =
-            get_direction_in_eye_space(GFX_get_modelview_matrix(-1));
+            get_direction_in_eye_space(gfx->get_modelview_matrix(-1));
 
         glUniform3fv(program->get_uniform_location(tmp),
                      1,
@@ -197,8 +197,8 @@ public:
         return *this;
     }
     vec4 get_position_in_eye_space(const mat4 &m);
-    void push_to_shader(PROGRAM *program, const int i) {
-        this->LAMP::push_to_shader(program, i);
+    void push_to_shader(GFX *gfx, PROGRAM *program, const int i) {
+        this->LAMP::push_to_shader(gfx, program, i);
 
         char tmp[MAX_CHAR] = {""};
 
@@ -207,7 +207,7 @@ public:
         sprintf(tmp, "LAMP_VS[%d].position", i);
 
         position_es =
-            get_position_in_eye_space(GFX_get_modelview_matrix(-1));
+            get_position_in_eye_space(gfx->get_modelview_matrix(-1));
 
         glUniform3fv(program->get_uniform_location(tmp),
                      1,
@@ -275,8 +275,8 @@ public:
         }
         return *this;
     }
-    void push_to_shader(PROGRAM *program, const int i) {
-        this->PointLamp::push_to_shader(program, i);
+    void push_to_shader(GFX *gfx, PROGRAM *program, const int i) {
+        this->PointLamp::push_to_shader(gfx, program, i);
 
         char tmp[MAX_CHAR] = {""};
 
@@ -324,8 +324,8 @@ public:
         }
         return *this;
     }
-    void push_to_shader(PROGRAM *program, const int i) {
-        this->PointLamp::push_to_shader(program, i);
+    void push_to_shader(GFX *gfx, PROGRAM *program, const int i) {
+        this->PointLamp::push_to_shader(gfx, program, i);
 
         char tmp[MAX_CHAR] = {""};
 
@@ -379,8 +379,8 @@ public:
         }
         return *this;
     }
-    void push_to_shader(PROGRAM *program, const int i) {
-        this->PointLamp::push_to_shader(program, i);
+    void push_to_shader(GFX *gfx, PROGRAM *program, const int i) {
+        this->PointLamp::push_to_shader(gfx, program, i);
 
         char tmp[MAX_CHAR] = {""};
 
@@ -392,7 +392,7 @@ public:
 
         sprintf(tmp, "LAMP_VS[%d].spot_direction", i);
         direction_os =
-            get_direction_in_object_space(GFX_get_modelview_matrix(-1));
+            get_direction_in_object_space(gfx->get_modelview_matrix(-1));
 
         glUniform3fv(program->get_uniform_location(tmp),
                      1,
@@ -457,6 +457,8 @@ void program_bind_attrib_location(void *ptr) {
 }
 
 
+GFX *gfx = NULL;
+
 void program_draw(void *ptr)
 {
     PROGRAM *program = (PROGRAM *)ptr;
@@ -471,7 +473,7 @@ void program_draw(void *ptr)
             glUniformMatrix4fv(uniform.location,
                                1,
                                GL_FALSE,
-                               GFX_get_modelview_projection_matrix().m());
+                               gfx->get_modelview_projection_matrix().m());
         } else if (name == TM_Diffuse_String) {
             glUniform1i(uniform.location, TM_Diffuse);
 
@@ -485,19 +487,19 @@ void program_draw(void *ptr)
             glUniformMatrix4fv(uniform.location,
                                1,
                                GL_FALSE,
-                               GFX_get_modelview_matrix().m());
+                               gfx->get_modelview_matrix().m());
         } else if (name == "PROJECTIONMATRIX") {
             glUniformMatrix4fv(uniform.location,
                                1,
                                GL_FALSE,
-                               GFX_get_projection_matrix().m());
+                               gfx->get_projection_matrix().m());
 
             uniform.constant = true;
         } else if (name == "NORMALMATRIX") {
             glUniformMatrix3fv(uniform.location,
                                1,
                                GL_FALSE,
-                               GFX_get_normal_matrix().m());
+                               gfx->get_normal_matrix().m());
         } else if (name == "MATERIAL.ambient") {
             // Material Data
             glUniform4fv(uniform.location,
@@ -536,7 +538,7 @@ void program_draw(void *ptr)
      * the loop is rolling.
      */
     for (int i=0; i != MAX_LAMP; ++i)
-        lamp[i]->push_to_shader(program, i);
+        lamp[i]->push_to_shader(gfx, program, i);
 }
 
 
@@ -544,7 +546,7 @@ void templateAppInit(int width, int height)
 {
     atexit(templateAppExit);
 
-    GFX_start();
+    gfx = new GFX;
 
     glViewport(0.0f, 0.0f, width, height);
 
@@ -584,11 +586,11 @@ void templateAppInit(int width, int height)
     
     vec4 color(1.0f, 1.0f, 1.0f, 1.0f);
     
-//    lamp = new DirectionalLamp((char *)"sun",    // Internal name of lamp
-//                               color, // The lamp color.
-//                                   -25.0f,  // The XYZ rotation angle in degrees
-//                                   0.0f,  // that will be used to create the
-//                                   -45.0f);// direction vector.
+//    lamp = new DirectionalLamp((char *)"sun",   // Internal name of lamp
+//                               color,   // The lamp color.
+//                               -25.0f,  // The XYZ rotation angle in degrees
+//                                 0.0f,  // that will be used to create the
+//                               -45.0f);// direction vector.
     /* The 3D position in world space of the point light. */
     vec3 position(3.5f, 3.0f, 6.0f);
 //    /* Create a new LAMP pointer and declare it as a simple point light. */
@@ -601,22 +603,22 @@ void templateAppInit(int width, int height)
 //    lamp = new AttenuatedPointLamp((char *)"point1",
 //                                   color,
 //                                   position,
-//                                               10.0f,
-//                                                0.5f,
-//                                                1.0f);
+//                                   10.0f,
+//                                    0.5f,
+//                                    1.0f);
 //    lamp = new PointSphereLamp((char *)"point2",
 //                               color,
 //                               position,
-//                                    10.0f);
+//                               10.0f);
 //    lamp = new SpotLamp((char *)"spot",
 //                        color,
 //                        position,
-//                            /* The spot XYZ rotation angles in degrees. */
-//                             -25.0f, 0.0f, -45.0f,
-//                            /* The field of view in degrees. */
-//                             75.0f,
-//                            /* The spot blend. */
-//                             0.05f);
+//                        /* The spot XYZ rotation angles in degrees. */
+//                        -25.0f, 0.0f, -45.0f,
+//                        /* The field of view in degrees. */
+//                        75.0f,
+//                        /* The spot blend. */
+//                        0.05f);
 
     /* Create the first lamp, basically the same as you did before, except
      * you are initializing it at index 0 of the lamp point array.
@@ -640,38 +642,38 @@ void templateAppDraw(void)
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
-    GFX_set_matrix_mode(PROJECTION_MATRIX);
-    GFX_load_identity();
+    gfx->set_matrix_mode(PROJECTION_MATRIX);
+    gfx->load_identity();
 
-    GFX_set_perspective( 45.0f,
-                        (float)viewport_matrix[2] / (float)viewport_matrix[3],
-                        0.1f,
-                        100.0f,
-                        -90.0f);
+    gfx->set_perspective( 45.0f,
+                         (float)viewport_matrix[2] / (float)viewport_matrix[3],
+                           0.1f,
+                         100.0f,
+                         -90.0f);
 
-    GFX_set_matrix_mode(MODELVIEW_MATRIX);
-    GFX_load_identity();
+    gfx->set_matrix_mode(MODELVIEW_MATRIX);
+    gfx->load_identity();
 
     const float   alpha(-72.0f*DEG_TO_RAD_DIV_2);
     const float   cosAlpha(cosf(alpha)), sinAlpha(sinf(alpha));
     const float   beta(-48.5f*DEG_TO_RAD_DIV_2);
     const float   cosBeta(cosf(beta)), sinBeta(sinf(beta));
-    GFX_rotate(quaternion( cosAlpha*cosBeta, sinAlpha*cosBeta,
-                          -sinAlpha*sinBeta, cosAlpha*sinBeta));
+    gfx->rotate(quaternion( cosAlpha*cosBeta, sinAlpha*cosBeta,
+                           -sinAlpha*sinBeta, cosAlpha*sinBeta));
 
-    GFX_translate(-14.0f, 12.0f, -7.0f);
+    gfx->translate(-14.0f, 12.0f, -7.0f);
 
 
     for (objmesh=obj->objmesh.begin();
          objmesh!=obj->objmesh.end(); ++objmesh) {
 
-        GFX_push_matrix();
+        gfx->push_matrix();
 
-        GFX_translate(objmesh->location);
+        gfx->translate(objmesh->location);
 
         objmesh->draw();
         
-        GFX_pop_matrix();
+        gfx->pop_matrix();
     }
 }
 

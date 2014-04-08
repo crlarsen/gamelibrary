@@ -903,45 +903,45 @@ void OBJMESH::draw()
 }
 
 
-void OBJMESH::draw2(OBJMESH *objmesh)
+void OBJMESH::draw2()
 {
-    for (int i=0; i!=this->parent->objmesh.size(); ++i) {
-        if (&this->parent->objmesh[i] == objmesh) {
-            objmesh->draw();
+    for (int i=0; i!=parent->objmesh.size(); ++i) {
+        if (&parent->objmesh[i] == this) {
+            draw();
             return;
         }
     }
 }
 
 
-void OBJMESH::draw3(OBJMESH *objmesh)
+void OBJMESH::draw3(GFX *gfx)
 {
-    for (int i=0; i!=this->parent->objmesh.size(); ++i) {
-        if (&this->parent->objmesh[i] == objmesh) {
-            GFX_push_matrix();
+    for (int i=0; i!=parent->objmesh.size(); ++i) {
+        if (&parent->objmesh[i] == this) {
+            gfx->push_matrix();
 
-            GFX_translate(objmesh->location);
+            gfx->translate(location);
 
-            float   alpha(objmesh->rotation->z*DEG_TO_RAD_DIV_2);
+            float   alpha(rotation->z*DEG_TO_RAD_DIV_2);
             float   cosAlpha(cosf(alpha)), sinAlpha(sinf(alpha));
-            float   beta (objmesh->rotation->y*DEG_TO_RAD_DIV_2);
+            float   beta (rotation->y*DEG_TO_RAD_DIV_2);
             float   cosBeta(cosf(beta)), sinBeta(sinf(beta));
-            float   gamma(objmesh->rotation->x*DEG_TO_RAD_DIV_2);
+            float   gamma(rotation->x*DEG_TO_RAD_DIV_2);
             float   cosGamma(cosf(gamma)), sinGamma(sinf(gamma));
             float   cAcB(cosAlpha*cosBeta);
             float   sAsB(sinAlpha*sinBeta);
             float   cAsB(cosAlpha*sinBeta);
             float   sAcB(sinAlpha*cosBeta);
-            GFX_rotate(quaternion(cAcB*cosGamma+sAsB*sinGamma,
-                                  cAcB*sinGamma-sAsB*cosGamma,
-                                  cAsB*cosGamma+sAcB*sinGamma,
-                                  sAcB*cosGamma-cAsB*sinGamma));
+            gfx->rotate(quaternion(cAcB*cosGamma+sAsB*sinGamma,
+                                   cAcB*sinGamma-sAsB*cosGamma,
+                                   cAsB*cosGamma+sAcB*sinGamma,
+                                   sAcB*cosGamma-cAsB*sinGamma));
 
-            GFX_scale(objmesh->scale);
+            gfx->scale(scale);
 
-            objmesh->draw();
+            draw();
 
-            GFX_pop_matrix();
+            gfx->pop_matrix();
 
             return;
         }

@@ -47,6 +47,8 @@ as being the original software.
 
 #define FRAGMENT_SHADER (char *)"fragment.glsl"
 
+GFX *gfx = NULL;
+
 OBJ *obj = NULL;
 
 PROGRAM *program = NULL;
@@ -306,7 +308,7 @@ void templateAppInit(int width, int height) {
 
     atexit(templateAppExit);
 
-    GFX_start();
+    gfx = new GFX;
 
     init_physic_world();
 
@@ -314,13 +316,13 @@ void templateAppInit(int width, int height) {
 
     glViewport(0.0f, 0.0f, width, height);
 
-    GFX_set_matrix_mode(PROJECTION_MATRIX);
-    GFX_load_identity();
-    GFX_set_perspective(45.0f,
-                        (float)width / (float)height,
-                        0.1f,
-                        100.0f,
-                        -90.0f);
+    gfx->set_matrix_mode(PROJECTION_MATRIX);
+    gfx->load_identity();
+    gfx->set_perspective( 45.0f,
+                         (float)width / (float)height,
+                           0.1f,
+                         100.0f,
+                         -90.0f);
 
     obj = new OBJ(OBJ_FILE, true);
 
@@ -367,33 +369,33 @@ void templateAppDraw(void) {
     glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
 
-    GFX_set_matrix_mode(MODELVIEW_MATRIX);
-    GFX_load_identity();
+    gfx->set_matrix_mode(MODELVIEW_MATRIX);
+    gfx->load_identity();
     {
         vec3    e(10.4f, -9.8f, 5.5f),
                 c(-3.4f,  2.8f, 0.0f),
                 u( 0.0f,  0.0f, 1.0f);
 
-        GFX_look_at(e, c, u);
+        gfx->look_at(e, c, u);
     }
 
     for (auto objmesh=obj->objmesh.begin();
          objmesh!=obj->objmesh.end(); ++objmesh) {
 
-        GFX_push_matrix();
+        gfx->push_matrix();
 
         mat4 mat;
         objmesh->btrigidbody->getWorldTransform().getOpenGLMatrix(mat.m());
-        GFX_multiply_matrix(mat);
+        gfx->multiply_matrix(mat);
 
         glUniformMatrix4fv(program->uniform_map["MODELVIEWPROJECTIONMATRIX"].location,
                            1,
                            GL_FALSE,
-                           GFX_get_modelview_projection_matrix().m());
+                           gfx->get_modelview_projection_matrix().m());
 
         objmesh->draw();
         
-        GFX_pop_matrix();
+        gfx->pop_matrix();
     }
     
     dynamicsworld->stepSimulation(1.0f / 60.0f);

@@ -47,6 +47,8 @@ as being the original software.
 
 #define FRAGMENT_SHADER (char *)"fragment.glsl"
 
+GFX *gfx = NULL;
+
 OBJ *obj = NULL;
 
 PROGRAM *program = NULL;
@@ -103,17 +105,17 @@ void templateAppInit(int width, int height) {
 
     atexit(templateAppExit);
 
-    GFX_start();
+    gfx = new GFX;
 
     glViewport(0.0f, 0.0f, width, height);
 
-    GFX_set_matrix_mode(PROJECTION_MATRIX);
-    GFX_load_identity();
-    GFX_set_perspective(80.0f,
-                        (float)width / (float)height,
-                        0.1f,
-                        100.0f,
-                        -90.0f);
+    gfx->set_matrix_mode(PROJECTION_MATRIX);
+    gfx->load_identity();
+    gfx->set_perspective( 80.0f,
+                         (float)width / (float)height,
+                           0.1f,
+                         100.0f,
+                         -90.0f);
 
     obj = new OBJ(OBJ_FILE, true);
 
@@ -157,8 +159,8 @@ void templateAppDraw(void) {
     glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
     glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
-    GFX_set_matrix_mode(MODELVIEW_MATRIX);
-    GFX_load_identity();
+    gfx->set_matrix_mode(MODELVIEW_MATRIX);
+    gfx->load_identity();
 
     /* First make sure that either the X or Y view_delta actually has a
      * value, in order to avoid processing movements for nothing.
@@ -225,14 +227,14 @@ void templateAppDraw(void) {
     float   cosAlpha(cosf(alpha)), sinAlpha(sinf(alpha));
     float   beta(-rotz*DEG_TO_RAD_DIV_2);
     float   cosBeta(cosf(beta)), sinBeta(sinf(beta));
-    GFX_rotate(quaternion( cosAlpha*cosBeta, sinAlpha*cosBeta,
-                          -sinAlpha*sinBeta, cosAlpha*sinBeta));
+    gfx->rotate(quaternion( cosAlpha*cosBeta, sinAlpha*cosBeta,
+                           -sinAlpha*sinBeta, cosAlpha*sinBeta));
 
-    GFX_translate(-location);
+    gfx->translate(-location);
 
     build_frustum(frustum,
-                  GFX_get_modelview_matrix(),
-                  GFX_get_projection_matrix());
+                  gfx->get_modelview_matrix(),
+                  gfx->get_projection_matrix());
 
     for (auto objmesh=obj->objmesh.begin();
          objmesh!=obj->objmesh.end(); ++objmesh) {
@@ -242,18 +244,18 @@ void templateAppDraw(void) {
                                                        objmesh->radius);
 
         if (objmesh->distance > 0.0f) {
-            GFX_push_matrix();
+            gfx->push_matrix();
 
-            GFX_translate(objmesh->location);
+            gfx->translate(objmesh->location);
 
             glUniformMatrix4fv(program->uniform_map["MODELVIEWPROJECTIONMATRIX"].location,
                                1,
                                GL_FALSE,
-                               GFX_get_modelview_projection_matrix().m());
+                               gfx->get_modelview_projection_matrix().m());
             
             objmesh->draw();
             
-            GFX_pop_matrix();
+            gfx->pop_matrix();
         }
     }
 }
@@ -319,8 +321,8 @@ void templateAppToucheMoved(float x, float y, unsigned int tap_count)
          * the movement speed will increase up to its maximum.
          */
         move_delta->z = CLAMP((move_location-touche).length() / 128.0f,
-                             0.0f,
-                             1.0f);
+                              0.0f,
+                              1.0f);
     } else {
         /* Since the touch is on the right side of the screen, simply calculate
          * the delta for the view so you can then use it to manipulate the X

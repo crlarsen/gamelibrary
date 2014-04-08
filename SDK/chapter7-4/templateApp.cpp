@@ -49,6 +49,8 @@ as being the original software.
 
 #define FRAGMENT_SHADER (char *)"fragment.glsl"
 
+GFX *gfx = NULL;
+
 OBJ *obj = NULL;
 
 PROGRAM *program = NULL;
@@ -175,18 +177,18 @@ void templateAppInit(int width, int height) {
 
     atexit(templateAppExit);
 
-    GFX_start();
+    gfx = new GFX;
 
     glViewport(0.0f, 0.0f, width, height);
 
-    GFX_set_matrix_mode(PROJECTION_MATRIX);
-    GFX_load_identity();
+    gfx->set_matrix_mode(PROJECTION_MATRIX);
+    gfx->load_identity();
 
-    GFX_set_perspective(80.0f,
-                        (float)width / (float)height,
-                        0.1f,
-                        100.0f,
-                        -90.0f);
+    gfx->set_perspective( 80.0f,
+                         (float)width / (float)height,
+                           0.1f,
+                         100.0f,
+                         -90.0f);
 
     obj = new OBJ(OBJ_FILE, true);
 
@@ -245,8 +247,8 @@ void templateAppDraw(void) {
     glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
 
-    GFX_set_matrix_mode(MODELVIEW_MATRIX);
-    GFX_load_identity();
+    gfx->set_matrix_mode(MODELVIEW_MATRIX);
+    gfx->load_identity();
 
 
     if (view_delta->x || view_delta->y) {
@@ -292,24 +294,24 @@ void templateAppDraw(void) {
     float   cosAlpha(cosf(alpha)), sinAlpha(sinf(alpha));
     float   beta(-rotz*DEG_TO_RAD_DIV_2);
     float   cosBeta(cosf(beta)), sinBeta(sinf(beta));
-    GFX_rotate(quaternion( cosAlpha*cosBeta, sinAlpha*cosBeta,
-                          -sinAlpha*sinBeta, cosAlpha*sinBeta));
+    gfx->rotate(quaternion( cosAlpha*cosBeta, sinAlpha*cosBeta,
+                           -sinAlpha*sinBeta, cosAlpha*sinBeta));
 
-    GFX_translate(-camera->location->x,
-                  -camera->location->y,
-                  /* Give an offset on the Z axis since the location represents
-                   * the position of the object pivot point.  You need to
-                   * simulate a real human eye looking at the scene, so add to
-                   * the current Z value half of the Z dimension of the object
-                   * bounding box, to simulate that the eye position is located
-                   * at the top of the collision object.
-                   */
-                  -camera->location->z - (camera->dimension->z * 0.5f));
+    gfx->translate(-camera->location->x,
+                   -camera->location->y,
+                   /* Give an offset on the Z axis since the location represents
+                    * the position of the object pivot point.  You need to
+                    * simulate a real human eye looking at the scene, so add to
+                    * the current Z value half of the Z dimension of the object
+                    * bounding box, to simulate that the eye position is located
+                    * at the top of the collision object.
+                    */
+                   -camera->location->z - (camera->dimension->z * 0.5f));
 
     for (auto objmesh=obj->objmesh.begin();
          objmesh!=obj->objmesh.end(); ++objmesh) {
 
-        GFX_push_matrix();
+        gfx->push_matrix();
 
         mat4 mat;
         /* Ask Bullet to return the OpenGL matrix for the current mesh and store
@@ -322,16 +324,16 @@ void templateAppDraw(void) {
          */
         objmesh->location = vec3(mat[3], true);
         /* Multiply the matrix by the current modelview matrix. */
-        GFX_multiply_matrix(mat);
+        gfx->multiply_matrix(mat);
 
         glUniformMatrix4fv(program->uniform_map["MODELVIEWPROJECTIONMATRIX"].location,
                            1,
                            GL_FALSE,
-                           GFX_get_modelview_projection_matrix().m());
+                           gfx->get_modelview_projection_matrix().m());
         
         objmesh->draw();
         
-        GFX_pop_matrix();
+        gfx->pop_matrix();
     }
     
     dynamicsworld->stepSimulation(1.0f / 60.0f);

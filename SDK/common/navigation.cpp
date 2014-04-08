@@ -397,7 +397,7 @@ bool NAVIGATION::get_path(NAVIGATIONPATH *navigationpath, NAVIGATIONPATHDATA *na
 }
 
 
-void NAVIGATION::draw()
+void NAVIGATION::draw(GFX *gfx)
 {
     if (!this->program) {
         this->program = new PROGRAM(this->name);
@@ -436,7 +436,7 @@ void NAVIGATION::draw()
     glUniformMatrix4fv(this->program->get_uniform_location((char *)"MODELVIEWPROJECTIONMATRIX"),
                        1,
                        GL_FALSE,
-                       GFX_get_modelview_projection_matrix().m());
+                       gfx->get_modelview_projection_matrix().m());
 
     glEnableVertexAttribArray(vertex_attribute);
 

@@ -54,23 +54,25 @@ TEMPLATEAPP templateApp = {
 PROGRAM *program = NULL;
 MEMORY  *m = NULL;
 
+GFX     *gfx = NULL;
+
 void templateAppInit( int width, int height )
 {
     // Setup the exit callback function.
     atexit( templateAppExit );
 
     // Initialize GLES.
-    GFX_start();
+    gfx = new GFX;
 
     // Setup a GLES viewport using the current width and height of the screen.
     glViewport( 0, 0, width, height );
 
     /* Insert your initialization code here */
-    GFX_set_matrix_mode(PROJECTION_MATRIX);
+    gfx->set_matrix_mode(PROJECTION_MATRIX);
     {
         /* Clean the projection matrix by loading an identity matrix. */
-        GFX_load_identity();
-        GFX_set_perspective(45.0f,  // Field of view angle in degree.
+        gfx->load_identity();
+        gfx->set_perspective(45.0f,  // Field of view angle in degree.
                             static_cast<float>(width)/static_cast<float>(height),   // The screen aspect ratio.
                             0.01f,  // The near clipping plane.
                             100.0f, // The far clipping plane.
@@ -115,27 +117,27 @@ void templateAppDraw( void )
 
     /* Insert your drawing code here */
     /* Select the model view matrix. */
-    GFX_set_matrix_mode(MODELVIEW_MATRIX);
+    gfx->set_matrix_mode(MODELVIEW_MATRIX);
     
     /* Reset it to make sure you are going to deal with a clean identity matrix. */
-    GFX_load_identity();
+    gfx->load_identity();
 
     /* The eye position in world coordinates. */
     vec3    e(0.0f, -3.0f, 0.0f), /* The position in world space where the eye is looking. */
             c(0.0f,  0.0f, 0.0f),  /* Use the positive Z axis as the up vector. */
             u(0.0f,  0.0f, 1.0f);
-    GFX_look_at(e, c, u);
+    gfx->look_at(e, c, u);
 
     static float y = 0.0f;
 
     y += 0.1f;
 
-//    GFX_translate(0.0f, y, 0.0f);
+//    gfx->translate(0.0f, y, 0.0f);
 
-    GFX_rotate(y * 50.0f,
-               1.0f,
-               1.0f,
-               1.0f);
+    gfx->rotate(y * 50.0f,
+                1.0f,
+                1.0f,
+                1.0f);
 
     if (program->pid) {
         GLint   attribute, uniform;
@@ -146,7 +148,7 @@ void templateAppDraw( void )
         glUniformMatrix4fv(uniform,     // The location value of the uniform.
                            1,           // How many 4x4 matrices
                            GL_FALSE,    // Specify to do not transpose the matrix.
-                           GFX_get_modelview_projection_matrix().m());  // Use the GFX helper function
+                           gfx->get_modelview_projection_matrix().m()); // Use the GFX helper function
                                                                         // to calculate the result of the
                                                                         // current model view matrix
                                                                         // multiplied by the current
@@ -176,7 +178,7 @@ void templateAppDraw( void )
                      4);                // Stop at which index.
     }
 
-    GFX_error();
+    gfx->error();
 }
 
 

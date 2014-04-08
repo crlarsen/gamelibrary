@@ -47,6 +47,8 @@ as being the original software.
 
 #define FRAGMENT_SHADER (char *)"fragment.glsl"
 
+GFX *gfx = NULL;
+
 OBJ *obj = NULL;
 
 bool    auto_rotate = false;
@@ -88,12 +90,12 @@ void material_draw_callback(void *ptr)
             glUniformMatrix4fv(uniform.location,
                                1,
                                GL_FALSE,
-                               GFX_get_modelview_matrix().m());
+                               gfx->get_modelview_matrix().m());
         } else if (name == "PROJECTIONMATRIX") {
             glUniformMatrix4fv(uniform.location,
                                1,
                                GL_FALSE,
-                               GFX_get_projection_matrix().m());
+                               gfx->get_projection_matrix().m());
         } else if ((name == TM_Diffuse_String) && !uniform.constant) {
             uniform.constant = true;
 
@@ -110,7 +112,7 @@ void material_draw_callback(void *ptr)
             vec4 position   (0.0f, -3.0f, 4.0f, 1.0f);
             vec3 eyeposition(0.0f,  0.0f, 0.0f);
             eyeposition = vec3(position *
-                               GFX_get_modelview_matrix(-1));
+                               gfx->get_modelview_matrix(-1));
 
             glUniform3fv(uniform.location,
                          1,
@@ -119,7 +121,7 @@ void material_draw_callback(void *ptr)
             glUniformMatrix3fv(uniform.location,
                                1,
                                GL_FALSE,
-                               GFX_get_normal_matrix().m());
+                               gfx->get_normal_matrix().m());
         } else if (name == MP_Specular) {
             /* Send over the specular color of the material. */
             glUniform3fv(uniform.location,
@@ -136,17 +138,17 @@ void material_draw_callback(void *ptr)
 void templateAppInit(int width, int height) {
     atexit(templateAppExit);
 
-    GFX_start();
+    gfx = new GFX;
 
     glViewport(0.0f, 0.0f, width, height);
 
-    GFX_set_matrix_mode(PROJECTION_MATRIX);
-    GFX_load_identity();
-    GFX_set_perspective(45.0f,
-                        (float)width / (float)height,
-                        0.1f,
-                        100.0f,
-                        0.0f);
+    gfx->set_matrix_mode(PROJECTION_MATRIX);
+    gfx->load_identity();
+    gfx->set_perspective( 45.0f,
+                         (float)width / (float)height,
+                           0.1f,
+                         100.0f,
+                           0.0f);
 
     obj = new OBJ(OBJ_FILE, true);
 
@@ -202,20 +204,20 @@ void templateAppDraw(void) {
     glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
     glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
-    GFX_set_matrix_mode(MODELVIEW_MATRIX);
-    GFX_load_identity();
+    gfx->set_matrix_mode(MODELVIEW_MATRIX);
+    gfx->load_identity();
     {
 
         vec3    e(0.0, -3.0f, 0.0f),
                 c(0.0f, 0.0f, 0.0f),
                 u(0.0f, 0.0f, 1.0f);
 
-        GFX_look_at(e, c, u);
+        gfx->look_at(e, c, u);
     }
 
     for (auto objmesh=obj->objmesh.begin();
          objmesh!=obj->objmesh.end(); ++objmesh) {
-        GFX_push_matrix();
+        gfx->push_matrix();
 
         if (auto_rotate) rot_angle->z += 2.0f;
 
@@ -223,12 +225,12 @@ void templateAppDraw(void) {
         float   cosAlpha(cosf(alpha)), sinAlpha(sinf(alpha));
         float   beta (rot_angle->z*DEG_TO_RAD_DIV_2);
         float   cosBeta (cosf(beta)),  sinBeta (sinf(beta));
-        GFX_rotate(quaternion( cosAlpha*cosBeta, sinAlpha*cosBeta,
-                              -sinAlpha*sinBeta, cosAlpha*sinBeta));
+        gfx->rotate(quaternion( cosAlpha*cosBeta, sinAlpha*cosBeta,
+                               -sinAlpha*sinBeta, cosAlpha*sinBeta));
 
         objmesh->draw();
 
-        GFX_pop_matrix();
+        gfx->pop_matrix();
     }
 }
 

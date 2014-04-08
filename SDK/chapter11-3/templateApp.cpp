@@ -97,6 +97,8 @@ void program_bind_attrib_location(void *ptr) {
 }
 
 
+GFX *gfx = NULL;
+
 void program_draw(void *ptr)
 {
     PROGRAM *program = (PROGRAM *)ptr;
@@ -111,7 +113,7 @@ void program_draw(void *ptr)
             glUniformMatrix4fv(uniform.location,
                                1,
                                GL_FALSE,
-                               GFX_get_modelview_projection_matrix().m());
+                               gfx->get_modelview_projection_matrix().m());
         } else if (name == "PROJECTOR") {
             glUniform1i(uniform.location,
                         0);
@@ -130,19 +132,19 @@ void program_draw(void *ptr)
             glUniformMatrix4fv(uniform.location,
                                1,
                                GL_FALSE,
-                               GFX_get_modelview_matrix().m());
+                               gfx->get_modelview_matrix().m());
         } else if (name == "PROJECTIONMATRIX") {
             glUniformMatrix4fv(uniform.location,
                                1,
                                GL_FALSE,
-                               GFX_get_projection_matrix().m());
+                               gfx->get_projection_matrix().m());
 
             uniform.constant = true;
         } else if (name == "NORMALMATRIX") {
             glUniformMatrix3fv(uniform.location,
                                1,
                                GL_FALSE,
-                               GFX_get_normal_matrix().m());
+                               gfx->get_normal_matrix().m());
         } else if (name == "PROJECTORMATRIX") {
             glUniformMatrix4fv(uniform.location,
                                1,
@@ -191,7 +193,7 @@ void program_draw(void *ptr)
     light->spot_direction = center - vec3(light->position, true);
 
     light->spot_direction.safeNormalize();
-    light->push_to_shader(program);
+    light->push_to_shader(gfx, program);
 }
 
 
@@ -203,7 +205,7 @@ void templateAppInit(int width, int height)
 
     glGetIntegerv(GL_VIEWPORT, viewport_matrix);
 
-    GFX_start();
+    gfx = new GFX;
 
     obj = new OBJ(OBJ_FILE, true);
 
@@ -324,17 +326,17 @@ void draw_scene_from_projector(void)
      * coordinates from the projector (the spot) and project the texture
      * on the objects of the scene.
      */
-    GFX_set_matrix_mode(PROJECTION_MATRIX);
-    GFX_load_identity();
+    gfx->set_matrix_mode(PROJECTION_MATRIX);
+    gfx->load_identity();
 
-    GFX_set_perspective(light->spot_fov,
-                        (float)viewport_matrix[2] / (float)viewport_matrix[3],
-                        1.0f,
-                        20.0f,
-                        -90.0f);
+    gfx->set_perspective(light->spot_fov,
+                         (float)viewport_matrix[2] / (float)viewport_matrix[3],
+                           1.0f,
+                          20.0f,
+                         -90.0f);
 
-    GFX_set_matrix_mode(MODELVIEW_MATRIX);
-    GFX_load_identity();
+    gfx->set_matrix_mode(MODELVIEW_MATRIX);
+    gfx->load_identity();
     /* Execute a look_at to be able to gather the modelview matrix.  Note
      * that the position of the light and the camera as well as the
      * projection matrix are the same.  This will allow you to pretend that
@@ -342,7 +344,7 @@ void draw_scene_from_projector(void)
      * drawing anything, just gather the necessary matrices to be able to
      * project the texture from the spot.
      */
-    GFX_look_at(*(vec3 *)&light->position, center, up_axis);
+    gfx->look_at(*(vec3 *)&light->position, center, up_axis);
 
     projector_matrix[0][0] = 0.5f;
     projector_matrix[0][1] = 0.0f;
@@ -365,7 +367,7 @@ void draw_scene_from_projector(void)
     projector_matrix[3][3] = 1.0f;
 
     projector_matrix =
-        GFX_get_modelview_projection_matrix() * projector_matrix;
+        gfx->get_modelview_projection_matrix() * projector_matrix;
 
     /* Bind the shadowmap buffer to redirect the drawing to the shadowmap
      * frame buffer.
@@ -403,13 +405,13 @@ void draw_scene_from_projector(void)
     for (objmesh=obj->objmesh.begin();
          objmesh!=obj->objmesh.end(); ++objmesh) {
 
-        GFX_push_matrix();
+        gfx->push_matrix();
 
-        GFX_translate(objmesh->location);
+        gfx->translate(objmesh->location);
 
         objmesh->draw();
 
-        GFX_pop_matrix();
+        gfx->pop_matrix();
     }
     
     /* Restore that back faces should be culled. */
@@ -426,26 +428,26 @@ void draw_scene(void)
 
     glViewport(0, 0, viewport_matrix[2], viewport_matrix[3]);
 
-    GFX_set_matrix_mode(PROJECTION_MATRIX);
-    GFX_load_identity();
+    gfx->set_matrix_mode(PROJECTION_MATRIX);
+    gfx->load_identity();
 
-    GFX_set_perspective( 45.0f,
-                        (float)viewport_matrix[2] / (float)viewport_matrix[3],
-                        0.1f,
-                        100.0f,
-                        -90.0f);
+    gfx->set_perspective( 45.0f,
+                         (float)viewport_matrix[2] / (float)viewport_matrix[3],
+                           0.1f,
+                         100.0f,
+                         -90.0f);
 
-    GFX_set_matrix_mode(MODELVIEW_MATRIX);
-    GFX_load_identity();
+    gfx->set_matrix_mode(MODELVIEW_MATRIX);
+    gfx->load_identity();
 
     const float   alpha(-72.0f*DEG_TO_RAD_DIV_2);
     const float   cosAlpha(cosf(alpha)), sinAlpha(sinf(alpha));
     const float   beta(-48.5f*DEG_TO_RAD_DIV_2);
     const float   cosBeta(cosf(beta)), sinBeta(sinf(beta));
-    GFX_rotate(quaternion( cosAlpha*cosBeta, sinAlpha*cosBeta,
-                          -sinAlpha*sinBeta, cosAlpha*sinBeta));
+    gfx->rotate(quaternion( cosAlpha*cosBeta, sinAlpha*cosBeta,
+                           -sinAlpha*sinBeta, cosAlpha*sinBeta));
 
-    GFX_translate(-14.0f, 12.0f, -7.0f);
+    gfx->translate(-14.0f, 12.0f, -7.0f);
 
     mat4 projector_matrix_copy;
     
@@ -470,9 +472,9 @@ void draw_scene(void)
     for (objmesh=obj->objmesh.begin();
          objmesh!=obj->objmesh.end(); ++objmesh) {
 
-        GFX_push_matrix();
+        gfx->push_matrix();
 
-        GFX_translate(objmesh->location);
+        gfx->translate(objmesh->location);
 
         TStack  l;
         l.loadMatrix(projector_matrix_copy);
@@ -483,7 +485,7 @@ void draw_scene(void)
 
         objmesh->draw();
         
-        GFX_pop_matrix();
+        gfx->pop_matrix();
     }
 }
 

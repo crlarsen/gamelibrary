@@ -121,6 +121,8 @@ typedef struct
 
 
 struct NAVIGATION {
+    GFX                     *gfx;
+
     char                    name[MAX_CHAR] = "";
 
     NAVIGATIONCONFIGURATION navigationconfiguration;
@@ -133,11 +135,11 @@ struct NAVIGATION {
     
     PROGRAM                 *program;
 public:
-    NAVIGATION(char *name=NULL);
+    NAVIGATION(char *name);
     ~NAVIGATION();
     bool build(OBJMESH *objmesh);
     bool get_path(NAVIGATIONPATH *navigationpath, NAVIGATIONPATHDATA *navigationpathdata);
-    void draw();
+    void draw(GFX *gfx);
 };
 
 #endif

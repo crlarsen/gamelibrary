@@ -43,6 +43,7 @@ as being the original software.
 #define OBJ_FILE (char *)"scene.obj"
 PROGRAM *program = NULL;
 OBJ *obj = NULL;
+GFX *gfx = NULL;
 TEMPLATEAPP templateApp = {
     templateAppInit,
     templateAppDraw
@@ -76,7 +77,10 @@ void material_draw_callback(void *ptr)
             /* Send over the current model view matrix multiplied by the
              * projection matrix.
              */
-            glUniformMatrix4fv(uniform.location, 1, GL_FALSE, GFX_get_modelview_projection_matrix().m());
+            glUniformMatrix4fv(uniform.location,
+                               1,
+                               GL_FALSE,
+                               gfx->get_modelview_projection_matrix().m());
         }
     }
 }
@@ -85,17 +89,17 @@ void templateAppInit(int width, int height)
 {
     atexit(templateAppExit);
 
-    GFX_start();
+    gfx = new GFX;
     
     glViewport(0.0f, 0.0f, width, height);
     
-    GFX_set_matrix_mode(PROJECTION_MATRIX);
-    GFX_load_identity();
-    GFX_set_perspective( 45.0f,
-                        (float)width / (float)height,
-                          0.1f,
-                        100.0f,
-                        -90.0f);    // This time you will use a landscape
+    gfx->set_matrix_mode(PROJECTION_MATRIX);
+    gfx->load_identity();
+    gfx->set_perspective( 45.0f,
+                         (float)width / (float)height,
+                           0.1f,
+                         100.0f,
+                         -90.0f);   // This time you will use a landscape
                                     // view, so rotate the projection
                                     // matrix 90 degrees.
 
@@ -155,31 +159,31 @@ void templateAppDraw(void)
     glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
     glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
-    GFX_set_matrix_mode(MODELVIEW_MATRIX);
-    GFX_load_identity();
+    gfx->set_matrix_mode(MODELVIEW_MATRIX);
+    gfx->load_identity();
     vec3 e(0.0f, -6.0f, 1.35f), /* The location of the camera. */
          c(0.0f, -5.0f, 1.35f), /* Where the camera is looking. */
          u(0.0f,  0.0f, 1.0f);
     
-     GFX_look_at(e, c, u);
+     gfx->look_at(e, c, u);
 
     /* Loop for each OBJMESH. */
     for (auto objmesh=obj->objmesh.begin();
          objmesh!=obj->objmesh.end(); ++objmesh) {
         /* Push the current model view matrix down. */
-        GFX_push_matrix();
+        gfx->push_matrix();
 
         
         /* Translate the model view matrix use the location XYZ of the
          * current mesh.
          */
-        GFX_translate(objmesh->location);
+        gfx->translate(objmesh->location);
 
         /* Draw the mesh and its associated material(s) onscreen. */
         objmesh->draw();
 
         /* Pop the model view matrix back. */
-        GFX_pop_matrix();
+        gfx->pop_matrix();
     }
 }
 

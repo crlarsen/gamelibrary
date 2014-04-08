@@ -84,13 +84,15 @@ ALuint soundbuffer;
 
 ALuint soundsource;
 
+GFX *gfx = NULL;
+
 void templateAppInit( int width, int height )
 {
     // Setup the exit callback function.
     atexit( templateAppExit );
 
     // Initialize GLES.
-    GFX_start();
+    gfx = new GFX;
 
     // Setup a GLES viewport using the current width and height of the screen.
     glViewport( 0, 0, width, height );

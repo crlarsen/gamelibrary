@@ -49,13 +49,15 @@ as being the original software.
 
 #define FRAGMENT_SHADER (char *)"fragment.glsl"
 
+GFX *gfx = NULL;
+
 OBJ *obj = NULL;
 
 PROGRAM *program = NULL;
 
 vec3    move_location,
         move_delta;
-/* The variables that you are going to plug into the GFX_look_at function. */
+/* The variables that you are going to plug into the GFX::look_at function. */
 vec3    eye,
         center,
         up(0.0, 0.0, 1.0f);
@@ -169,18 +171,18 @@ void program_bind_attrib_location(void *ptr) {
 void templateAppInit(int width, int height) {
     atexit(templateAppExit);
 
-    GFX_start();
+    gfx = new GFX;
 
     glViewport(0.0f, 0.0f, width, height);
 
-    GFX_set_matrix_mode(PROJECTION_MATRIX);
-    GFX_load_identity();
+    gfx->set_matrix_mode(PROJECTION_MATRIX);
+    gfx->load_identity();
 
-    GFX_set_perspective(80.0f,
-                        (float)width / (float)height,
-                        0.1f,
-                        100.0f,
-                        -90.0f);
+    gfx->set_perspective( 80.0f,
+                         (float)width / (float)height,
+                           0.1f,
+                         100.0f,
+                         -90.0f);
 
     obj = new OBJ(OBJ_FILE, true);
 
@@ -249,8 +251,8 @@ void templateAppDraw(void) {
     glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
 
-    GFX_set_matrix_mode(MODELVIEW_MATRIX);
-    GFX_load_identity();
+    gfx->set_matrix_mode(MODELVIEW_MATRIX);
+    gfx->load_identity();
 
     /* First check if you have a force. */
     if (move_delta->z) {
@@ -261,8 +263,8 @@ void templateAppDraw(void) {
          * Reverse the move_delta->x to fit the current coordinate system.
          */
         player->btrigidbody->setAngularVelocity(btVector3(-move_delta->x * move_delta->z * 6.7f,
-                                                          move_delta->y * move_delta->z * 6.7f,
-                                                          0.0f));
+                                                           move_delta->y * move_delta->z * 6.7f,
+                                                           0.0f));
 
         /* Activate the rigid body; otherwise the setAngularVelocity call
          * will have no affect if the ball is deactivated.
@@ -275,14 +277,14 @@ void templateAppDraw(void) {
      */
     center = center * 0.975f + player->location * 0.025f;
 
-    GFX_look_at(eye,
-                center,
-                up);
+    gfx->look_at(eye,
+                 center,
+                 up);
 
     for (auto objmesh=obj->objmesh.begin();
          objmesh!=obj->objmesh.end(); ++objmesh) {
 
-        GFX_push_matrix();
+        gfx->push_matrix();
 
         mat4 mat;
 
@@ -290,16 +292,16 @@ void templateAppDraw(void) {
 
         objmesh->location = vec3(mat[3], true);
 
-        GFX_multiply_matrix(mat);
+        gfx->multiply_matrix(mat);
 
         glUniformMatrix4fv(program->uniform_map["MODELVIEWPROJECTIONMATRIX"].location,
                            1,
                            GL_FALSE,
-                           GFX_get_modelview_projection_matrix().m());
+                           gfx->get_modelview_projection_matrix().m());
 
         objmesh->draw();
         
-        GFX_pop_matrix();
+        gfx->pop_matrix();
     }
     
     dynamicsworld->stepSimulation(1.0f / 60.0f);
@@ -322,8 +324,8 @@ void templateAppToucheMoved(float x, float y, unsigned int tap_count)
     move_delta.safeNormalize();
 
     move_delta->z = CLAMP((move_location-touche).length() / 128.0f,
-                         0.0f,
-                         1.0f);
+                          0.0f,
+                          1.0f);
 }
 
 
