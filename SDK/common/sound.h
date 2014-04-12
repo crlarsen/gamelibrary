@@ -23,6 +23,7 @@ as being the original software.
 /*
  * Source code modified by Chris Larsen to make the following data types into
  * proper C++ classes:
+ * - AUDIO
  * - FONT
  * - GFX
  * - LIGHT
@@ -60,18 +61,21 @@ struct SOUNDBUFFER {
     MEMORY		*memory;
 
     unsigned int	bid[MAX_BUFFER] = {};
+
+    AUDIO               *audio;
 protected:
-    SOUNDBUFFER() {}
+    SOUNDBUFFER(AUDIO *audio=NULL) : audio(audio) {}
     void init(const char *name, MEMORY *memory);
 public:
-    SOUNDBUFFER(const char *name, MEMORY *memory);
+    SOUNDBUFFER(const char *name, MEMORY *memory, AUDIO *audio);
     ~SOUNDBUFFER();
     unsigned char decompress_chunk(unsigned int buffer_index);
 };
 
 struct SOUNDBUFFERSTREAM : SOUNDBUFFER {
 public:
-    SOUNDBUFFERSTREAM(const char *name, MEMORY *memory);
+    SOUNDBUFFERSTREAM(const char *name, MEMORY *memory, AUDIO *audio);
+    ~SOUNDBUFFERSTREAM() {}
 };
 
 struct SOUND {

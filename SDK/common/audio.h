@@ -20,38 +20,48 @@ as being the original software.
 3. This notice may not be removed or altered from any source distribution.
 
 */
+/*
+ * Source code modified by Chris Larsen to make the following data types into
+ * proper C++ classes:
+ * - AUDIO
+ * - FONT
+ * - GFX
+ * - LIGHT
+ * - MD5
+ * - MEMORY
+ * - NAVIGATION
+ * - OBJ
+ * - OBJMATERIAL
+ * - OBJMESH
+ * - OBJTRIANGLEINDEX
+ * - OBJTRIANGLELIST
+ * - OBJVERTEXDATA
+ * - PROGRAM
+ * - SHADER
+ * - SOUND
+ * - TEXTURE
+ * - THREAD
+ */
 
 #ifndef AUDIO_H
 #define AUDIO_H
 
 
-typedef struct
-{
+struct AUDIO {
 	ALCdevice		*al_device;
 
 	ALCcontext		*al_context;
 	
 	ov_callbacks	callbacks;
-		
-} AUDIO;
-
-
-extern AUDIO audio;
-
-void AUDIO_start( void );
-
-void AUDIO_stop( void );
-
-void AUDIO_error( void );
-
-void AUDIO_set_listener(vec3 &location, vec3 &direction, vec3 &up);
-
-size_t AUDIO_ogg_read( void *ptr, size_t size, size_t read, void *memory_ptr );
-
-int AUDIO_ogg_seek( void *memory_ptr, ogg_int64_t offset, int stride );
-
-long AUDIO_ogg_tell( void *memory_ptr );
-
-int AUDIO_ogg_close( void *memory_ptr );
+public:
+    AUDIO();
+    ~AUDIO();
+    void error();
+    void set_listener(vec3 &location, vec3 &direction, vec3 &up);
+    size_t ogg_read(void *ptr, size_t size, size_t read, void *memory_ptr);
+    int ogg_seek(void *memory_ptr, ogg_int64_t offset, int stride);
+    long ogg_tell(void *memory_ptr);
+    int ogg_close(void *memory_ptr);
+};
 
 #endif

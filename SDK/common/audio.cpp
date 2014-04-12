@@ -20,181 +20,229 @@ as being the original software.
 3. This notice may not be removed or altered from any source distribution.
 
 */
+/*
+ * Source code modified by Chris Larsen to make the following data types into
+ * proper C++ classes:
+ * - AUDIO
+ * - FONT
+ * - GFX
+ * - LIGHT
+ * - MD5
+ * - MEMORY
+ * - NAVIGATION
+ * - OBJ
+ * - OBJMATERIAL
+ * - OBJMESH
+ * - OBJTRIANGLEINDEX
+ * - OBJTRIANGLELIST
+ * - OBJVERTEXDATA
+ * - PROGRAM
+ * - SHADER
+ * - SOUND
+ * - TEXTURE
+ * - THREAD
+ */
 
 #include "gfx.h"
 
-AUDIO audio;
+// These functions need to be declared as functions which aren't members of AUDIO
+// so that they will be callable by the Ogg Vorbis library.  They're also declared
+// "static" so they aren't visible to most of the outside world.  AUDIO class
+// member fuctions are provided which just wrap these routines; the member functions
+// give public access to these "private" functions.
+static size_t AUDIO_ogg_read(void *ptr, size_t size, size_t read, void *memory_ptr);
 
-void AUDIO_start( void )
+static int AUDIO_ogg_seek(void *memory_ptr, ogg_int64_t offset, int stride);
+
+static long AUDIO_ogg_tell(void *memory_ptr);
+
+static int AUDIO_ogg_close(void *memory_ptr);
+
+AUDIO::AUDIO() :
+    al_device(alcOpenDevice(NULL)),
+    al_context(alcCreateContext(al_device, NULL))
 {
-	memset( &audio, 0, sizeof( AUDIO ) );
+    alcMakeContextCurrent(this->al_context);
 
-	audio.al_device = alcOpenDevice( NULL );
+    console_print( "\nAL_VENDOR:       %s\n", ( char * )alGetString ( AL_VENDOR     ) );
+    console_print( "AL_RENDERER:     %s\n"  , ( char * )alGetString ( AL_RENDERER   ) );
+    console_print( "AL_VERSION:      %s\n"  , ( char * )alGetString ( AL_VERSION    ) );
+    console_print( "AL_EXTENSIONS:   %s\n"  , ( char * )alGetString ( AL_EXTENSIONS ) );
 
-	audio.al_context = alcCreateContext( audio.al_device, NULL );
-
-	alcMakeContextCurrent( audio.al_context );
-
-	console_print( "\nAL_VENDOR:       %s\n", ( char * )alGetString ( AL_VENDOR     ) );
-	console_print( "AL_RENDERER:     %s\n"  , ( char * )alGetString ( AL_RENDERER   ) );
-	console_print( "AL_VERSION:      %s\n"  , ( char * )alGetString ( AL_VERSION    ) );
-	console_print( "AL_EXTENSIONS:   %s\n"  , ( char * )alGetString ( AL_EXTENSIONS ) );
-	
-	audio.callbacks.read_func  = AUDIO_ogg_read;
-	audio.callbacks.seek_func  = AUDIO_ogg_seek;
-	audio.callbacks.tell_func  = AUDIO_ogg_tell;
-	audio.callbacks.close_func = AUDIO_ogg_close;
+    this->callbacks.read_func  = AUDIO_ogg_read;
+    this->callbacks.seek_func  = AUDIO_ogg_seek;
+    this->callbacks.tell_func  = AUDIO_ogg_tell;
+    this->callbacks.close_func = AUDIO_ogg_close;
 }
 
 
-void AUDIO_stop( void )
+AUDIO::~AUDIO( void )
 {
-	alcMakeContextCurrent( NULL );
+    alcMakeContextCurrent(NULL);
 
-	alcDestroyContext( audio.al_context );
+    alcDestroyContext(al_context);
 
-	alcCloseDevice( audio.al_device );
-	
-	memset( &audio, 0, sizeof( AUDIO ) );
+    alcCloseDevice(al_device);
+
+    this->callbacks.read_func  = NULL;
+    this->callbacks.seek_func  = NULL;
+    this->callbacks.tell_func  = NULL;
+    this->callbacks.close_func = NULL;
 }
 
 
-void AUDIO_error( void )
+void AUDIO::error()
 {
-	unsigned int error;
+    unsigned int error;
 
-	while( ( error = glGetError() ) != GL_NO_ERROR )
-	{
-		char str[ MAX_CHAR ] = {""};
+    while( ( error = glGetError() ) != GL_NO_ERROR )
+    {
+        char str[ MAX_CHAR ] = {""};
 
-		switch( error )
-		{
-			case AL_INVALID_NAME:
-			{
-				strcpy( str, "AL_INVALID_NAME" );
-				break;
-			}
+        switch( error )
+        {
+            case AL_INVALID_NAME:
+            {
+                strcpy( str, "AL_INVALID_NAME" );
+                break;
+            }
 
-			case AL_INVALID_ENUM:
-			{
-				strcpy( str, "AL_INVALID_ENUM" );
-				break;
-			}
+            case AL_INVALID_ENUM:
+            {
+                strcpy( str, "AL_INVALID_ENUM" );
+                break;
+            }
 
-			case AL_INVALID_VALUE:
-			{
-				strcpy( str, "AL_INVALID_VALUE" );
-				break;
-			}
+            case AL_INVALID_VALUE:
+            {
+                strcpy( str, "AL_INVALID_VALUE" );
+                break;
+            }
 
-			case AL_INVALID_OPERATION:
-			{
-				strcpy( str, "AL_INVALID_OPERATION" );
-				break;
-			}
-
-			case AL_OUT_OF_MEMORY:
-			{
-				strcpy( str, "AL_OUT_OF_MEMORY" );
-				break;
-			}
-		}
-		
-		console_print( "[ AL_ERROR ]\nERROR: %s\n", str );
-	}
+            case AL_INVALID_OPERATION:
+            {
+                strcpy( str, "AL_INVALID_OPERATION" );
+                break;
+            }
+                
+            case AL_OUT_OF_MEMORY:
+            {
+                strcpy( str, "AL_OUT_OF_MEMORY" );
+                break;
+            }
+        }
+        
+        console_print( "[ AL_ERROR ]\nERROR: %s\n", str );
+    }
 }
 
 
-void AUDIO_set_listener( vec3 &location, vec3 &direction, vec3 &up )
+void AUDIO::set_listener(vec3 &location, vec3 &direction, vec3 &up)
 {
-	float orientation[ 6 ] = { direction->x, direction->y, direction->z,
-							   up->x, up->y, up->z };
+    float orientation[6] = { direction->x, direction->y, direction->z,
+        up->x, up->y, up->z };
 
-	alListener3f( AL_POSITION,
-				  location->x,
-				  location->y,
-				  location->z );
+    alListener3f(AL_POSITION,
+                 location->x,
+                 location->y,
+                 location->z);
 
-	alListenerfv( AL_ORIENTATION, &orientation[ 0 ] );
+    alListenerfv(AL_ORIENTATION, &orientation[0]);
 }
 
 
-size_t AUDIO_ogg_read( void *ptr, size_t size, size_t read, void *memory_ptr )
+static size_t AUDIO_ogg_read( void *ptr, size_t size, size_t read, void *memory_ptr )
 {
-	unsigned int seof,
-				 pos;
+    unsigned int    seof,
+                    pos;
 
-	MEMORY *memory = ( MEMORY * )memory_ptr;
+    MEMORY *memory = ( MEMORY * )memory_ptr;
 
-	seof = memory->size - memory->position;
+    seof = memory->size - memory->position;
 
-	pos = ( ( read * size ) < seof ) ?
-		  pos = read * size :
-		  pos = seof;
+    pos = ( ( read * size ) < seof ) ?
+    pos = read * size :
+    pos = seof;
 
-	if( pos )
-	{
-		memcpy( ptr, memory->buffer + memory->position, pos );
-		
-		memory->position += pos;
-	}
+    if (pos) {
+        memcpy( ptr, memory->buffer + memory->position, pos );
 
-	return pos;
+        memory->position += pos;
+    }
+    
+    return pos;
+}
+
+size_t AUDIO::ogg_read(void *ptr, size_t size, size_t read, void *memory_ptr)
+{
+    return AUDIO_ogg_read(ptr, size, read, memory_ptr);
+}
+
+static int AUDIO_ogg_seek( void *memory_ptr, ogg_int64_t offset, int stride )
+{
+    unsigned int pos;
+
+    MEMORY *memory = ( MEMORY * )memory_ptr;
+
+    switch( stride )
+    {
+        case SEEK_SET:
+        {
+            pos = ( memory->size >= offset ) ?
+            pos = ( unsigned int )offset :
+            pos = memory->size;
+
+            memory->position = pos;
+
+            break;
+        }
+
+        case SEEK_CUR:
+        {
+            unsigned int seof = memory->size - memory->position;
+
+            pos = ( offset < seof ) ?
+            pos = ( unsigned int )offset :
+            pos = seof;
+            
+            memory->position += pos;
+            
+            break;
+        }
+            
+        case SEEK_END:
+        {
+            memory->position = memory->size + 1;
+            
+            break;
+        }
+    };
+    
+    return 0;
+}
+
+int AUDIO::ogg_seek(void *memory_ptr, ogg_int64_t offset, int stride)
+{
+    return AUDIO_ogg_seek(memory_ptr, offset, stride);
 }
 
 
-int AUDIO_ogg_seek( void *memory_ptr, ogg_int64_t offset, int stride )
-{
-	unsigned int pos;
-
-	MEMORY *memory = ( MEMORY * )memory_ptr;
-
-	switch( stride )
-	{
-		case SEEK_SET:
-		{
-			pos = ( memory->size >= offset ) ?
-				  pos = ( unsigned int )offset :
-				  pos = memory->size;
-
-			memory->position = pos;
-
-			break;
-		}
-
-		case SEEK_CUR:
-		{
-			unsigned int seof = memory->size - memory->position;
-
-			pos = ( offset < seof ) ?
-				  pos = ( unsigned int )offset :
-				  pos = seof;
-
-			memory->position += pos;
-
-			break;
-		}
-
-		case SEEK_END:
-		{
-			memory->position = memory->size + 1;
-
-			break;
-		}
-	};
-
-	return 0;
-}
-
-
-long AUDIO_ogg_tell( void *memory_ptr )
+static long AUDIO_ogg_tell( void *memory_ptr )
 {
 	MEMORY *memory = ( MEMORY * )memory_ptr;
 
 	return memory->position;
 }
 
+long AUDIO::ogg_tell(void *memory_ptr)
+{
+    return AUDIO_ogg_tell(memory_ptr);
+}
 
-int AUDIO_ogg_close( void *memory_ptr )
+static int AUDIO_ogg_close( void *memory_ptr )
 { return memory_ptr ? 1 : 0; }
+
+int AUDIO::ogg_close(void *memory_ptr) {
+    return AUDIO_ogg_close(memory_ptr);
+}
 

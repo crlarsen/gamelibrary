@@ -23,6 +23,7 @@ as being the original software.
 /*
  * Source code modified by Chris Larsen to make the following data types into
  * proper C++ classes:
+ * - AUDIO
  * - FONT
  * - GFX
  * - LIGHT
@@ -57,13 +58,13 @@ void SOUNDBUFFER::init(const char *name, MEMORY *memory)
                       this->file,
                       NULL,
                       0,
-                      audio.callbacks);
+                      audio->callbacks);
 
     this->info = ov_info(this->file, -1);
 }
 
-SOUNDBUFFER::SOUNDBUFFER(const char *name, MEMORY *memory) :
-    file(NULL), memory(NULL)
+SOUNDBUFFER::SOUNDBUFFER(const char *name, MEMORY *memory, AUDIO *audio) :
+    file(NULL), memory(NULL), audio(audio)
 {
     char ext[MAX_CHAR] = {""};
 
@@ -102,7 +103,7 @@ SOUNDBUFFER::SOUNDBUFFER(const char *name, MEMORY *memory) :
             free(data);
         }
 
-        AUDIO_ogg_close(memory);
+        audio->ogg_close(memory);
 
         ov_clear(this->file);
 
@@ -114,7 +115,7 @@ SOUNDBUFFER::SOUNDBUFFER(const char *name, MEMORY *memory) :
     }
 }
 
-SOUNDBUFFERSTREAM::SOUNDBUFFERSTREAM(const char *name, MEMORY *memory) : SOUNDBUFFER()
+SOUNDBUFFERSTREAM::SOUNDBUFFERSTREAM(const char *name, MEMORY *memory, AUDIO *audio) : SOUNDBUFFER(audio)
 {
     char ext[MAX_CHAR] = {""};
 
@@ -180,7 +181,7 @@ SOUNDBUFFER::~SOUNDBUFFER()
     }
 
 
-    if (this->memory) AUDIO_ogg_close(this->memory);
+    if (this->memory) audio->ogg_close(this->memory);
 }
 
 
@@ -347,10 +348,10 @@ void SOUND::update_queue()
     
     
     if (!q && this->loop) {
-        AUDIO_ogg_seek(this->soundbuffer->file->datasource,
-                       0,
-                       SEEK_SET);
-        
+        soundbuffer->audio->ogg_seek(this->soundbuffer->file->datasource,
+                                     0,
+                                     SEEK_SET);
+
         while (i != MAX_BUFFER) {
             this->soundbuffer->decompress_chunk(i);
             ++i;

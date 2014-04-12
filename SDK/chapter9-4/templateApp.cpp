@@ -27,6 +27,7 @@ as being the original software.
 /*
  * Source code modified by Chris Larsen to make the following data types into
  * proper C++ classes:
+ * - AUDIO
  * - FONT
  * - MEMORY
  * - NAVIGATION
@@ -52,6 +53,8 @@ as being the original software.
 GFX *gfx = NULL;
 
 OBJ *obj = NULL;
+
+AUDIO *audio = NULL;
 
 vec3    eye,
         next_eye,
@@ -478,7 +481,7 @@ void load_level(void)
         /* For the current gem buffer index, create a sound buffer using the
          * contents of the memory structure that you have loaded.
          */
-        gems_soundbuffer[i] = new SOUNDBUFFER((char *)"gem", memory);
+        gems_soundbuffer[i] = new SOUNDBUFFER((char *)"gem", memory, audio);
 
         delete memory;
         /* Create a new sound source for the current index and link the
@@ -497,7 +500,7 @@ void load_level(void)
 
     memory = new MEMORY((char *)"water.ogg", true);
 
-    water_soundbuffer = new SOUNDBUFFER((char *)"water", memory);
+    water_soundbuffer = new SOUNDBUFFER((char *)"water", memory, audio);
 
     delete memory;
 
@@ -515,7 +518,7 @@ void load_level(void)
 
     memory = new MEMORY((char *)"lava.ogg", true);
 
-    lava_soundbuffer = new SOUNDBUFFER((char *)"lava", memory);
+    lava_soundbuffer = new SOUNDBUFFER((char *)"lava", memory, audio);
 
     delete memory;
 
@@ -533,7 +536,7 @@ void load_level(void)
 
     memory = new MEMORY((char *)"toxic.ogg", true);
 
-    toxic_soundbuffer = new SOUNDBUFFER((char *)"toxic", memory);
+    toxic_soundbuffer = new SOUNDBUFFER((char *)"toxic", memory, audio);
 
     delete memory;
 
@@ -551,7 +554,7 @@ void load_level(void)
 
     memory = new MEMORY((char *)"background.ogg", true);
 
-    background_soundbuffer = new SOUNDBUFFERSTREAM((char *)"background", memory);
+    background_soundbuffer = new SOUNDBUFFERSTREAM((char *)"background", memory, audio);
 
     background_sound = new SOUND((char *)"background", background_soundbuffer);
 
@@ -624,7 +627,7 @@ void templateAppInit(int width, int height) {
 
     gfx = new GFX;
 
-    AUDIO_start();
+    audio = new AUDIO;
 
     thread = new THREAD(decompress_stream, NULL, THREAD_PRIORITY_NORMAL, 1);
 
@@ -738,7 +741,7 @@ void templateAppDraw(void) {
 
     direction.safeNormalize();
 
-    AUDIO_set_listener(eye, direction, up);
+    audio->set_listener(eye, direction, up);
 
     gfx->look_at(eye,
                  player->location,
@@ -904,5 +907,6 @@ void templateAppExit(void) {
     delete thread;
     thread = NULL;
 
-    AUDIO_stop();
+    delete audio;
+    audio = NULL;
 }

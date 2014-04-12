@@ -23,6 +23,7 @@
 /*
  * Source code modified by Chris Larsen to make the following data types into
  * proper C++ classes:
+ * - AUDIO
  * - FONT
  * - GFX
  * - LIGHT

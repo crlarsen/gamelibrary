@@ -27,6 +27,7 @@ as being the original software.
 /*
  * Source code modified by Chris Larsen to make the following data types into
  * proper C++ classes:
+ * - AUDIO
  * - FONT
  * - MEMORY
  * - NAVIGATION
@@ -68,6 +69,8 @@ SOUND *wrong;
 SOUNDBUFFER *ambientbuffer;
 
 SOUND *ambient;
+
+AUDIO *audio;
 
 THREAD *thread = NULL;
 
@@ -162,7 +165,7 @@ void templateAppInit(int width, int height) {
     /* Helper function to initialize the device and context as you did at the
      * beginning of this chapter.
      */
-    AUDIO_start();
+    audio = new AUDIO;
 	
     glViewport(0.0f, 0.0f, width, height);
 
@@ -197,7 +200,7 @@ void templateAppInit(int width, int height) {
          * from disk to it.  Note that the OGG decompresiion is automatically
          * handled inside the SOUNDBUFFER_load function.
          */
-        soundbuffer[i] = new SOUNDBUFFER(soundfile, memory);
+        soundbuffer[i] = new SOUNDBUFFER(soundfile, memory, audio);
         /* Free the memory.  At this stage, the sound buffer has been sent
          * to the audio memory, so there is no need to keep the sound file
          * alive in local memory.  The buffer is ready to be used.
@@ -211,7 +214,7 @@ void templateAppInit(int width, int height) {
 
     /* Next, load the sound to play if the user makes a mistake. */
     memory = new MEMORY((char *)"wrong.ogg", true);
-    wrongbuffer = new SOUNDBUFFER((char *)"wrong", memory);
+    wrongbuffer = new SOUNDBUFFER((char *)"wrong", memory, audio);
     delete memory;
     wrong = new SOUND((char *)"wrong", wrongbuffer);
 
@@ -222,7 +225,7 @@ void templateAppInit(int width, int height) {
      * function will also automatically queue them in sequence for
      * real-time playback.
      */
-    ambientbuffer = new SOUNDBUFFERSTREAM((char *)"lounge", memory);
+    ambientbuffer = new SOUNDBUFFERSTREAM((char *)"lounge", memory, audio);
     ambient = new SOUND((char *)"name", ambientbuffer);
     /* The sound buffer has to be continuously streamed from memory, so
      * you will have to decompress small pieces of the OGG file and queue
@@ -618,7 +621,8 @@ void templateAppExit(void) {
     /* Free the sound buffer structure for the ambient music. */
     delete ambientbuffer;
     /* Stop OpenAL, and free the device and its associated context. */
-    AUDIO_stop();
+    delete audio;
+    audio = NULL;
 
     delete program;
     program = NULL;
