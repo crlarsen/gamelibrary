@@ -20,6 +20,27 @@ as being the original software.
 3. This notice may not be removed or altered from any source distribution.
 
 */
+/*
+ * Source code modified by Chris Larsen to make the following data types into
+ * proper C++ classes:
+ * - FONT
+ * - GFX
+ * - LIGHT
+ * - MD5
+ * - MEMORY
+ * - NAVIGATION
+ * - OBJ
+ * - OBJMATERIAL
+ * - OBJMESH
+ * - OBJTRIANGLEINDEX
+ * - OBJTRIANGLELIST
+ * - OBJVERTEXDATA
+ * - PROGRAM
+ * - SHADER
+ * - SOUND
+ * - TEXTURE
+ * - THREAD
+ */
 
 #ifndef TYPES_H
 #define TYPES_H

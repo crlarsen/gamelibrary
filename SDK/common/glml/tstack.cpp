@@ -8,27 +8,27 @@
 
 #include "tstack.h"
 
-void TStack::push()
+TStack &TStack::push()
 {
     if (mStack.size()) {
-        mat4    a(mStack.back());
-
-        // Can't use "mStack.push_back(mStack.back());" because
-        // push_back() might need to reallocate space and I don't know
-        // if the push_back() method will try to use the old or new
-        // location of mStack.back().
-        mStack.push_back(a);
+        mStack.resize(mStack.size()+1);
+        *(mStack.end()-1) = *(mStack.end()-2);
     } else {
+        // The stack is empty.  Push on the identity matrix.
         mStack.push_back(mat4(1));
     }
+
+    return *this;
 }
 
-void TStack::pop()
+TStack &TStack::pop()
 {
     if (mStack.size() == 1)
         throw stack_bottom("Already at bottom of transformation stack");
 
     mStack.pop_back();
+
+    return *this;
 }
 
 // Create rotation matrix from a quaternion
@@ -175,10 +175,31 @@ TStack &TStack::loadScaleFactors(const vec3 &s)
     return *this;
 }
 
+TStack &TStack::loadScaleFactors(const float sx, const float sy, const float sz)
+{
+    mat4    &M = mStack.back();
+
+    M[0][0] = sx;   M[0][1] = 0.0f; M[0][2] = 0.0f; M[0][3] = 0.0f;
+    M[1][0] = 0.0f; M[1][1] = sy;   M[1][2] = 0.0f; M[1][3] = 0.0f;
+    M[2][0] = 0.0f; M[2][1] = 0.0f; M[2][2] = sz;   M[2][3] = 0.0f;
+    M[3][0] = 0.0f; M[3][1] = 0.0f; M[3][2] = 0.0f; M[3][3] = 1.0f;
+
+    return *this;
+}
+
 TStack &TStack::scale(const vec3 &s)
 {
     for (int i=0; i!=s.nElems(); ++i)
         mStack.back()[i] *= s[i];
+
+    return *this;
+}
+
+TStack &TStack::scale(const float sx, const float sy, const float sz)
+{
+    mStack.back()[0] *= sx;
+    mStack.back()[1] *= sy;
+    mStack.back()[2] *= sz;
 
     return *this;
 }
@@ -202,6 +223,18 @@ TStack &TStack::loadTranslation(const vec3 &t)
     return *this;
 }
 
+TStack &TStack::loadTranslation(const float tx, const float ty, const float tz)
+{
+    mat4    &M = mStack.back();
+
+    M[0][0] = 1.0f; M[0][1] = 0.0f; M[0][2] = 0.0f; M[0][3] = 0.0f;
+    M[1][0] = 0.0f; M[1][1] = 1.0f; M[1][2] = 0.0f; M[1][3] = 0.0f;
+    M[2][0] = 0.0f; M[2][1] = 0.0f; M[2][2] = 1.0f; M[2][3] = 0.0f;
+    M[3][0] = tx;   M[3][1] = ty;   M[3][2] = tz;   M[3][3] = 1.0f;
+
+    return *this;
+}
+
 TStack &TStack::translate(const vec3 &t)
 {
     mat4    &M = mStack.back();
@@ -209,6 +242,19 @@ TStack &TStack::translate(const vec3 &t)
     for (int j=0; j<4; j++)
         for (int i=0; i<3; i++)
             M[3][j] += t[i] * M[i][j];
+
+    return *this;
+}
+
+TStack &TStack::translate(const float tx, const float ty, const float tz)
+{
+    mat4    &M = mStack.back();
+
+    for (int j=0; j<4; j++) {
+        M[3][j] += tx * M[0][j];
+        M[3][j] += ty * M[1][j];
+        M[3][j] += tz * M[2][j];
+    }
 
     return *this;
 }
@@ -227,10 +273,8 @@ TStack &TStack::multiplyMatrix(const mat4 &a)
     return *this;
 }
 
-// Apply a model transformation using gluLookAt()'s method
-TStack &TStack::lookAt(const vec3 &eye, const vec3 &center, const vec3 &up)
+static void lookAtMatrix(mat4 &m, const vec3 &eye, const vec3 &center, const vec3 &up)
 {
-    mat4    &M = mStack.back();
     vec3    f = (eye-center).normalize();       // This vector will get rotated to the Z-axis
     vec3    s = up.crossProduct(f).normalize(); // This vector will get rotated to the X-axis
     vec3    u = f.crossProduct(s);              // This vector will get rotated to the Y-axis
@@ -238,12 +282,48 @@ TStack &TStack::lookAt(const vec3 &eye, const vec3 &center, const vec3 &up)
               -eye.dotProduct(u),
               -eye.dotProduct(f));
 
-    M = mat4(s[0], u[0], f[0], 0.0f,
-             s[1], u[1], f[1], 0.0f,
-             s[2], u[2], f[2], 0.0f,
-             t[0], t[1], t[2], 1.0f) * M;
+    m[0][0] = s[0]; m[0][1] = u[0]; m[0][2] = f[0]; m[0][3] = 0.0f;
+    m[1][0] = s[1]; m[1][1] = u[1]; m[1][2] = f[1]; m[1][3] = 0.0f;
+    m[2][0] = s[2]; m[2][1] = u[2]; m[2][2] = f[2]; m[2][3] = 0.0f;
+    m[3][0] = t[0]; m[3][1] = t[1]; m[3][2] = t[2]; m[3][3] = 1.0f;
+}
+
+// Apply a model transformation using gluLookAt()'s method
+TStack &TStack::lookAt(const vec3 &eye, const vec3 &center, const vec3 &up)
+{
+    mat4    &M = mStack.back();
+    mat4    m;
+    mat3x4  tmp(M[0], M[1], M[2]);
+
+    lookAtMatrix(m, eye, center, up);
+
+    for (int i=0; i!=3; ++i) {
+        M[i] =  m[i][0]*tmp[0] + m[i][1]*tmp[1] + m[i][2]*tmp[2];
+        M[3] += m[3][i]*tmp[i];
+    }
+    
+    return *this;
+}
+
+TStack &TStack::loadLookAt(const vec3 &eye, const vec3 &center, const vec3 &up)
+{
+    lookAtMatrix(mStack.back(), eye, center, up);
 
     return *this;
+}
+
+static void frustumMatrix(mat4 &m,
+                          const float l, const float r,
+                          const float b, const float t,
+                          const float n, const float f)
+{
+    float   rml(r-l);
+    float   tmb(t-b);
+    float   fmn(f-n);
+    m[0][0] = 2*n/rml;   m[0][1] = 0.0f;      m[0][2] = 0.0f;       m[0][3] =  0.0f;
+    m[1][0] = 0.0f;      m[1][1] = 2*n/tmb;   m[1][2] = 0.0f;       m[1][3] =  0.0f;
+    m[2][0] = (r+l)/rml; m[2][1] = (t+b)/tmb; m[2][2] = -(f+n)/fmn; m[2][3] = -1.0f;
+    m[3][0] = 0.0f;      m[3][1] = 0.0f;      m[3][2] = -2*f*n/fmn; m[3][3] =  0.0f;
 }
 
 // Apply a projection transformation using glFrustum()'s method
@@ -252,17 +332,43 @@ TStack &TStack::frustum(const float l, const float r,
                         const float n, const float f)
 {
     mat4    &M = mStack.back();
+    mat4    m;
     vec4    tmp(M[2]);
 
-    M[2] = ((r+l)/(r-l))*M[0] +
-           ((t+b)/(t-b))*M[1] -
-           ((f+n)/(f-n))*M[2] -
-    M[3];
-    M[0] *= 2*n/(r-l);
-    M[1] *= 2*n/(t-b);
-    M[3] = (-2*f*n/(f-n))*tmp;
+    frustumMatrix(m, l, r, b, t, n, f);
+
+    M[2] =  m[2][0]*M[0] +
+            m[2][1]*M[1] +
+            m[2][2]*M[2] -
+                    M[3];
+    M[0] *= m[0][0];
+    M[1] *= m[1][1];
+    M[3] =  m[3][2]*tmp;
 
     return *this;
+}
+
+TStack &TStack::loadFrustum(const float l, const float r,
+                            const float b, const float t,
+                            const float n, const float f)
+{
+    frustumMatrix(mStack.back(), l, r, b, t, n, f);
+
+    return *this;
+}
+
+static void orthoMatrix(mat4 &m,
+                        const float l, const float r,
+                        const float b, const float t,
+                        const float n, const float f)
+{
+    float   rml(r-l);
+    float   tmb(t-b);
+    float   fmn(f-n);
+    m[0][0] = 2.0f/rml;   m[0][1] = 0.0f;       m[0][2] = 0.0f;       m[0][3] = 0.0f;
+    m[1][0] = 0.0f;       m[1][1] = 2.0f/tmb;   m[1][2] = 0.0f;       m[1][3] = 0.0f;
+    m[2][0] = 0.0f;       m[2][1] = 0.0f;       m[2][2] = -2.0f/fmn;  m[2][3] = 0.0f;
+    m[3][0] = -(r+l)/rml; m[3][1] = -(t+b)/tmb; m[3][2] = -(f+n)/fmn; m[3][3] = 1.0f;
 }
 
 // Apply a projection transformation using glOrtho()'s method
@@ -271,15 +377,40 @@ TStack &TStack::ortho(const float l, const float r,
                       const float n, const float f)
 {
     mat4    &M = mStack.back();
+    mat4    m;
 
-    M[3] += (-(r+l)/(r-l))*M[0] -
-            ((t+b)/(t-b))*M[1] -
-            ((f+n)/(f-n))*M[2];
-    M[0] *= 2/(r-l);
-    M[1] *= 2/(t-b);
-    M[2] *= -2/(f-n);
+    orthoMatrix(m, l, r, b, t, n, f);
+
+    M[3] += m[3][0]*M[0] +
+            m[3][1]*M[1] +
+            m[3][2]*M[2];
+    M[0] *= m[0][0];
+    M[1] *= m[1][1];
+    M[2] *= m[2][2];
 
     return *this;
+}
+
+TStack &TStack::loadOrtho(const float l, const float r,
+                          const float b, const float t,
+                          const float n, const float f)
+{
+    orthoMatrix(mStack.back(), l, r, b, t, n, f);
+
+    return *this;
+}
+
+static void perspectiveMatrix(mat4 &m,
+                              const float fovy, const float aspect,
+                              const float near, const float far)
+{
+//    float   f = 1 / tanf(DegreesToRadians(fovy)/2.0);   // cot(fovy/2)
+    float   f = tanf(M_PI_2 - DegreesToRadians(fovy*0.5));  // cot(fovy/2)
+
+    m[0][0] = f/aspect; m[0][1] = 0.0f; m[0][2] = 0.0f;                     m[0][3] =  0.0f;
+    m[1][0] = 0.0f;     m[1][1] = f;    m[1][2] = 0.0f;                     m[1][3] =  0.0f;
+    m[2][0] = 0.0f;     m[2][1] = 0.0f; m[2][2] = (far+near)/(near-far);    m[2][3] = -1.0f;
+    m[3][0] = 0.0f;     m[3][1] = 0.0f; m[3][2] = 2.0f*far*near/(near-far); m[3][3] =  0.0f;
 }
 
 // Apply a projection transformation using gluPerspective()'s method
@@ -287,16 +418,23 @@ TStack &TStack::perspective(const float fovy, const float aspect,
                             const float near, const float far)
 {
     mat4    &M = mStack.back();
-
-//    float   f = 1 / tanf(DegreesToRadians(fovy)/2.0);   // cot(fovy)
-    float   f = tanf(M_PI_2 - DegreesToRadians(fovy*0.5));  // cot(fovy)
-
+    mat4    m;
     vec4    tmp(M[2]);
 
-    M[0] *= f/aspect;
-    M[1] *= f;
-    M[2] = ((far+near)/(near-far))*tmp - M[3];
-    M[3] = (2*far*near/(near-far))*tmp;
+    perspectiveMatrix(m, fovy, aspect, near, far);
+
+    M[0] *= m[0][0];
+    M[1] *= m[1][1];
+    M[2] =  m[2][2]*tmp - M[3];
+    M[3] =  m[3][2]*tmp;
+
+    return *this;
+}
+
+TStack &TStack::loadPerspective(const float fovy, const float aspect,
+                                const float near, const float far)
+{
+    perspectiveMatrix(mStack.back(), fovy, aspect, near, far);
 
     return *this;
 }

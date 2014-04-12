@@ -72,11 +72,11 @@ void templateAppInit( int width, int height )
     {
         /* Clean the projection matrix by loading an identity matrix. */
         gfx->load_identity();
-        gfx->set_perspective(45.0f,  // Field of view angle in degree.
-                            static_cast<float>(width)/static_cast<float>(height),   // The screen aspect ratio.
-                            0.01f,  // The near clipping plane.
-                            100.0f, // The far clipping plane.
-                            0.0f);  // The device screen orientation in angle to use.
+        gfx->set_perspective( 45.0f,    // Field of view angle in degree.
+                             static_cast<float>(width)/static_cast<float>(height),   // The screen aspect ratio.
+                               0.01f,   // The near clipping plane.
+                             100.0f,    // The far clipping plane.
+                               0.0f);   // The device screen orientation in angle to use.
 
         glDisable(GL_CULL_FACE);
     }

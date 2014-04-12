@@ -34,8 +34,8 @@ public:
         mStack.push_back(mat4(1));
     }
     ~TStack(void) {}
-    void push(void);
-    void pop(void);
+    TStack &push(void);
+    TStack &pop(void);
     mat4 &back(void) {
         return mStack.back();
     }
@@ -68,21 +68,34 @@ public:
     TStack &rotate(const float, const vec3 &);
     TStack &rotate(const quaternion &);
     TStack &loadScaleFactors(const vec3 &);
+    TStack &loadScaleFactors(const float, const float, const float);
     TStack &scale(const vec3 &);
+    TStack &scale(const float, const float, const float);
     TStack &loadTranslation(const vec3 &);
+    TStack &loadTranslation(const float, const float, const float);
     TStack &translate(const vec3 &);
+    TStack &translate(const float, const float, const float);
     TStack &loadMatrix(const mat4 &);
     TStack &multiplyMatrix(const mat4 &);
     const mat3 getNormalMatrix(void) const;
     TStack &lookAt(const vec3 &eye, const vec3 &center, const vec3 &up);
+    TStack &loadLookAt(const vec3 &eye, const vec3 &center, const vec3 &up);
     TStack &frustum(const float left, const float right,
                     const float bottom, const float top,
                     const float near, const float far);
+    TStack &loadFrustum(const float left, const float right,
+                        const float bottom, const float top,
+                        const float near, const float far);
     TStack &ortho(const float left, const float right,
                   const float bottom, const float top,
                   const float near, const float far);
+    TStack &loadOrtho(const float left, const float right,
+                      const float bottom, const float top,
+                      const float near, const float far);
     TStack &perspective(const float fovy, const float aspect,
                         const float near, const float far);
+    TStack &loadPerspective(const float fovy, const float aspect,
+                            const float near, const float far);
     mat4 &pickMatrix(const float x, const float y,
                      const float width, const float height,
                      const int *viewport);

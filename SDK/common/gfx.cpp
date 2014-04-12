@@ -23,9 +23,6 @@ as being the original software.
 
 #include "gfx.h"
 
-GFX *currentGfx;
-
-
 #ifndef __IPHONE_4_0
 
     PFNGLBINDVERTEXARRAYOESPROC		glBindVertexArrayOES;
@@ -68,8 +65,6 @@ GFX::GFX() :
     glClearColor( 0.0f, 0.0f, 0.0f, 1.0f );
 
     glClear( GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT | GL_COLOR_BUFFER_BIT );
-
-    currentGfx = this;
 
 #ifndef __IPHONE_4_0
 
@@ -268,9 +263,29 @@ void GFX::multiply_matrix(const mat4 &m)
 
 void GFX::translate(const float x, const float y, const float z)
 {
-    vec3 v(x, y, z);
+    switch ( matrix_mode )
+    {
+        case MODELVIEW_MATRIX:
+        {
+            modelview_matrix.translate(x, y, z);
 
-    translate(v);
+            break;
+        }
+
+        case PROJECTION_MATRIX:
+        {
+            projection_matrix.translate(x, y, z);
+
+            break;
+        }
+
+        case TEXTURE_MATRIX:
+        {
+            texture_matrix.translate(x, y, z);
+            
+            break;
+        }		
+    }
 }
 
 
@@ -304,7 +319,7 @@ void GFX::translate(const vec3 &t)
 
 void GFX::rotate(const float angle, const float x, const float y, const float z)
 {
-    if( !angle ) return;
+    if (!angle) return;
 
     vec4 v(x, y, z, angle);
 
@@ -336,7 +351,7 @@ void GFX::rotate(const float angle, const float x, const float y, const float z)
 
 void GFX::rotate(const quaternion &q)
 {
-    if(q.w==1.0f || q.w==-1.0f) return;
+    if (q.w==1.0f || q.w==-1.0f) return;
 
     switch( matrix_mode )
     {
@@ -366,24 +381,39 @@ void GFX::rotate(const quaternion &q)
 
 void GFX::scale(const float x, const float y, const float z)
 {
-    static vec3 s(1.0f, 1.0f, 1.0f);
+    if (x==1.0f && y==1.0f && z==1.0f) return;
 
-    vec3 v(x, y, z);
+    switch ( matrix_mode )
+    {
+        case MODELVIEW_MATRIX:
+        {
+            modelview_matrix.scale(x, y, z);
 
-    if (v == s) return;
+            break;
+        }
 
-    scale(v);
+        case PROJECTION_MATRIX:
+        {
+            projection_matrix.scale(x, y, z);
+
+            break;
+        }
+
+        case TEXTURE_MATRIX:
+        {
+            texture_matrix.scale(x, y, z);
+            
+            break;
+        }		
+    }
 }
 
 
 void GFX::scale(const vec3 &v)
 {
-    static vec3 scale(1.0f, 1.0f, 1.0f);
+    if (v->x==1.0f && v->y==1.0f && v->z==1.0f) return;
 
-    if (v == scale) return;
-
-
-    switch( matrix_mode )
+    switch (matrix_mode )
     {
         case MODELVIEW_MATRIX:
         {
@@ -445,8 +475,8 @@ mat3 &GFX::get_normal_matrix( void )
 
 
 void GFX::ortho(const float left, const float right,
-               const float bottom, const float top,
-               const float clip_start, const float clip_end)
+                const float bottom, const float top,
+                const float clip_start, const float clip_end)
 {
     switch( matrix_mode )
     {
@@ -484,15 +514,15 @@ void GFX::set_orthographic(const float screen_ratio, float s, const float aspect
     s = ( s * 0.5f ) * aspect_ratio;
 
     ortho(-1.0f,
-              1.0f,
-              -screen_ratio,
-              screen_ratio,
-              clip_start,
-              clip_end );
+           1.0f,
+          -screen_ratio,
+           screen_ratio,
+          clip_start,
+          clip_end );
 
     scale( 1.0f / s, 1.0f / s, 1.0f );
 
-    if( screen_orientation ) rotate( screen_orientation, 0.0f, 0.0f, 1.0f );
+    if (screen_orientation ) rotate( screen_orientation, 0.0f, 0.0f, 1.0f );
 }
 
 
@@ -500,7 +530,7 @@ void GFX::set_perspective(const float fovy, const float aspect_ratio,
                           const float clip_start, const float clip_end,
                           const float screen_orientation)
 {
-    switch( matrix_mode )
+    switch (matrix_mode )
     {
         case MODELVIEW_MATRIX:
         {
@@ -564,10 +594,10 @@ bool GFX::project(const float objx, const float objy, const float objz,
                   float *winx, float *winy, float *winz)
 {
     return project(vec3(objx, objy, objz),
-                       modelview_matrix,
-                       projection_matrix,
-                       viewport_matrix,
-                       winx, winy, winz);
+                   modelview_matrix,
+                   projection_matrix,
+                   viewport_matrix,
+                   winx, winy, winz);
 }
 
 bool GFX::project(const vec3 &obj,
@@ -583,7 +613,7 @@ bool GFX::project(const vec3 &obj,
 
     vin = vout * projection_matrix;
 
-    if( !vin->w ) return false;
+    if (!vin->w) return false;
 
     vin->x /= vin->w;
     vin->y /= vin->w;

@@ -25,6 +25,7 @@ as being the original software.
  * Source code modified by Chris Larsen to make the following data types into
  * proper C++ classes:
  * - FONT
+ * - GFX
  * - LIGHT
  * - MD5
  * - MEMORY
@@ -225,19 +226,11 @@ public:
                    const mat4 &projection_matrix,
                    const int *viewport_matrix,
                    vec3 &obj);
-    static GFX *current_gfx(void);
 private:
     // Don't allow GFX objects to be copied.
     GFX(const GFX &);
     GFX &operator=(const GFX &);
 };
-
-extern GFX *currentGfx;
-
-inline GFX *GFX::current_gfx(void)
-{
-    return currentGfx;
-}
 
 #include "types.h"
 #include "thread.h"
