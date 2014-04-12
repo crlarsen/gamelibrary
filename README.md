@@ -17,6 +17,8 @@ authors for the various included works.
 History
 =======
 
+Apr 12, 2014 - Finish conversion of GFX into class; convert AUDIO, as well.
+
 Apr 7, 2014 - Convert more of GFX module to use TStack methods.
 
 Jan 8, 2014 - Merge consecutive rotations into a single rotation.
