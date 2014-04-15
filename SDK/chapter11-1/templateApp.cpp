@@ -333,7 +333,7 @@ void first_pass(void)
      * texture width and height, but do not recalculate the aspect
      * ratio of the perspective matrix.  The image will be scaled to
      * fit the screen resolution, so you have to make sure that the
-     * perspective ration in which the scene is drawn fits the
+     * perspective ratio in which the scene is drawn fits the
      * original fullscreen viewport size.
      */
     glViewport(0, 0, colorbuffer_width, colorbuffer_height);
@@ -456,9 +456,21 @@ void templateAppDraw(void) {
     gfx->set_matrix_mode(PROJECTION_MATRIX);
     gfx->load_identity();
 
-    gfx->set_perspective( 45.0f,
+    // Adjust "Field of View Y" angle for devices which has an aspect
+    // ratio which is wider than the origin iPhone (3:2).  Devices which
+    // have a narrower aspect ratio (such as iPad) work fine, as is.
+    const float iPhoneOriginalWidth =320.0f;
+    const float iPhoneOriginalHeight=480.0f;
+    const float originalFovy=45.0f;
+    float fovy(originalFovy);
+    if (viewport_matrix[3]*iPhoneOriginalWidth > viewport_matrix[2]*iPhoneOriginalHeight) {
+        float   h = (iPhoneOriginalHeight*0.5f) / tanf(originalFovy*0.5f*DEG_TO_RAD)
+        ;
+        fovy = 2.0f * atan2f(((float)viewport_matrix[3])*0.5, h) * RAD_TO_DEG;
+    }
+    gfx->set_perspective(fovy,
                          (float)viewport_matrix[2] / (float)viewport_matrix[3],
-                         0.1f,
+                           0.1f,
                          100.0f,
                          -90.0f);
 

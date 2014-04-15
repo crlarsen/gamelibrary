@@ -200,8 +200,18 @@ void templateAppInit(int width, int height) {
     gfx->set_matrix_mode(PROJECTION_MATRIX);
     gfx->load_identity();
 
-
-    gfx->set_perspective( 80.0f,
+    // Adjust "Field of View Y" angle for devices which has an aspect
+    // ratio which is wider than the origin iPhone (3:2).  Devices which
+    // have a narrower aspect ratio (such as iPad) work fine, as is.
+    const float iPhoneOriginalWidth =320.0f;
+    const float iPhoneOriginalHeight=480.0f;
+    const float originalFovy=80.0f;
+    float fovy(originalFovy);
+    if (height*iPhoneOriginalWidth > width*iPhoneOriginalHeight) {
+        float   h = (iPhoneOriginalHeight*0.5f) / tanf(originalFovy*0.5f*DEG_TO_RAD);
+        fovy = 2.0f * atan2f(((float)height)*0.5, h) * RAD_TO_DEG;
+    }
+    gfx->set_perspective(fovy,
                          (float)width / (float)height,
                            1.0f,
                          100.0f,

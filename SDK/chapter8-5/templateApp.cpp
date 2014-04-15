@@ -476,7 +476,19 @@ void templateAppDraw(void) {
 
     gfx->set_matrix_mode(PROJECTION_MATRIX);
     gfx->load_identity();
-    gfx->set_perspective(  80.0f,
+
+    // Adjust "Field of View Y" angle for devices which has an aspect
+    // ratio which is wider than the origin iPhone (3:2).  Devices which
+    // have a narrower aspect ratio (such as iPad) work fine, as is.
+    const float iPhoneOriginalWidth =320.0f;
+    const float iPhoneOriginalHeight=480.0f;
+    const float originalFovy=80.0f;
+    float fovy(originalFovy);
+    if (viewport_matrix[3]*iPhoneOriginalWidth > viewport_matrix[2]*iPhoneOriginalHeight) {
+        float   h = (iPhoneOriginalHeight*0.5f) / tanf(originalFovy*0.5f*DEG_TO_RAD);
+        fovy = 2.0f * atan2f(((float)viewport_matrix[3])*0.5, h) * RAD_TO_DEG;
+    }
+    gfx->set_perspective(fovy,
                          (float)viewport_matrix[2] / (float)viewport_matrix[3],
                             1.0f,
                          1000.0f,
@@ -764,11 +776,17 @@ void templateAppDraw(void) {
              * the next line.
              */
             font = new FONT((char *)"foo.ttf");
+            float   hScale(viewport_matrix[3]/iPhoneOriginalHeight);
+            float   wScale(viewport_matrix[2]/iPhoneOriginalWidth);
+            float   fontScale(hScale<wScale ? hScale : wScale);
+            int     iScale=0;
+            for (int i=1; i<(int)fontScale; i<<=1)
+                iScale++;
             font->load(font->name,
                        true,
-                       64.0f,
-                       512,
-                       512,
+                       64.0f*fontScale,
+                       512<<iScale,
+                       512<<iScale,
                        32,
                        96);
         }

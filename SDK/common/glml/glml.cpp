@@ -13,7 +13,7 @@
  * commercial purposes without the express consent, and licensing of the
  * copyright holder.
  *
-*/
+ */
 
 #include "glml.h"
 
